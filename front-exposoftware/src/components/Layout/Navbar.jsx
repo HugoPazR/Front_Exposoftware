@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { FiLogIn } from "react-icons/fi"; // Icono de inicio de sesión
+import { FiLogIn } from "react-icons/fi";
 import logo from "../../assets/Logo-unicesar.png";
+
 
 export default function Navbar() {
   return (
