@@ -12,7 +12,7 @@ export default function Home() {
             {/* Contenido izquierdo */}
             <div className="space-y-6">
               <h1 className="text-5xl lg:text-6xl font-bold text-green-600 leading-tight">
-                XI Jornada de Investigación EXPOSOFTWARE
+                XXI Jornada de Investigación EXPOSOFTWARE
               </h1>
               
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-800">
