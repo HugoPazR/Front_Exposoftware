@@ -1,7 +1,16 @@
-export default function App() {
+import Navbar from "./components/Layout/Navbar";
+import Footer from "./components/Layout/Footer";
+
+function App() {
   return (
-    <h1 className="text-4xl font-bold text-blue-500 text-center mt-10">
-      ¡Tailwind y PrimeReact funcionando! 🚀
-    </h1>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-1 bg-gray-50">
+        {/* Aquí irán las rutas */}
+      </main>
+      <Footer />
+    </div>
   );
 }
+
+export default App;
