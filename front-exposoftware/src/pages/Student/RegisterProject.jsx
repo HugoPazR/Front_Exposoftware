@@ -42,6 +42,24 @@ const LINES = [
   }
 ];
 
+// Mock áreas temáticas (ejemplo)
+const AREAS = [
+  { id: 'a1', name: 'Tecnologías de la información' },
+  { id: 'a2', name: 'Ciencias de la computación' },
+  { id: 'a3', name: 'Ingeniería de software' },
+  { id: 'a4', name: 'Inteligencia artificial' },
+];
+
+// Mapeo de áreas por sublínea (ejemplo simplificado). Las claves son los ids de las sublíneas (s1..s6)
+const AREAS_BY_SUBLINE = {
+  s1: [ { id: 'a2', name: 'Ciencias de la computación' }, { id: 'a1', name: 'Tecnologías de la información' } ],
+  s2: [ { id: 'a1', name: 'Tecnologías de la información' } ],
+  s3: [ { id: 'a3', name: 'Ingeniería de software' } ],
+  s4: [ { id: 'a3', name: 'Ingeniería de software' }, { id: 'a1', name: 'Tecnologías de la información' } ],
+  s5: [ { id: 'a4', name: 'Inteligencia artificial' } ],
+  s6: [ { id: 'a4', name: 'Inteligencia artificial' }, { id: 'a2', name: 'Ciencias de la computación' } ],
+};
+
 const MOCK = {
   materias: [
     { id: "m1", name: "Algoritmos" },
@@ -75,6 +93,7 @@ export default function RegisterProject() {
     profesor: "",
     linea: "",
     sublinea: "",
+    area: "",
   });
 
   useEffect(() => {
@@ -91,6 +110,13 @@ export default function RegisterProject() {
       setForm(s => ({...s, profesor: profList[0] || ''}));
     }
   }, [form.materia, form.grupo]);
+
+  // Limpiar área cuando cambia la línea o la sublínea
+  useEffect(() => {
+    // si se quita la sublínea, limpiar el área
+    setForm(s => ({ ...s, area: s.sublinea ? s.area : '' }));
+    // nota: también dejamos la lógica de limpieza directa en los onChange para más claridad
+  }, [form.linea, form.sublinea]);
 
   const toggleStudent = (name) => {
     setForm(s => {
@@ -158,12 +184,12 @@ export default function RegisterProject() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Subida de poster.jpg</label>
-                  <input type="file" accept="image/*" onChange={e=>handleFile(e,'poster')} />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Subida de poster.pdf</label>
+                  <input type="file" accept=".pdf,application/pdf" onChange={e=>handleFile(e,'poster')} className="w-full text-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Subida de diapositivas.ppt</label>
-                  <input type="file" accept=".ppt,.pptx" onChange={e=>handleFile(e,'diapositivas')} />
+                  <input type="file" accept=".ppt,.pptx" onChange={e=>handleFile(e,'diapositivas')} className="w-full text-sm" />
                 </div>
               </div>
 
@@ -207,22 +233,35 @@ export default function RegisterProject() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Línea de investigación</label>
-                  <select value={form.linea} onChange={e=>{ const lineId = e.target.value; setForm(s=>({...s,linea: lineId, sublinea: ''})); }} className="w-full border border-gray-200 rounded-lg px-3 py-2">
+                  <select value={form.linea} onChange={e=>{ const lineId = e.target.value; setForm(s=>({...s,linea: lineId, sublinea: '', area: ''})); }} className="w-full border border-gray-200 rounded-lg px-3 py-2">
                     <option value="">Seleccionar línea</option>
                     {LINES.map(l => (<option key={l.id} value={l.id}>{l.name}</option>))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Sublínea</label>
-                  <select value={form.sublinea} onChange={e=>setForm(s=>({...s,sublinea:e.target.value}))} className="w-full border border-gray-200 rounded-lg px-3 py-2">
+                  <select value={form.sublinea} onChange={e=>setForm(s=>({...s,sublinea:e.target.value, area: ''}))} className="w-full border border-gray-200 rounded-lg px-3 py-2">
                     <option value="">Seleccionar sublínea</option>
                     {(LINES.find(l => l.id === form.linea)?.sublines || []).map(sl => (
                       <option key={sl.id} value={sl.id}>{sl.name}</option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Área temática</label>
+                  {/* Mostrar solo áreas asociadas a la sublínea seleccionada. Si no hay sublínea, deshabilitar. */}
+                  {(() => {
+                    const availableAreas = AREAS_BY_SUBLINE[form.sublinea] || [];
+                    return (
+                      <select value={form.area} onChange={e=>setForm(s=>({...s,area:e.target.value}))} className="w-full border border-gray-200 rounded-lg px-3 py-2" disabled={availableAreas.length===0}>
+                        <option value="">{availableAreas.length===0 ? 'Selecciona línea y sublínea primero' : 'Seleccionar área temática'}</option>
+                        {availableAreas.map(a => (<option key={a.id} value={a.id}>{a.name}</option>))}
+                      </select>
+                    );
+                  })()}
                 </div>
               </div>
             </>

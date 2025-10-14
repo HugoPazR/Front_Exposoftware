@@ -6,13 +6,16 @@ import StudentDashboard from "./pages/Student/Dashboard";
 import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
+import TeacherDashboard from "./pages/Teacher/Dashboard";
+import StudentProjects from "./pages/Teacher/Studentprojects";
+import TeacherProfile from "./pages/Teacher/Profile";
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 function App() {
   const location = useLocation();
-  const hideNavbarOn = ["/student/dashboard", "/student/profile", "/student/proyectos"];
+  const hideNavbarOn = ["/student/dashboard", "/student/profile", "/student/proyectos", "/teacher/dashboard", "/teacher/profile", "/teacher/proyectos"];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -27,6 +30,11 @@ function App() {
           
           {/* Dashboard de Estudiante */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
+          
+          {/* Dashboard de Profesor */}
+          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+          <Route path="/teacher/proyectos" element={<StudentProjects />} />
+          <Route path="/teacher/profile" element={<TeacherProfile />} />
           
           {/* Otras rutas */}
           <Route path="/student/profile" element={<Profile />} />
