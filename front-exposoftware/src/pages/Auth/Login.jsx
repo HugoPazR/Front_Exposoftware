@@ -8,7 +8,7 @@ function LoginPage() {
       <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
 
         {/* Panel informativo */}
-        <aside className="w-1/2 bg-green-600 text-white p-10 flex flex-col justify-center">
+        <aside className="w-1/2 bg-gradient-to-r from-green-500 to-green-700 text-white p-10 flex flex-col justify-center">
           <header className="mb-6">
             <h1 className="text-3xl font-bold">&lt;/&gt; Expo-Software 2025</h1>
           </header>
