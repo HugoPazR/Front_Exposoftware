@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import Home from "./pages/Home/Home";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register"
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -21,7 +23,8 @@ function App() {
           {/* Otras rutas */}
           <Route path="/projects" element={<div className="container mx-auto px-8 py-16">Página de Proyectos (Por crear)</div>} />
           <Route path="/about" element={<div className="container mx-auto px-8 py-16">Página Acerca de (Por crear)</div>} />
-          <Route path="/login" element={<div className="container mx-auto px-8 py-16">Página Login (Por crear)</div>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/upload" element={<div className="container mx-auto px-8 py-16">Subir Proyecto (Por crear)</div>} />
           <Route path="/proyectos-anteriores" element={<div className="container mx-auto px-8 py-16">Proyectos Anteriores (Por crear)</div>} />
           
