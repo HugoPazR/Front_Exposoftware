@@ -69,7 +69,7 @@ export default function Footer() {
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-green-700 transition">
               <FaFacebook />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-green-700 transition">
+            <a href="https://www.instagram.com/ingsistemasunicesar/" target="_blank" rel="noopener noreferrer" className="hover:text-green-700 transition">
               <FaInstagram />
             </a>
             <a href="https://wa.me/573000000000" target="_blank" rel="noopener noreferrer" className="hover:text-green-700 transition">
