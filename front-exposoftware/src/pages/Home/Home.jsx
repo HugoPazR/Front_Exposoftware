@@ -7,7 +7,9 @@ export default function Home() {
   
   const images = [
     "https://elpilon2024.s3.us-west-2.amazonaws.com/2024/12/IMG_0427.jpeg",
-    "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg"
+    "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg",
+    "https://www.unicesar.edu.co/wp-content/uploads/2025/06/Registro-3._11zon-980x653.webp",
+    // Agrega más imágenes aquí si necesitas
   ];
   
   useEffect(() => {
@@ -17,7 +19,7 @@ export default function Home() {
     }, 5000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [images.length]);
   
   return (
     <div className="w-full overflow-x-hidden">
@@ -56,45 +58,45 @@ export default function Home() {
             <div className={`space-y-4 sm:space-y-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
               
               {/* Badge animado */}
-              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold shadow-md hover:shadow-lg transition-all hover:scale-105">
-                <span className="relative flex h-2 w-2">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 to-green-50 text-green-700 px-5 py-2.5 rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105 border border-green-200">
+                <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
                 </span>
                 Evento en curso • 2025
               </div>
               
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-green-600 leading-tight drop-shadow-sm">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-green-600 leading-tight drop-shadow-lg">
                 XXI Jornada de Investigación{" "}
-                <span className="bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-green-600 via-green-700 to-green-900 bg-clip-text text-transparent animate-gradient">
                   EXPOSOFTWARE
                 </span>
               </h1>
               
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 drop-shadow-sm flex items-center gap-2">
-                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 drop-shadow-md flex items-center gap-3">
+                <svg className="w-7 h-7 sm:w-9 sm:h-9 text-green-600 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                 </svg>
                 Universidad Popular del Cesar
               </h2>
               
-              <p className="text-base sm:text-lg text-gray-700 leading-relaxed drop-shadow-sm">
+              <p className="text-base sm:text-lg text-gray-700 leading-relaxed drop-shadow-sm max-w-2xl">
                 ¡Bienvenidos a la fiesta del conocimiento y la innovación! Un espacio donde la creatividad de nuestros estudiantes y docentes cobra vida a través de proyectos de software que marcan la diferencia. Prepárense para explorar, aprender e inspirarse.
               </p>
               
               {/* Stats rápidos */}
-              <div className="grid grid-cols-3 gap-4 py-4">
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-600">XXI</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Edición</div>
+              <div className="grid grid-cols-3 gap-4 py-6">
+                <div className="text-center group cursor-default">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-green-600 group-hover:scale-110 transition-transform duration-300">XXI</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium">Edición</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-600">100+</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Proyectos</div>
+                <div className="text-center group cursor-default">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-green-600 group-hover:scale-110 transition-transform duration-300">100+</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium">Proyectos</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl font-bold text-green-600">500+</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Participantes</div>
+                <div className="text-center group cursor-default">
+                  <div className="text-2xl sm:text-3xl font-extrabold text-green-600 group-hover:scale-110 transition-transform duration-300">500+</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium">Participantes</div>
                 </div>
               </div>
               
@@ -164,40 +166,40 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {/* Paso 1 */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-green-200 transition-all hover:shadow-lg">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-green-300 transition-all hover:shadow-xl transform hover:-translate-y-2 duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-3">1. Idea y Equipo</h3>
-              <p className="text-gray-600 text-center text-sm sm:text-base">
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-3 group-hover:text-green-600 transition-colors">1. Idea y Equipo</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base leading-relaxed">
                 Forma tu equipo y desarrolla una idea de proyecto innovador que resuelva una problemática real.
               </p>
             </div>
             
             {/* Paso 2 */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-yellow-200 transition-all hover:shadow-lg">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-yellow-300 transition-all hover:shadow-xl transform hover:-translate-y-2 duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md">
                 <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-3">2. Inscribe tu Proyecto</h3>
-              <p className="text-gray-600 text-center text-sm sm:text-base">
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-3 group-hover:text-yellow-600 transition-colors">2. Inscribe tu Proyecto</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base leading-relaxed">
                 Completa el formulario de inscripción en nuestra plataforma antes de la fecha límite.
               </p>
             </div>
             
             {/* Paso 3 */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-green-200 transition-all hover:shadow-lg">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-green-300 transition-all hover:shadow-xl transform hover:-translate-y-2 duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-3">3. Presenta y Gana</h3>
-              <p className="text-gray-600 text-center text-sm sm:text-base">
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-3 group-hover:text-green-600 transition-colors">3. Presenta y Gana</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base leading-relaxed">
                 Prepara tu presentación y demuestre el potencial de tu proyecto ante los jurados y la comunidad.
               </p>
             </div>
@@ -209,29 +211,32 @@ export default function Home() {
       <section className="bg-gradient-to-br from-green-50 to-white py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-green-600 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-green-600 mb-4">
               Fechas Clave
             </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Mantente al tanto de los momentos importantes del evento
+            </p>
           </div>
           
           <div className="max-w-4xl mx-auto">
             {/* Timeline vertical */}
             <div className="relative">
               {/* Línea vertical */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-green-300 hidden md:block"></div>
+              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-green-200 via-green-300 to-green-400 hidden md:block shadow-sm"></div>
               
               {/* Evento 1 - Lanzamiento */}
               <div className="relative mb-8 md:mb-12">
                 <div className="flex flex-col md:flex-row items-center">
                   <div className="w-full md:w-5/12 md:text-right md:pr-8 mb-4 md:mb-0">
-                    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all border-2 border-green-100">
-                      <span className="text-yellow-500 font-bold text-sm">30 de Octubre, 2025</span>
+                    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all border-2 border-green-100 hover:border-green-300 transform hover:-translate-y-1 duration-300">
+                      <span className="text-yellow-500 font-bold text-sm uppercase tracking-wide">30 de Octubre, 2025</span>
                       <h3 className="text-xl font-bold text-gray-800 mt-2">Lanzamiento de la Convocatoria</h3>
-                      <p className="text-gray-600 text-sm mt-2">Se abren las inscripciones para todos los proyectos.</p>
+                      <p className="text-gray-600 text-sm mt-2 leading-relaxed">Se abren las inscripciones para todos los proyectos.</p>
                     </div>
                   </div>
-                  <div className="w-8 h-8 bg-yellow-400 rounded-full border-4 border-white shadow-lg z-10 flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full border-4 border-white shadow-xl z-10 flex items-center justify-center transform hover:scale-110 transition-transform">
+                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
                   </div>
                   <div className="w-full md:w-5/12 md:pl-8"></div>
                 </div>
@@ -241,14 +246,14 @@ export default function Home() {
               <div className="relative mb-8 md:mb-12">
                 <div className="flex flex-col md:flex-row items-center">
                   <div className="w-full md:w-5/12 md:pr-8"></div>
-                  <div className="w-8 h-8 bg-yellow-400 rounded-full border-4 border-white shadow-lg z-10 flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full border-4 border-white shadow-xl z-10 flex items-center justify-center transform hover:scale-110 transition-transform">
+                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
                   </div>
                   <div className="w-full md:w-5/12 md:pl-8 md:mt-0 mt-4">
-                    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all border-2 border-green-100">
-                      <span className="text-yellow-500 font-bold text-sm">5 de Noviembre, 2025</span>
+                    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all border-2 border-green-100 hover:border-green-300 transform hover:-translate-y-1 duration-300">
+                      <span className="text-yellow-500 font-bold text-sm uppercase tracking-wide">5 de Noviembre, 2025</span>
                       <h3 className="text-xl font-bold text-gray-800 mt-2">Cierre de Inscripciones</h3>
-                      <p className="text-gray-600 text-sm mt-2">Último día para registrar tu proyecto en la plataforma.</p>
+                      <p className="text-gray-600 text-sm mt-2 leading-relaxed">Último día para registrar tu proyecto en la plataforma.</p>
                     </div>
                   </div>
                 </div>
@@ -258,14 +263,14 @@ export default function Home() {
               <div className="relative mb-8 md:mb-12">
                 <div className="flex flex-col md:flex-row items-center">
                   <div className="w-full md:w-5/12 md:text-right md:pr-8 mb-4 md:mb-0">
-                    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all border-2 border-green-100">
-                      <span className="text-yellow-500 font-bold text-sm">15 de Noviembre, 2025</span>
+                    <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all border-2 border-green-100 hover:border-green-300 transform hover:-translate-y-1 duration-300">
+                      <span className="text-yellow-500 font-bold text-sm uppercase tracking-wide">15 de Noviembre, 2025</span>
                       <h3 className="text-xl font-bold text-gray-800 mt-2">Presentación de Proyectos Inscritos</h3>
-                      <p className="text-gray-600 text-sm mt-2">Exhibición de los proyectos que harán parte de la exposición.</p>
+                      <p className="text-gray-600 text-sm mt-2 leading-relaxed">Exhibición de los proyectos que harán parte de la exposición.</p>
                     </div>
                   </div>
-                  <div className="w-8 h-8 bg-yellow-400 rounded-full border-4 border-white shadow-lg z-10 flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full border-4 border-white shadow-xl z-10 flex items-center justify-center transform hover:scale-110 transition-transform">
+                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
                   </div>
                   <div className="w-full md:w-5/12 md:pl-8"></div>
                 </div>
@@ -275,16 +280,16 @@ export default function Home() {
               <div className="relative">
                 <div className="flex flex-col md:flex-row items-center">
                   <div className="w-full md:w-5/12 md:pr-8"></div>
-                  <div className="w-8 h-8 bg-green-500 rounded-full border-4 border-white shadow-lg z-10 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full border-4 border-white shadow-2xl z-10 flex items-center justify-center transform hover:scale-110 transition-transform">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                     </svg>
                   </div>
                   <div className="w-full md:w-5/12 md:pl-8 md:mt-0 mt-4">
-                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
-                      <span className="text-yellow-300 font-bold text-sm">15 de Noviembre, 2025</span>
+                    <div className="bg-gradient-to-br from-green-500 via-green-600 to-green-700 rounded-xl p-6 shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 duration-300 border-2 border-green-400">
+                      <span className="text-yellow-300 font-bold text-sm uppercase tracking-wide">15 de Noviembre, 2025</span>
                       <h3 className="text-xl font-bold text-white mt-2">Día del Evento</h3>
-                      <p className="text-green-50 text-sm mt-2">Presentaciones, conferencias, ponencias y premiación.</p>
+                      <p className="text-green-50 text-sm mt-2 leading-relaxed">Presentaciones, conferencias, ponencias y premiación.</p>
                     </div>
                   </div>
                 </div>
@@ -300,10 +305,10 @@ export default function Home() {
           
           {/* Título de sección */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-4">
               ¿Por qué participar?
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto text-base sm:text-lg">
               Descubre las razones que hacen de EXPOSOFTWARE el evento académico más importante del año
             </p>
           </div>
@@ -311,34 +316,34 @@ export default function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             
             {/* Card 1 - Innovación */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-green-200 transition-all hover:shadow-lg">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-green-300 transition-all hover:shadow-xl transform hover:-translate-y-2 duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg">
                 <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-3">Innovación</h3>
-              <p className="text-gray-600 text-center text-sm sm:text-base">
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-3 group-hover:text-green-600 transition-colors">Innovación</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base leading-relaxed">
                 Proyectos que transforman ideas en soluciones tecnológicas reales que impactan a la sociedad
               </p>
             </div>
             
             {/* Card 2 - Colaboración */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-purple-200 transition-all hover:shadow-lg">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-purple-300 transition-all hover:shadow-xl transform hover:-translate-y-2 duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg">
                 <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-3">Colaboración</h3>
-              <p className="text-gray-600 text-center text-sm sm:text-base">
+              <h3 className="text-xl font-bold text-gray-800 text-center mb-3 group-hover:text-purple-600 transition-colors">Colaboración</h3>
+              <p className="text-gray-600 text-center text-sm sm:text-base leading-relaxed">
                 Espacio de encuentro entre estudiantes, docentes e industria para crear sinergias
               </p>
             </div>
             
             {/* Card 3 - Excelencia */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-orange-200 transition-all hover:shadow-lg sm:col-span-2 lg:col-span-1">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="group bg-white rounded-2xl p-6 sm:p-8 border-2 border-gray-100 hover:border-orange-300 transition-all hover:shadow-xl sm:col-span-2 lg:col-span-1 transform hover:-translate-y-2 duration-300">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg">
                 <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                 </svg>
@@ -354,16 +359,26 @@ export default function Home() {
       </section>
       
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-green-600 to-green-700 py-12 sm:py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+      <section className="bg-gradient-to-r from-green-600 via-green-700 to-green-800 py-16 sm:py-20 relative overflow-hidden">
+        {/* Elementos decorativos de fondo */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-green-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-900/20 rounded-full blur-3xl"></div>
+        
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white mb-4 drop-shadow-lg">
             ¿Listo para mostrar tu proyecto?
           </h2>
-          <p className="text-green-50 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-green-50 text-base sm:text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
             Únete a la comunidad de innovadores y comparte tu trabajo con cientos de estudiantes, profesores y profesionales
           </p>
-          <Link to="/student/dashboard" className="inline-block bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105 transform">
-            Registrarse Ahora
+          <Link 
+            to="/teacher/dashboard" 
+            className="inline-flex items-center gap-3 bg-white text-green-600 px-10 py-5 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all shadow-2xl hover:shadow-3xl hover:scale-105 transform duration-300 border-2 border-green-100"
+          >
+            <span>Registrarse Ahora</span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
           </Link>
         </div>
       </section>

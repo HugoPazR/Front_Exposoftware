@@ -9,13 +9,17 @@ import MyProjects from "./pages/Student/MyProjects";
 import TeacherDashboard from "./pages/Teacher/Dashboard";
 import StudentProjects from "./pages/Teacher/Studentprojects";
 import TeacherProfile from "./pages/Teacher/Profile";
+import AdminDashboard from "./pages/Admin/Dashboard";
+import CreateGroup from "./pages/Admin/CreateGroup";
+import CreateSubject from "./pages/Admin/CreateSubject";
+import AdminProfile from "./pages/Admin/Profile";
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 function App() {
   const location = useLocation();
-  const hideNavbarOn = ["/student/dashboard", "/student/profile", "/student/proyectos", "/teacher/dashboard", "/teacher/profile", "/teacher/proyectos"];
+  const hideNavbarOn = ["/student/dashboard", "/student/profile", "/student/proyectos", "/teacher/dashboard", "/teacher/profile", "/teacher/proyectos", "/admin/dashboard", "/admin/profile", "/admin/crear-materia", "/admin/crear-grupo"];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -35,6 +39,12 @@ function App() {
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/proyectos" element={<StudentProjects />} />
           <Route path="/teacher/profile" element={<TeacherProfile />} />
+          
+          {/* Dashboard de Admin */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/crear-grupo" element={<CreateGroup />} />
+          <Route path="/admin/crear-materia" element={<CreateSubject />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
           
           {/* Otras rutas */}
           <Route path="/student/profile" element={<Profile />} />
