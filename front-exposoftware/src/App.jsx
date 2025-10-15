@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import Home from "./pages/Home/Home";
@@ -9,9 +9,12 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 function App() {
+  const location = useLocation();
+  const hideNavbarOn = ["/student/dashboard", "/student/profile", "/student/proyectos", "/teacher/dashboard", "/teacher/profile", "/teacher/proyectos"];
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      {!hideNavbarOn.includes(location.pathname) && <Navbar />}
       <main className="flex-1">
         <Routes>
           {/* Ruta principal - Home */}
@@ -20,7 +23,18 @@ function App() {
           {/* Redirección de /home a / */}
           <Route path="/home" element={<Navigate to="/" replace />} />
           
+          {/* Dashboard de Estudiante */}
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          
+          {/* Dashboard de Profesor */}
+          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+          <Route path="/teacher/proyectos" element={<StudentProjects />} />
+          <Route path="/teacher/profile" element={<TeacherProfile />} />
+          
           {/* Otras rutas */}
+          <Route path="/student/profile" element={<Profile />} />
+          <Route path="/student/register-project" element={<RegisterProject />} />
+          <Route path="/student/proyectos" element={<MyProjects />} />
           <Route path="/projects" element={<div className="container mx-auto px-8 py-16">Página de Proyectos (Por crear)</div>} />
           <Route path="/about" element={<div className="container mx-auto px-8 py-16">Página Acerca de (Por crear)</div>} />
           <Route path="/login" element={<Login />} />
