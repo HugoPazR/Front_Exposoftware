@@ -46,6 +46,7 @@ function App() {
           <Route path="/admin/crear-materia" element={<CreateSubject />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
           
+          
           {/* Otras rutas */}
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/register-project" element={<RegisterProject />} />

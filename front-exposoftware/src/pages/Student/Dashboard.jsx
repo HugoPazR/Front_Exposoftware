@@ -1,9 +1,41 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from "recharts";
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Datos para gráficas
+  const proyectosPorCategoria = [
+    { name: "Web", value: 15, color: "#10b981" },
+    { name: "Móvil", value: 12, color: "#3b82f6" },
+    { name: "IA", value: 8, color: "#8b5cf6" },
+    { name: "Otro", value: 7, color: "#f59e0b" },
+  ];
+
+  const participacionSemanal = [
+    { dia: "Lun", proyectos: 3 },
+    { dia: "Mar", proyectos: 7 },
+    { dia: "Mié", proyectos: 5 },
+    { dia: "Jue", proyectos: 9 },
+    { dia: "Vie", proyectos: 6 },
+  ];
+
+  const COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b"];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,6 +125,131 @@ export default function StudentDashboard() {
             {/* Convocatoria Activa */}
             {activeTab === "dashboard" && (
               <>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {/* Card 1 */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Proyectos Totales</p>
+                        <h3 className="text-2xl font-bold text-gray-900">42</h3>
+                      </div>
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i className="pi pi-briefcase text-green-600"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2 */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Días Restantes</p>
+                        <h3 className="text-2xl font-bold text-gray-900">46</h3>
+                      </div>
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i className="pi pi-calendar text-blue-600"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 3 */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Participantes</p>
+                        <h3 className="text-2xl font-bold text-gray-900">156</h3>
+                      </div>
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i className="pi pi-users text-purple-600"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gráficas Pequeñas */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Gráfica de Categorías */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4">
+                      Proyectos por Categoría
+                    </h4>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie
+                          data={proyectosPorCategoria}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={70}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {proyectosPorCategoria.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#fff',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {proyectosPorCategoria.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full" 
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="text-xs text-gray-600">{item.name}: {item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Gráfica de Actividad Semanal */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-4">
+                      Registros Esta Semana
+                    </h4>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <LineChart data={participacionSemanal}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="dia" 
+                          tick={{ fontSize: 11 }}
+                          stroke="#9ca3af"
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 11 }}
+                          stroke="#9ca3af"
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#fff',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="proyectos" 
+                          stroke="#10b981" 
+                          strokeWidth={2}
+                          dot={{ fill: '#10b981', r: 4 }}
+                          name="Proyectos"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -144,8 +301,19 @@ export default function StudentDashboard() {
                     </div>
                   </div>
 
-                  <Link to="/student/register-project" className="w-full inline-block text-center bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                    Postular Proyecto
+                  <Link to="/student/register-project" className="relative w-full inline-block text-center bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-all duration-300 hover:scale-105 hover:shadow-lg group overflow-hidden">
+                    {/* Efecto de brillo animado */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+                    
+                    {/* Pulso sutil */}
+                    <span className="absolute inset-0 rounded-lg animate-pulse bg-green-400 opacity-25"></span>
+                    
+                    {/* Contenido del botón */}
+                    <span className="relative flex items-center justify-center gap-2">
+                      <i className="pi pi-send"></i>
+                      Postular Proyecto
+                      <i className="pi pi-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                    </span>
                   </Link>
                 </div>
               </>

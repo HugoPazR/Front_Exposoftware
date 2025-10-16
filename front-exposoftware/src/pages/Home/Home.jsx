@@ -372,7 +372,7 @@ export default function Home() {
             Únete a la comunidad de innovadores y comparte tu trabajo con cientos de estudiantes, profesores y profesionales
           </p>
           <Link 
-            to="/teacher/dashboard" 
+            to="/student/dashboard" 
             className="inline-flex items-center gap-3 bg-white text-green-600 px-10 py-5 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all shadow-2xl hover:shadow-3xl hover:scale-105 transform duration-300 border-2 border-green-100"
           >
             <span>Registrarse Ahora</span>
