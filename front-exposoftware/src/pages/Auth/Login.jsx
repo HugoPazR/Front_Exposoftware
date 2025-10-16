@@ -1,12 +1,43 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function LoginPage() {
-  return (
-    <main className="min-h-screen flex items-center justify-center bg-green-50">
-      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
+  const images = [
+    "https://elpilon2024.s3.us-west-2.amazonaws.com/2024/12/IMG_0427.jpeg",
+    "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg",
+  ];
 
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Cambia automáticamente la imagen cada 5 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  return (
+    <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* Carrusel de fondo */}
+      {images.map((img, index) => (
+        <div
+          key={index}
+          className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out ${
+            index === currentImageIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
+          }`}
+          style={{ backgroundImage: `url(${img})` }}
+        ></div>
+      ))}
+
+      {/* Capa translúcida */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-green-50/85"></div>
+
+      {/* Contenido principal (tu código intacto) */}
+      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden relative z-10">
         {/* Panel informativo */}
         <aside className="w-1/2 bg-gradient-to-r from-green-500 to-green-700 text-white p-10 flex flex-col justify-center">
           <header className="mb-6">
