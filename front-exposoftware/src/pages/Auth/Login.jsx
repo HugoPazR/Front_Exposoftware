@@ -9,6 +9,9 @@ function LoginPage() {
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [correo, setCorreo] = useState("");
+  const [contraseña, setcontraseña] = useState("");
+  const [errores, setErrores] = useState({});
 
   // Cambia automáticamente la imagen cada 5 segundos
   useEffect(() => {
@@ -20,6 +23,26 @@ function LoginPage() {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  const manejarSubmit = (e) => {
+  e.preventDefault();
+
+  // Expresión regular para validar correos (sencilla y efectiva)
+  const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+
+  if (!correo.trim() && !contraseña.trim()) {
+    alert("Por favor completa todos los campos.");
+  } else if (!correo.trim()) {
+    alert("El campo de correo está vacío.");
+  } else if (!contraseña.trim()) {
+    alert("El campo de contraseña está vacío.");
+  } else if (!correoValido.test(correo)) {
+    alert("Por favor ingresa un correo electrónico válido (ejemplo: usuario@dominio.com).");
+  } else {
+    alert("✅ Inicio de sesión exitoso.");
+  }
+};
+
+
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Carrusel de fondo */}
@@ -27,7 +50,9 @@ function LoginPage() {
         <div
           key={index}
           className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out ${
-            index === currentImageIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            index === currentImageIndex
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-105"
           }`}
           style={{ backgroundImage: `url(${img})` }}
         ></div>
@@ -46,10 +71,12 @@ function LoginPage() {
 
           <article>
             <p className="text-lg mb-3">
-              Descubre los proyectos más innovadores desarrollados por estudiantes y profesores.
+              Descubre los proyectos más innovadores desarrollados por
+              estudiantes y profesores.
             </p>
             <p className="text-sm mb-10">
-              Una vitrina digital de talento tecnológico y creatividad académica.
+              Una vitrina digital de talento tecnológico y creatividad
+              académica.
             </p>
           </article>
 
@@ -75,22 +102,22 @@ function LoginPage() {
         {/* Panel de inicio de sesión */}
         <section className="w-1/2 p-10 flex flex-col justify-center">
           <header className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Iniciar Sesión
+            </h2>
             <p className="text-gray-500">Bienvenido de nuevo a Exposoftware</p>
           </header>
 
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={manejarSubmit}>
             <fieldset>
               <label className="block text-sm font-medium mb-1 text-gray-600">
                 Correo Electrónico
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Mail className="absolute left-3 top-3 text-gray-400" size={18}/>
                 <input
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 
-                             focus:outline-none focus:ring-2 focus:ring-green-500"
+                  type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} placeholder="tu@email.com"
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </fieldset>
@@ -100,13 +127,13 @@ function LoginPage() {
                 Contraseña
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <input
-                  type="password"
-                  placeholder="********"
-                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 
-                             focus:outline-none focus:ring-2 focus:ring-green-500"
+                <Lock
+                  className="absolute left-3 top-3 text-gray-400"
+                  size={18}
                 />
+                <input
+                  type="password" value={contraseña} onChange={(e) => setcontraseña(e.target.value)} placeholder="********"
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"/>
               </div>
             </fieldset>
 
@@ -122,15 +149,17 @@ function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
-            >
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition">
               Iniciar Sesión
             </button>
           </form>
 
           <footer className="text-sm text-center mt-5 text-gray-600">
             ¿No tienes una cuenta?{" "}
-            <Link to="/register" className="text-green-700 font-semibold hover:underline">
+            <Link
+              to="/register"
+              className="text-green-700 font-semibold hover:underline"
+            >
               Regístrate aquí
             </Link>
           </footer>
