@@ -12,6 +12,9 @@ import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
 import About from "./pages/Home/About";
+import GuestDashboard from "./pages/Guest/Dashboard.jsx";
+import GuestProjects from "./pages/Guest/Proyects";
+import GuestProfile from "./pages/Guest/Profile";
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -28,6 +31,9 @@ function App() {
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
+    "/guest/dashboard",
+    "/guest/profile",
+    "/guest/proyectos"
   ];
 
   return (
@@ -57,6 +63,10 @@ function App() {
           <Route path="/teacher/proyectos" element={<StudentProjects />} />
           <Route path="/teacher/profile" element={<TeacherProfile />} />
 
+          {/* Dashboard de Invitado/Guest */}
+          <Route path="/guest/dashboard" element={<GuestDashboard />} />
+          <Route path="/guest/proyectos" element={<GuestProjects />} />
+          <Route path="/guest/profile" element={<GuestProfile />} />
 
           {/* Páginas informativas */}
           <Route
