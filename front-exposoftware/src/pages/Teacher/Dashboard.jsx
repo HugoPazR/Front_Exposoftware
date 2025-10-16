@@ -1,137 +1,44 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
-
-// BarChart Component
-function BarChart({ data, height = 200 }) {
-  if (!data || data.length === 0) return null;
-
-  const maxValue = Math.max(...data.map(d => d.value));
-
-  return (
-    <div className="w-full">
-      <div className="flex items-end justify-between gap-3 px-4" style={{ height: `${height}px` }}>
-        {data.map((item, idx) => {
-          const barHeight = (item.value / maxValue) * (height - 40);
-          return (
-            <div key={idx} className="flex flex-col items-center justify-end flex-1 h-full">
-              <div className="relative group flex flex-col items-center justify-end h-full w-full">
-                <span className="text-xs font-semibold text-gray-700 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.value}
-                </span>
-                
-                <div
-                  className="bg-green-600 rounded-t w-full transition-all hover:bg-green-700 relative"
-                  style={{ height: `${barHeight}px`, minHeight: '20px' }}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">{item.value}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <span className="text-xs text-gray-600 mt-2 text-center leading-tight">
-                {item.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// DonutChart Component
-function DonutChart({ data, total }) {
-  if (!data || data.length === 0) return null;
-
-  let cumulativePercent = 0;
-
-  const getCoordinatesForPercent = (percent) => {
-    const x = Math.cos(2 * Math.PI * percent);
-    const y = Math.sin(2 * Math.PI * percent);
-    return [x, y];
-  };
-
-  const slices = data.map((item) => {
-    const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-    cumulativePercent += item.value / total;
-    const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
-    const largeArcFlag = item.value / total > 0.5 ? 1 : 0;
-
-    const pathData = [
-      `M ${startX} ${startY}`,
-      `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-      `L 0 0`,
-    ].join(' ');
-
-    return { ...item, pathData, percentage: ((item.value / total) * 100).toFixed(1) };
-  });
-
-  return (
-    <div className="flex flex-col items-center w-full">
-      <div className="relative flex items-center justify-center" style={{ width: '220px', height: '220px' }}>
-        <svg viewBox="-1 -1 2 2" style={{ transform: 'rotate(-90deg)' }} className="w-full h-full">
-          {slices.map((slice, idx) => (
-            <path 
-              key={idx} 
-              d={slice.pathData} 
-              fill={slice.color}
-              className="transition-opacity hover:opacity-80 cursor-pointer"
-            />
-          ))}
-          <circle cx="0" cy="0" r="0.6" fill="white" />
-        </svg>
-        
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{total}</p>
-            <p className="text-xs text-gray-500">Proyectos</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex flex-col gap-2 mt-6 w-full">
-        {data.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full flex-shrink-0" 
-                style={{ backgroundColor: item.color }} 
-              />
-              <span className="text-sm text-gray-700">{item.label}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-900">{item.value}</span>
-              <span className="text-xs text-gray-500">({slices[idx].percentage}%)</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 // Main Dashboard Component
 export default function TeacherDashboard() {
   const [selectedMateria, setSelectedMateria] = useState("Todas");
   const [selectedGrupo, setSelectedGrupo] = useState("Todos");
 
+  // Datos para gráfica de barras
   const barChartData = [
-    { label: "G1 (Software)", value: 45 },
-    { label: "G2 (Redes)", value: 28 },
-    { label: "G3 (IA)", value: 52 },
-    { label: "G4 (SO)", value: 38 },
-    { label: "G5 (BD)", value: 35 },
+    { name: "G1 (Software)", estudiantes: 45 },
+    { name: "G2 (Redes)", estudiantes: 28 },
+    { name: "G3 (IA)", estudiantes: 52 },
+    { name: "G4 (SO)", estudiantes: 38 },
+    { name: "G5 (BD)", estudiantes: 35 },
   ];
 
+  // Datos para gráfica de dona/pie
   const donutChartData = [
-    { label: "Aprobado", value: 15, color: "#10b981" },
-    { label: "Pendiente", value: 90, color: "#fbbf24" },
-    { label: "Rechazado", value: 5, color: "#ef4444" },
+    { name: "Aprobado", value: 15, color: "#10b981" },
+    { name: "Pendiente", value: 90, color: "#fbbf24" },
+    { name: "Rechazado", value: 5, color: "#ef4444" },
   ];
 
   const totalProyectos = donutChartData.reduce((sum, item) => sum + item.value, 0);
+
+  const COLORS = ["#10b981", "#fbbf24", "#ef4444"];
 
   const estudiantesData = [
     { nombre: "Ana López", materia: "Ingeniería de Software", grupo: "G1", estado: "Activo" },
@@ -214,21 +121,80 @@ export default function TeacherDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Gráfica de Barras - Estudiantes por Grupo */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">
                   Estudiantes por Grupo y Materia
                 </h3>
-                <div className="flex-1 flex items-center">
-                  <BarChart data={barChartData} height={240} />
-                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={barChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      stroke="#6b7280"
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      stroke="#6b7280"
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#fff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="estudiantes" 
+                      fill="#16a34a" 
+                      radius={[8, 8, 0, 0]}
+                      name="Estudiantes"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
+              {/* Gráfica de Dona - Resumen de Proyectos */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">
                   Resumen de Proyectos Registrados
                 </h3>
-                <div className="flex-1 flex items-center justify-center">
-                  <DonutChart data={donutChartData} total={totalProyectos} />
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={donutChartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {donutChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#fff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '12px' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="text-center mt-2">
+                  <p className="text-2xl font-bold text-gray-900">{totalProyectos}</p>
+                  <p className="text-xs text-gray-500">Total Proyectos</p>
                 </div>
               </div>
             </div>
