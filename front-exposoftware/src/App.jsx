@@ -4,6 +4,13 @@ import Footer from "./components/Layout/Footer";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register"
+import StudentDashboard from './pages/Student/Dashboard.jsx';
+import MyProjects from './pages/Student/MyProjects.jsx';
+import Profile from './pages/Student/Profile.jsx';
+import RegisterProject from './pages/Student/RegisterProject.jsx';
+import TeacherDashboard from './pages/Teacher/Dashboard.jsx';
+import TeacherProfile from './pages/Teacher/Profile.jsx';
+import StudentProjects from './pages/Teacher/Studentprojects.jsx';
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
