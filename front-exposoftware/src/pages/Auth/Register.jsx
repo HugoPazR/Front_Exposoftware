@@ -1,21 +1,14 @@
 import { useState, useEffect } from "react";
+import {
+  validateField,
+  validateAllFields,
+  isNumericField,
+  hasErrors,
+} from "./validations";
 
 function RegisterPage() {
   const [rol, setrol] = useState("");
-  const [sexo, setsexo] = useState("");
-  const [orientacionSexual, setorientacionSexual] = useState("");
-  const [departamentoNacimiento, setdepartamentoNacimiento] = useState("");
-  const [municipioNacimineto, setmunicipioNacimineto] = useState("");
-  const [nacionalidad, setnacionalidad] = useState("");
-  const [ciudadResidencia, setciudadResidencia] = useState("");
-  const [direccionResidencia, setdireccionResidencia] = useState("");
-  const [tipoDocumento, settipoDocumento] = useState("");
-  const [semestre, setsemestre] = useState("");
-  const [tipoDocente, settipoDocente] = useState("");
-  const [sector, setsector] = useState("");
-  const [nombreEmpresa, setnombreEmpresa] = useState("");
-  const [titulado, settitulado] = useState("");
-  const [errores, setErrores] = useState({});
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     nombres: "",
@@ -46,10 +39,7 @@ function RegisterPage() {
     confirmarcontraseña: "",
   });
 
-  // 🔹 Estados de error
-  const [errors, setErrors] = useState({});
-
-  // 🔹 Imágenes del fondo (las mismas que en el login)
+  // Imágenes del fondo
   const images = [
     "https://elpilon2024.s3.us-west-2.amazonaws.com/2024/12/IMG_0427.jpeg",
     "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg",
@@ -57,7 +47,7 @@ function RegisterPage() {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // 🔹 Cambia automáticamente la imagen cada 5 segundos
+  // Cambia automáticamente la imagen cada 5 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) =>
@@ -67,105 +57,41 @@ function RegisterPage() {
     return () => clearInterval(interval);
   }, [images.length]);
 
-  //validaciones
-  const validateField = (name, value) => {
-    let error = "";
-
-    switch (name) {
-      case "nombres":
-      case "apellidos":
-        if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(value))
-          error = "Solo se permiten letras y espacios.";
-        break;
-
-      case "telefono":
-        if (!/^[0-9]*$/.test(value)) error = "Solo se permiten números.";
-        else if (value && value.length < 10)
-          error = "Debe tener al menos 10 dígitos.";
-        break;
-
-      case "numeroDocumento":
-        if (!/^[0-9]*$/.test(value)) error = "Solo se permiten números.";
-        break;
-
-      case "correo":
-        if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {
-          if (!/^[a-zA-Z0-9._%+-]+@unicesar\.edu\.co$/.test(value))
-            error = "Debe ser correo institucional (@unicesar.edu.co)";
-        } else if (rol === "invitado") {
-          if (
-            !/^[a-zA-Z0-9._%+-]+@(gmail|hotmail|yahoo|outlook)\.com$/.test(
-              value
-            )
-          ) {
-            error =
-              "Correo personal inválido. Usa Gmail, Hotmail, Yahoo u Outlook.";
-          }
-        }
-        break;
-
-
-      case "contraseña":
-        if (
-          !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(value)
-        )
-          error =
-            "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
-        break;
-
-      case "confirmarcontraseña":
-        if (value !== formData.contraseña)
-          error = "Las contraseñas no coinciden.";
-        break;
-
-      case "rol":
-      case "sexo":
-      case "orientacionSexual":
-      case "departamentoNacimiento":
-      case "municipioNacimineto":
-      case "nacionalidad":
-      case "ciudadResidencia":
-      case "tipoDocumento":
-      case "semestre":
-      case "tipoDocente":
-      case "sector":
-      case "nombreEmpresa":
-      case "titulado":
-        if (value === "") error = "Selecciona una opción.";
-        break;
-
-      case "fechaNacimiento":
-        if (value && new Date(value) > new Date())
-          error = "La fecha no puede ser futura.";
-        break;
-
-      default:
-        break;
-    }
-
-    setErrors((prev) => ({ ...prev, [name]: error }));
-  };
-
-  // 🔹 Manejo del cambio en los inputs
+  // Manejo del cambio en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Bloquear letras en campos numéricos
-    if (
-      ["telefono", "numeroDocumento"].includes(name) &&
-      value !== "" &&
-      /[^\d]/.test(value)
-    ) {
+    if (isNumericField(name) && value !== "" && /[^\d]/.test(value)) {
       return;
     }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
-    validateField(name, value);
+
+
+    const error = validateField(name, value, formData, rol);
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+
+  // Manejo del envío del formulario
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Validar todos los campos
+    const allErrors = validateAllFields(formData, rol);
+    setErrors(allErrors);
+
+    // Si no hay errores, proceder con el envío
+    if (!hasErrors(allErrors)) {
+      console.log("Formulario válido, enviando datos:", formData);
+      // Aquí iría la lógica para enviar los datos al backend
+    } else {
+      console.log("Hay errores en el formulario:", allErrors);
+    }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden py-20">
-      {/* 🔹 Carrusel de fondo */}
+      {/* Carrusel de fondo */}
       {images.map((img, index) => (
         <div
           key={index}
@@ -178,10 +104,9 @@ function RegisterPage() {
         ></div>
       ))}
 
-      {/* 🔹 Capa translúcida para mejorar legibilidad */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-green-50/85"></div>
 
-      {/* 🔹 Contenido original intacto */}
+      {/* Contenido del formulario */}
       <section className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-3xl relative z-10">
         <h1 className="text-3xl font-bold text-center mb-2 text-green-700">
           Registro de Usuario
@@ -191,7 +116,10 @@ function RegisterPage() {
           <span className="font-semibold text-green-600">Exposoftware</span>.
         </p>
 
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {/* ==== INFORMACIÓN PERSONAL ==== */}
           <div className="col-span-2 border-l-4 border-green-600 pl-2 mb-2">
             <h2 className="text-lg font-semibold text-gray-700">
@@ -202,11 +130,7 @@ function RegisterPage() {
           <div>
             <label className="block font-medium text-gray-700">Nombres</label>
             <input
-              name="nombres"
-              type="text"
-              placeholder="Nombres"
-              value={formData.nombres}
-              onChange={handleChange}
+              name="nombres" type="text" placeholder="Nombres"value={formData.nombres} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
             {errors.nombres && (
@@ -217,11 +141,7 @@ function RegisterPage() {
           <div>
             <label className="block font-medium text-gray-700">Apellidos</label>
             <input
-              name="apellidos"
-              type="text"
-              placeholder="Apellidos"
-              value={formData.apellidos}
-              onChange={handleChange}
+              name="apellidos" type="text" placeholder="Apellidos" value={formData.apellidos} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
             {errors.apellidos && (
@@ -232,11 +152,7 @@ function RegisterPage() {
           <div className="col-span-2">
             <label className="block font-medium text-gray-700">Teléfono</label>
             <input
-              name="telefono"
-              type="text"
-              placeholder="Teléfono (+57 3011234567)"
-              value={formData.telefono}
-              onChange={handleChange}
+              name="telefono" type="text" placeholder="Teléfono (+57 3011234567)" value={formData.telefono} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
             {errors.telefono && (
@@ -247,22 +163,15 @@ function RegisterPage() {
           <div>
             <label className="block font-medium text-gray-700">Sexo</label>
             <select
-              name="sexo"
-              value={formData.sexo}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("sexo", e.target.value);
-              }}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none "
+              name="sexo" value={formData.sexo} onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Sexo</option>
               <option value="hombre">Hombre</option>
               <option value="mujer">Mujer</option>
               <option value="hermafrodita">Hermafrodita</option>
             </select>
-            {errors.sexo && (
-              <p className="text-red-500 text-sm mt-1">{errors.sexo}</p>
-            )}
+            {errors.sexo && (<p className="text-red-500 text-sm mt-1">{errors.sexo}</p>)}
           </div>
 
           <div>
@@ -270,12 +179,7 @@ function RegisterPage() {
               Orientación Sexual
             </label>
             <select
-              name="orientacionSexual"
-              value={formData.orientacionSexual}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("orientacionSexual", e.target.value);
-              }}
+              name="orientacionSexual" value={formData.orientacionSexual} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Identidad Sexual</option>
@@ -284,10 +188,7 @@ function RegisterPage() {
               <option value="bisexual">Bisexual</option>
               <option value="asexual">Asexual</option>
             </select>
-            {errors.orientacionSexual && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.orientacionSexual}
-              </p>
+            {errors.orientacionSexual && (<p className="text-red-500 text-sm mt-1">{errors.orientacionSexual}</p>
             )}
           </div>
 
@@ -296,16 +197,10 @@ function RegisterPage() {
               Fecha de Nacimiento
             </label>
             <input
-              name="fechaNacimiento"
-              type="date"
-              value={formData.fechaNacimiento}
-              onChange={handleChange}
+              name="fechaNacimiento" type="date" value={formData.fechaNacimiento} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
-            {errors.fechaNacimiento && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.fechaNacimiento}
-              </p>
+            {errors.fechaNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.fechaNacimiento}</p>
             )}
           </div>
 
@@ -314,12 +209,7 @@ function RegisterPage() {
               Departamento de Nacimiento
             </label>
             <select
-              name="departamentoNacimiento"
-              value={formData.departamentoNacimiento}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("departamentoNacimiento", e.target.value);
-              }}
+              name="departamentoNacimiento"value={formData.departamentoNacimiento}onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Departamento</option>
@@ -327,10 +217,7 @@ function RegisterPage() {
               <option value="cundinamarca">Cundinamarca</option>
               <option value="valle del cauca">Valle del Cauca</option>
             </select>
-            {errors.departamentoNacimiento && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.departamentoNacimiento}
-              </p>
+            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>
             )}
           </div>
 
@@ -339,12 +226,7 @@ function RegisterPage() {
               Municipio de Nacimiento
             </label>
             <select
-              name="municipioNacimineto"
-              value={formData.municipioNacimineto}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("municipioNacimineto", e.target.value);
-              }}
+              name="municipioNacimineto"value={formData.municipioNacimineto}onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Municipio</option>
@@ -352,10 +234,7 @@ function RegisterPage() {
               <option value="bogota">Bogotá</option>
               <option value="cali">Cali</option>
             </select>
-            {errors.municipioNacimineto && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.municipioNacimineto}
-              </p>
+            {errors.municipioNacimineto && (<p className="text-red-500 text-sm mt-1">{errors.municipioNacimineto}</p>
             )}
           </div>
 
@@ -364,12 +243,7 @@ function RegisterPage() {
               Nacionalidad
             </label>
             <select
-              name="nacionalidad"
-              value={formData.nacionalidad}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("nacionalidad", e.target.value);
-              }}
+              name="nacionalidad" value={formData.nacionalidad} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Nacionalidad</option>
@@ -377,9 +251,7 @@ function RegisterPage() {
               <option value="venezuela">Venezuela</option>
               <option value="estados unidos">Estados Unidos</option>
             </select>
-            {errors.nacionalidad && (
-              <p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>
-            )}
+            {errors.nacionalidad && (<p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>)}
           </div>
 
           <div>
@@ -387,12 +259,7 @@ function RegisterPage() {
               Ciudad de Residencia
             </label>
             <select
-              name="ciudadResidencia"
-              value={formData.ciudadResidencia}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("ciudadResidencia", e.target.value);
-              }}
+              name="ciudadResidencia" value={formData.ciudadResidencia} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Ciudad</option>
@@ -400,11 +267,7 @@ function RegisterPage() {
               <option value="valledupar">Valledupar</option>
               <option value="bogota">Bogota</option>
             </select>
-            {errors.ciudadResidencia && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.ciudadResidencia}
-              </p>
-            )}
+            {errors.ciudadResidencia && (<p className="text-red-500 text-sm mt-1">{errors.ciudadResidencia}</p>)}
           </div>
 
           <div>
@@ -412,17 +275,10 @@ function RegisterPage() {
               Dirección de Residencia
             </label>
             <input
-              name="direccionResidencia"
-              type="text"
-              placeholder="direccionResidencia"
-              value={formData.direccionResidencia}
-              onChange={handleChange}
+              name="direccionResidencia" type="text" placeholder="Dirección de Residencia" value={formData.direccionResidencia} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
-            {errors.direccionResidencia && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.direccionResidencia}
-              </p>
+            {errors.direccionResidencia && (<p className="text-red-500 text-sm mt-1">{errors.direccionResidencia}</p>
             )}
           </div>
 
@@ -438,13 +294,7 @@ function RegisterPage() {
               Selecciona Perfil
             </label>
             <select
-              name="rol"
-              value={formData.rol}
-              onChange={(e) => {
-                handleChange(e);
-                setrol(e.target.value);
-                validateField("rol", e.target.value);
-              }}
+              name="rol" value={formData.rol}  onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Perfil</option>
@@ -453,6 +303,7 @@ function RegisterPage() {
               <option value="invitado">Invitado</option>
               <option value="egresado">Egresado</option>
             </select>
+            {errors.rol && (<p className="text-red-500 text-sm mt-1">{errors.rol}</p>)}
           </div>
 
           <div>
@@ -462,10 +313,7 @@ function RegisterPage() {
             <select
               name="tipoDocumento"
               value={formData.tipoDocumento}
-              onChange={(e) => {
-                handleChange(e);
-                validateField("tipoDocumento", e.target.value);
-              }}
+              onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Tipo de Documento</option>
@@ -475,11 +323,7 @@ function RegisterPage() {
               <option value="PTE">PTE: Permiso Temporal de Extranjero</option>
               <option value="PAS">PAS: Pasaporte</option>
             </select>
-            {errors.tipoDocumento && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.tipoDocumento}
-              </p>
-            )}
+            {errors.tipoDocumento && (<p className="text-red-500 text-sm mt-1">{errors.tipoDocumento}</p>)}
           </div>
 
           <div>
@@ -487,18 +331,10 @@ function RegisterPage() {
               Número de Documento
             </label>
             <input
-              name="numeroDocumento"
-              type="text"
-              placeholder="Número de Documento"
-              value={formData.numeroDocumento}
-              onChange={handleChange}
+              name="numeroDocumento" type="text" placeholder="Número de Documento" value={formData.numeroDocumento} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
-            {errors.numeroDocumento && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.numeroDocumento}
-              </p>
-            )}
+            {errors.numeroDocumento && (<p className="text-red-500 text-sm mt-1">{errors.numeroDocumento}</p>)}
           </div>
 
           {/* ==== INFORMACIÓN ESTUDIANTE ==== */}
@@ -515,18 +351,10 @@ function RegisterPage() {
                   Correo Institucional
                 </label>
                 <input
-                  name="correo"
-                  type="email"
-                  value={formData.correo}
-                  onChange={handleChange}
-                  placeholder="usuario@unicesar.edu.co"
+                  name="correo" type="email" value={formData.correo} onChange={handleChange} placeholder="usuario@unicesar.edu.co"
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
-                {errors.correo && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.correo}
-                  </p>
-                )}
+                {errors.correo && (<p className="text-red-500 text-sm mt-1">{errors.correo}</p>)}
               </div>
 
               <div>
@@ -534,18 +362,10 @@ function RegisterPage() {
                   Codigo del Programa
                 </label>
                 <input
-                  name="codigoPrograma"
-                  type="email"
-                  placeholder="Codigo del Programa"
-                  value={formData.codigoPrograma}
-                  onChange={handleChange}
+                  name="codigoPrograma" type="text" placeholder="Codigo del Programa" value={formData.codigoPrograma} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
-                {errors.codigoPrograma && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.codigoPrograma}
-                  </p>
-                )}
+                {errors.codigoPrograma && (<p className="text-red-500 text-sm mt-1">{errors.codigoPrograma}</p>)}
               </div>
 
               <div>
@@ -553,12 +373,7 @@ function RegisterPage() {
                   Semestre
                 </label>
                 <select
-                  name="semestre"
-                  value={formData.semestre}
-                  onChange={(e) => {
-                    handleChange(e);
-                    validateField("sexo", e.target.semestre);
-                  }}
+                  name="semestre" value={formData.semestre} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 >
                   <option value="">Selecciona Semestre</option>
@@ -574,9 +389,7 @@ function RegisterPage() {
                   <option value="10">10</option>
                   <option value="+10">+10</option>
                 </select>
-                {errors.semestre && (
-                  <p className="text-red-500 text-sm mt-1">{errors.semestre}</p>
-                )}
+                {errors.semestre && (<p className="text-red-500 text-sm mt-1">{errors.semestre}</p>)}
               </div>
 
               <div>
@@ -584,8 +397,7 @@ function RegisterPage() {
                   Fecha de Ingreso
                 </label>
                 <input
-                  name="fechaIngreso"
-                  type="date"
+                  name="fechaIngreso" type="date" value={formData.fechaIngreso} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
               </div>
@@ -606,17 +418,11 @@ function RegisterPage() {
                   Correo Institucional
                 </label>
                 <input
-                  name="correo"
-                  type="email"
-                  value={formData.correo}
-                  onChange={handleChange}
-                  placeholder="usuario@unicesar.edu.co"
+                  name="correo" type="email" value={formData.correo} onChange={handleChange} placeholder="usuario@unicesar.edu.co"
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
                 {errors.correo && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.correo}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{errors.correo}</p>
                 )}
               </div>
 
@@ -625,12 +431,7 @@ function RegisterPage() {
                   Tipo de Docente
                 </label>
                 <select
-                  name="tipoDocente"
-                  value={formData.tipoDocente}
-                  onChange={(e) => {
-                    handleChange(e);
-                    validateField("tipoDocente", e.target.value);
-                  }}
+                  name="tipoDocente" value={formData.tipoDocente} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 >
                   <option value="">Selecciona Tipo</option>
@@ -638,11 +439,7 @@ function RegisterPage() {
                   <option value="Invitado">Invitado</option>
                   <option value="Externo">Externo</option>
                 </select>
-                {errors.tipoDocente && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.tipoDocente}
-                  </p>
-                )}
+                {errors.tipoDocente && (<p className="text-red-500 text-sm mt-1">{errors.tipoDocente}</p>)}
               </div>
 
               <div>
@@ -650,18 +447,10 @@ function RegisterPage() {
                   Codigo del Programa
                 </label>
                 <input
-                  name="codigoPrograma"
-                  type="email"
-                  placeholder="Codigo del Programa"
-                  value={formData.codigoPrograma}
-                  onChange={handleChange}
+                  name="codigoPrograma" type="text" placeholder="Codigo del Programa" value={formData.codigoPrograma} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
-                {errors.codigoPrograma && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.codigoPrograma}
-                  </p>
-                )}
+                {errors.codigoPrograma && (<p className="text-red-500 text-sm mt-1">{errors.codigoPrograma}</p>)}
               </div>
             </>
           )}
@@ -680,18 +469,10 @@ function RegisterPage() {
                   Correo Personal
                 </label>
                 <input
-                  name="correo"
-                  type="email"
-                  placeholder="usuario@dominio.com"
-                  value={formData.correo}
-                  onChange={handleChange}
+                  name="correo" type="email" placeholder="usuario@dominio.com" value={formData.correo} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
-                {errors.correo && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.cocorreorreo}
-                  </p>
-                )}
+                {errors.correo && (<p className="text-red-500 text-sm mt-1">{errors.correo}</p>)}
               </div>
 
               <div>
@@ -699,20 +480,13 @@ function RegisterPage() {
                   Sector
                 </label>
                 <select
-                  name="sector"
-                  value={formData.sector}
-                  onChange={(e) => {
-                    handleChange(e);
-                    validateField("sector", e.target.value);
-                  }}
+                  name="sector" value={formData.sector} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 >
                   <option value="">Selecciona Sector</option>
                   <option value="agricola">Agricola</option>
                 </select>
-                {errors.sector && (
-                  <p className="text-red-500 text-sm mt-1">{errors.sector}</p>
-                )}
+                {errors.sector && (<p className="text-red-500 text-sm mt-1">{errors.sector}</p>)}
               </div>
 
               <div>
@@ -720,27 +494,18 @@ function RegisterPage() {
                   Nombre de la Empresa
                 </label>
                 <select
-                  name="nombreEmpresa"
-                  value={formData.nombreEmpresa}
-                  onChange={(e) => {
-                    handleChange(e);
-                    validateField("sector", e.target.nombreEmpresa);
-                  }}
+                  name="nombreEmpresa" value={formData.nombreEmpresa} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 >
                   <option value="">Selecciona</option>
                   <option value="AgroSostenible">AgroSostenible</option>
                 </select>
-                {errors.nombreEmpresa && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.nombreEmpresa}
-                  </p>
-                )}
+                {errors.nombreEmpresa && (<p className="text-red-500 text-sm mt-1">{errors.nombreEmpresa}</p>)}
               </div>
             </>
           )}
 
-          {/* ==== INFORMACIÓN Egresado ==== */}
+          {/* ==== INFORMACIÓN EGRESADO ==== */}
           {rol === "egresado" && (
             <>
               <div className="col-span-2 border-l-4 border-green-600 pl-2 mt-4 mb-2">
@@ -751,21 +516,13 @@ function RegisterPage() {
 
               <div className="col-span-2">
                 <label className="block font-medium text-gray-700">
-                  Correo Intutucional
+                  Correo Institucional
                 </label>
                 <input
-                  name="correo"
-                  type="email"
-                  placeholder="usuario@unicesar.edu.com"
-                  value={formData.correo}
-                  onChange={handleChange}
+                  name="correo" type="email" placeholder="usuario@unicesar.edu.co" value={formData.correo} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
-                {errors.correo && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.correo}
-                  </p>
-                )}
+                {errors.correo && (<p className="text-red-500 text-sm mt-1">{errors.correo}</p>)}
               </div>
 
               <div>
@@ -773,21 +530,14 @@ function RegisterPage() {
                   Titulado
                 </label>
                 <select
-                  name="titulado"
-                  value={formData.titulado}
-                  onChange={(e) => {
-                    handleChange(e);
-                    validateField("titulado", e.target.value);
-                  }}
+                  name="titulado" value={formData.titulado} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 >
-                  <option value=""></option>
+                  <option value="">Selecciona</option>
                   <option value="si">Si</option>
                   <option value="no">No</option>
                 </select>
-                {errors.titulado && (
-                  <p className="text-red-500 text-sm mt-1">{errors.titulado}</p>
-                )}
+                {errors.titulado && (<p className="text-red-500 text-sm mt-1">{errors.titulado}</p>)}
               </div>
 
               <div>
@@ -795,7 +545,7 @@ function RegisterPage() {
                   Año de Finalización
                 </label>
                 <input
-                  type="date"
+                  name="fechaFinalizacion" type="date" value={ormData.fechaFinalizacion} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
               </div>
@@ -814,16 +564,10 @@ function RegisterPage() {
               Contraseña
             </label>
             <input
-              name="contraseña"
-              type="password"
-              placeholder="Contraseña"
-              value={formData.contraseña}
-              onChange={handleChange}
+              name="contraseña" type="password" placeholder="Contraseña" value={formData.contraseña} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
-            {errors.contraseña && (
-              <p className="text-red-500 text-sm mt-1">{errors.contraseña}</p>
-            )}
+            {errors.contraseña && (<p className="text-red-500 text-sm mt-1">{errors.contraseña}</p>)}
           </div>
 
           <div>
@@ -831,18 +575,10 @@ function RegisterPage() {
               Confirmar Contraseña
             </label>
             <input
-              name="confirmarcontraseña"
-              type="password"
-              placeholder="Confirmar Contraseña"
-              value={formData.confirmarcontraseña}
-              onChange={handleChange}
+              name="confirmarcontraseña" type="password" placeholder="Confirmar Contraseña" value={formData.confirmarcontraseña} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
-            {errors.confirmarcontraseña && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.confirmarcontraseña}
-              </p>
-            )}
+            {errors.confirmarcontraseña && (<p className="text-red-500 text-sm mt-1">{errors.confirmarcontraseña}</p>)}
           </div>
 
           <div className="col-span-2 mt-4">
