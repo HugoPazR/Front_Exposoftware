@@ -3,47 +3,91 @@ import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
 import Home from "./pages/Home/Home";
 import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register"
+import Register from "./pages/Auth/Register";
+import StudentDashboard from "./pages/Student/Dashboard";
+import TeacherDashboard from "./pages/Teacher/Dashboard";
+import StudentProjects from "./pages/Teacher/StudentProjects";
+import TeacherProfile from "./pages/Teacher/Profile";
+import Profile from "./pages/Student/Profile";
+import RegisterProject from "./pages/Student/RegisterProject";
+import MyProjects from "./pages/Student/MyProjects";
+import About from "./pages/Home/About";
+
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 function App() {
   const location = useLocation();
-  const hideNavbarOn = ["/student/dashboard", "/student/profile", "/student/proyectos", "/teacher/dashboard", "/teacher/profile", "/teacher/proyectos"];
+
+  // Rutas donde se ocultará el Navbar (ya funcionará cuando existan)
+  const hideNavbarOn = [
+    "/student/dashboard",
+    "/student/profile",
+    "/student/proyectos",
+    "/teacher/dashboard",
+    "/teacher/profile",
+    "/teacher/proyectos",
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
       {!hideNavbarOn.includes(location.pathname) && <Navbar />}
       <main className="flex-1">
         <Routes>
-          {/* Ruta principal - Home */}
+          {/* Página principal */}
           <Route path="/" element={<Home />} />
-          
-          {/* Redirección de /home a / */}
+          <Route path="/about" element={<About />} />
+
+          {/* Redirección */}
           <Route path="/home" element={<Navigate to="/" replace />} />
-          
-          {/* Dashboard de Estudiante */}
+
+          {/* Autenticación */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/*Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
-          
-          {/* Dashboard de Profesor */}
+          <Route path="/student/proyectos" element={<MyProjects />} />
+          <Route path="/student/profile" element={<Profile />} />
+          <Route path="/student/register-project" element={<RegisterProject />} />
+
+          {/* Profesores */}
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/proyectos" element={<StudentProjects />} />
           <Route path="/teacher/profile" element={<TeacherProfile />} />
+
+
+          {/* Páginas informativas */}
+          <Route
+            path="/projects"
+            element={
+              <div className="container mx-auto px-8 py-16">
+                Página de Proyectos (Por crear)
+              </div>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <div className="container mx-auto px-8 py-16">
+                Página Acerca de (Por crear)
+              </div>
+            }
+          />
           
-          {/* Otras rutas */}
-          <Route path="/student/profile" element={<Profile />} />
-          <Route path="/student/register-project" element={<RegisterProject />} />
-          <Route path="/student/proyectos" element={<MyProjects />} />
-          <Route path="/projects" element={<div className="container mx-auto px-8 py-16">Página de Proyectos (Por crear)</div>} />
-          <Route path="/about" element={<div className="container mx-auto px-8 py-16">Página Acerca de (Por crear)</div>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/upload" element={<div className="container mx-auto px-8 py-16">Subir Proyecto (Por crear)</div>} />
-          <Route path="/proyectos-anteriores" element={<div className="container mx-auto px-8 py-16">Proyectos Anteriores (Por crear)</div>} />
-          
-          {/* Ruta 404 - Página no encontrada */}
-          <Route path="*" element={<div className="container mx-auto px-8 py-16 text-center"><h1 className="text-3xl font-bold text-gray-800">404 - Página no encontrada</h1></div>} />
+
+          {/* Página no encontrada */}
+          <Route
+            path="*"
+            element={
+              <div className="container mx-auto px-8 py-16 text-center">
+                <h1 className="text-3xl font-bold text-gray-800">
+                  404 - Página no encontrada
+                </h1>
+              </div>
+            }
+          />
         </Routes>
       </main>
       <Footer />
@@ -52,3 +96,18 @@ function App() {
 }
 
 export default App;
+
+{/*
+
+  
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          
+          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+          <Route path="/teacher/proyectos" element={<StudentProjects />} />
+          <Route path="/teacher/profile" element={<TeacherProfile />} />
+          
+          <Route path="/student/profile" element={<Profile />} />
+          <Route path="/student/register-project" element={<RegisterProject />} />
+          <Route path="/student/proyectos" element={<MyProjects />} />
+
+*/}
