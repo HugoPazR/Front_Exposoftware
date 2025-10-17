@@ -1,4 +1,3 @@
-// ✅ VALIDACIONES COMPLETAS Y COMPATIBLES CON LIBRERÍAS EXTERNAS
 export const validateField = (name, value, formData = {}, rol = "") => {
   let error = "";
 

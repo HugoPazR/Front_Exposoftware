@@ -60,8 +60,8 @@ function LoginPage() {
 
     if (!contraseña.trim()) {
       nuevosErrores.contraseña = "La contraseña es obligatoria.";
-    } else if (contraseña.length < 6) {
-      nuevosErrores.contraseña = "La contraseña debe tener al menos 6 caracteres.";
+    } else if (contraseña.length < 8) {
+      nuevosErrores.contraseña = "La contraseña debe tener al menos 8 caracteres.";
     }
 
     setErrores(nuevosErrores);
