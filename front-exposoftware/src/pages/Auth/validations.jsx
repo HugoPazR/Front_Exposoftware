@@ -1,74 +1,95 @@
+// ✅ VALIDACIONES COMPLETAS Y COMPATIBLES CON LIBRERÍAS EXTERNAS
 export const validateField = (name, value, formData = {}, rol = "") => {
   let error = "";
 
+  // Si viene de react-select, tomamos el value real
+  const val = typeof value === "object" && value !== null ? value.value : value;
+
+  // 💡 Todos los campos (menos los opcionales) deben tener valor
+  const requiredFields = [
+    "nombres",
+    "apellidos",
+    "telefono",
+    "sexo",
+    "orientacionSexual",
+    "fechaNacimiento",
+    "departamentoNacimiento",
+    "municipioNacimiento",
+    "nacionalidad",
+    "ciudadResidencia",
+    "direccionResidencia",
+    "rol",
+    "tipoDocumento",
+    "numeroDocumento",
+    "correo",
+    "contraseña",
+    "confirmarcontraseña",
+    "codigoPrograma",
+    "semestre",
+    "tipoDocente",
+    "sector",
+    "nombreEmpresa",
+    "titulado",
+  ];
+
+  if (requiredFields.includes(name) && (!val || String(val).trim() === "")) {
+    return "Este campo es obligatorio.";
+  }
+
+  // ⚙️ Validaciones específicas por campo
   switch (name) {
     case "nombres":
     case "apellidos":
-      if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(value)) {
+      if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
         error = "Solo se permiten letras y espacios.";
       }
       break;
 
     case "telefono":
-      if (!/^[0-9]*$/.test(value)) {
-        error = "Solo se permiten números.";
-      } else if (value && value.length < 10) {
-        error = "Debe tener al menos 10 dígitos.";
+      // react-international-phone retorna "+573001234567"
+      if (!/^\+?\d{10,15}$/.test(val)) {
+        error = "Número de teléfono inválido. Debe tener entre 10 y 15 dígitos.";
       }
       break;
 
     case "numeroDocumento":
-      if (!/^[0-9]*$/.test(value)) {
+      if (!/^[0-9]*$/.test(val)) {
         error = "Solo se permiten números.";
       }
       break;
 
     case "correo":
       if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {
-        if (!/^[a-zA-Z0-9._%+-]+@unicesar\.edu\.co$/.test(value)) {
+        if (!/^[a-zA-Z0-9._%+-]+@unicesar\.edu\.co$/.test(val)) {
           error = "Debe ser correo institucional (@unicesar.edu.co)";
         }
       } else if (rol === "invitado") {
         if (
-          !/^[a-zA-Z0-9._%+-]+@(gmail|hotmail|yahoo|outlook)\.com$/.test(value)
+          !/^[a-zA-Z0-9._%+-]+@(gmail|hotmail|yahoo|outlook)\.com$/.test(val)
         ) {
-          error = "Correo personal inválido. Usa Gmail, Hotmail, Yahoo u Outlook.";
+          error =
+            "Correo personal inválido. Usa Gmail, Hotmail, Yahoo u Outlook.";
         }
       }
       break;
 
     case "contraseña":
-      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(value)) {
-        error = "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
+      if (
+        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(val)
+      ) {
+        error =
+          "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
       }
       break;
 
     case "confirmarcontraseña":
-      if (value !== formData.contraseña) {
+      if (val !== formData.contraseña) {
         error = "Las contraseñas no coinciden.";
       }
       break;
 
-    case "rol":
-    case "sexo":
-    case "orientacionSexual":
-    case "departamentoNacimiento":
-    case "municipioNacimineto":
-    case "nacionalidad":
-    case "ciudadResidencia":
-    case "tipoDocumento":
-    case "semestre":
-    case "tipoDocente":
-    case "sector":
-    case "nombreEmpresa":
-    case "titulado":
-      if (value === "") {
-        error = "Selecciona una opción.";
-      }
-      break;
-
     case "fechaNacimiento":
-      if (value && new Date(value) > new Date()) {
+      if (val && new Date(val) > new Date()) {
         error = "La fecha no puede ser futura.";
       }
       break;
@@ -80,10 +101,10 @@ export const validateField = (name, value, formData = {}, rol = "") => {
   return error;
 };
 
-
 export const validateAllFields = (formData, rol) => {
   const errors = {};
-  
+
+  // Campos básicos comunes
   const basicFields = [
     "nombres",
     "apellidos",
@@ -92,7 +113,7 @@ export const validateAllFields = (formData, rol) => {
     "orientacionSexual",
     "fechaNacimiento",
     "departamentoNacimiento",
-    "municipioNacimineto",
+    "municipioNacimiento",
     "nacionalidad",
     "ciudadResidencia",
     "direccionResidencia",
@@ -100,66 +121,50 @@ export const validateAllFields = (formData, rol) => {
     "tipoDocumento",
     "numeroDocumento",
     "contraseña",
-    "confirmarcontraseña"
+    "confirmarcontraseña",
   ];
 
-  // Validar campos básicos
-  basicFields.forEach(field => {
+  basicFields.forEach((field) => {
     const error = validateField(field, formData[field], formData, rol);
-    if (error) {
-      errors[field] = error;
-    }
+    if (error) errors[field] = error;
   });
 
-
+  // Dependiendo del rol, se agregan campos extra
   if (rol === "estudiante") {
-    const studentFields = ["correo", "codigoPrograma", "semestre"];
-    studentFields.forEach(field => {
-      const error = validateField(field, formData[field], formData, rol);
-      if (error) {
-        errors[field] = error;
-      }
+    ["correo", "codigoPrograma", "semestre"].forEach((f) => {
+      const err = validateField(f, formData[f], formData, rol);
+      if (err) errors[f] = err;
     });
   }
 
   if (rol === "profesor") {
-    const teacherFields = ["correo", "tipoDocente", "codigoPrograma"];
-    teacherFields.forEach(field => {
-      const error = validateField(field, formData[field], formData, rol);
-      if (error) {
-        errors[field] = error;
-      }
+    ["correo", "tipoDocente", "codigoPrograma"].forEach((f) => {
+      const err = validateField(f, formData[f], formData, rol);
+      if (err) errors[f] = err;
     });
   }
 
   if (rol === "invitado") {
-    const guestFields = ["correo", "sector", "nombreEmpresa"];
-    guestFields.forEach(field => {
-      const error = validateField(field, formData[field], formData, rol);
-      if (error) {
-        errors[field] = error;
-      }
+    ["correo", "sector", "nombreEmpresa"].forEach((f) => {
+      const err = validateField(f, formData[f], formData, rol);
+      if (err) errors[f] = err;
     });
   }
 
   if (rol === "egresado") {
-    const graduateFields = ["correo", "titulado"];
-    graduateFields.forEach(field => {
-      const error = validateField(field, formData[field], formData, rol);
-      if (error) {
-        errors[field] = error;
-      }
+    ["correo", "titulado"].forEach((f) => {
+      const err = validateField(f, formData[f], formData, rol);
+      if (err) errors[f] = err;
     });
   }
 
   return errors;
 };
 
-
 export const isNumericField = (fieldName) => {
-  return ["telefono", "numeroDocumento"].includes(fieldName);
+  return ["numeroDocumento"].includes(fieldName);
 };
 
 export const hasErrors = (errors) => {
-  return Object.values(errors).some(error => error !== "");
+  return Object.values(errors).some((error) => error !== "");
 };

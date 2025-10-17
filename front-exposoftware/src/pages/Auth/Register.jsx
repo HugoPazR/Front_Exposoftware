@@ -68,6 +68,7 @@ function RegisterPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    
     if (isNumericField(name) && value !== "" && /[^\d]/.test(value)) {
       return;
     }
@@ -81,6 +82,21 @@ function RegisterPage() {
     const error = validateField(name, value, formData, rol);
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
+
+  // Manejo de cambios en Selects (react-select)
+  const handleSelectChange = (name, option) => {
+    const value = option ? option.value : "";
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Validar el campo correspondiente
+    const error = validateField(name, value, formData, rol);
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  };
+  
 
   // Manejo del envío del formulario
   const handleSubmit = (e) => {
@@ -163,13 +179,11 @@ function RegisterPage() {
             <label className="block font-medium text-gray-700">Teléfono</label>
             <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
               <PhoneInput
-                defaultCountry="co"
-                value={formData.telefono}
+                defaultCountry="co" value={formData.telefono}
                 onChange={(phone) =>
                   setFormData((prev) => ({ ...prev, telefono: phone }))
                 }
-                className="w-full"
-                inputClassName="w-full border-none outline-none bg-transparent p-2"
+                className="w-full" inputClassName="w-full border-none outline-none bg-transparent p-2"
                 placeholder="Número de teléfono"
               />
             </div>
@@ -225,11 +239,7 @@ function RegisterPage() {
                 }),
               }}
             />
-            {errors.orientacionSexual && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.orientacionSexual}
-              </p>
-            )}
+            {errors.orientacionSexual && (<p className="text-red-500 text-sm mt-1">{errors.orientacionSexual}</p>)}
           </div>
 
           <div>
@@ -249,8 +259,7 @@ function RegisterPage() {
               Departamento de Nacimiento
             </label>
             <select
-              name="departamentoNacimiento"
-              value={formData.departamentoNacimiento}
+              name="departamentoNacimiento" value={formData.departamentoNacimiento}
               onChange={(e) => {
                 const selectedDepartamento = e.target.value;
                 setFormData((prev) => ({
@@ -259,12 +268,8 @@ function RegisterPage() {
                   municipioNacimiento: "",
                 }));
 
-                const depto = colombia.find(
-                  (d) => d.departamento === selectedDepartamento
-                );
-                setMunicipios(
-                  depto && Array.isArray(depto.ciudades) ? depto.ciudades : []
-                );
+                const depto = colombia.find((d) => d.departamento === selectedDepartamento);
+                setMunicipios(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
 
                 const error = validateField(
                   "departamentoNacimiento",selectedDepartamento,formData,rol);
@@ -279,11 +284,7 @@ function RegisterPage() {
                 </option>
               ))}
             </select>
-            {errors.departamentoNacimiento && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.departamentoNacimiento}
-              </p>
-            )}
+            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>)}
           </div>
 
           <div>
@@ -291,10 +292,7 @@ function RegisterPage() {
               Municipio de Nacimiento
             </label>
             <select
-              name="municipioNacimiento"
-              value={formData.municipioNacimiento}
-              onChange={handleChange}
-              disabled={!formData.departamentoNacimiento}
+              name="municipioNacimiento" value={formData.municipioNacimiento} onChange={handleChange} disabled={!formData.departamentoNacimiento}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Municipio</option>
@@ -304,11 +302,7 @@ function RegisterPage() {
                 </option>
               ))}
             </select>
-            {errors.municipioNacimiento && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.municipioNacimiento}
-              </p>
-            )}
+            {errors.municipioNacimiento && (<p className="text-red-500 text-sm mt-1"> {errors.municipioNacimiento} </p>)}
           </div>
 
 
@@ -317,9 +311,7 @@ function RegisterPage() {
               Nacionalidad
             </label>
             <Select
-              name="nacionalidad"
-              options={options}
-              placeholder="Selecciona Nacionalidad"
+              name="nacionalidad" options={options} placeholder="Selecciona Nacionalidad"
               value={
                 formData.nacionalidad
                   ? options.find(
@@ -333,9 +325,7 @@ function RegisterPage() {
                 control: (base) => ({...base,borderColor: "#d1d5db",borderRadius: "0.5rem",padding: "2px","&:hover": { borderColor: "#16a34a" },boxShadow: "0 0 0 1px #d1d5db",}),
               }}
             />
-            {errors.nacionalidad && (
-              <p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>
-            )}
+            {errors.nacionalidad && (<p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>)}
           </div>
 
           <div>
@@ -392,9 +382,7 @@ function RegisterPage() {
               Tipo de Documento
             </label>
             <select
-              name="tipoDocumento"
-              value={formData.tipoDocumento}
-              onChange={handleChange}
+              name="tipoDocumento" value={formData.tipoDocumento} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Tipo de Documento</option>
