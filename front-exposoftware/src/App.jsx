@@ -12,6 +12,10 @@ import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
 import About from "./pages/Home/About";
+import AdminDashboard from "./pages/Admin/Dashboard";
+import AdminProfile from "./pages/Admin/Profile";
+import CreateGroup from "./pages/Admin/CreateGroup";
+import CreateSubject from "./pages/Admin/CreateSubject";
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -20,7 +24,6 @@ import "primeicons/primeicons.css";
 function App() {
   const location = useLocation();
 
-  // Rutas donde se ocultará el Navbar (ya funcionará cuando existan)
   const hideNavbarOn = [
     "/student/dashboard",
     "/student/profile",
@@ -28,6 +31,10 @@ function App() {
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
+    "/admin/dash",
+    "/admin/profile",
+    "/admin/crear-grupo",
+    "/admin/crear-materia",
   ];
 
   return (
@@ -39,14 +46,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
 
-          {/* Redirección */}
-          <Route path="/home" element={<Navigate to="/" replace />} />
-
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/*Estudiantes */}
+          {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/proyectos" element={<MyProjects />} />
           <Route path="/student/profile" element={<Profile />} />
@@ -57,25 +61,11 @@ function App() {
           <Route path="/teacher/proyectos" element={<StudentProjects />} />
           <Route path="/teacher/profile" element={<TeacherProfile />} />
 
-
-          {/* Páginas informativas */}
-          <Route
-            path="/projects"
-            element={
-              <div className="container mx-auto px-8 py-16">
-                Página de Proyectos (Por crear)
-              </div>
-            }
-          />
-          <Route
-            path="/about"
-            element={
-              <div className="container mx-auto px-8 py-16">
-                Página Acerca de (Por crear)
-              </div>
-            }
-          />
-          
+          {/* ✅ Administrador */}
+          <Route path="/admin/dash" element={<AdminDashboard />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
+          <Route path="/admin/crear-grupo" element={<CreateGroup />} />
+          <Route path="/admin/crear-materia" element={<CreateSubject />} />
 
           {/* Página no encontrada */}
           <Route
@@ -96,18 +86,3 @@ function App() {
 }
 
 export default App;
-
-{/*
-
-  
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          
-          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-          <Route path="/teacher/proyectos" element={<StudentProjects />} />
-          <Route path="/teacher/profile" element={<TeacherProfile />} />
-          
-          <Route path="/student/profile" element={<Profile />} />
-          <Route path="/student/register-project" element={<RegisterProject />} />
-          <Route path="/student/proyectos" element={<MyProjects />} />
-
-*/}
