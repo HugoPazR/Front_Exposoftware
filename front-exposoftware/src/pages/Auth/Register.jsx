@@ -1,14 +1,21 @@
 import { useState, useEffect } from "react";
-import {
-  validateField,
-  validateAllFields,
-  isNumericField,
-  hasErrors,
-} from "./validations";
+import {validateField,validateAllFields,isNumericField,hasErrors,}
+from "./validations";
+import 'react-international-phone/style.css';
+import { PhoneInput } from "react-international-phone";
+import countryList from 'react-select-country-list';
+import colombia from "../../assets/colombia-json-master/colombia.json"
+import Select from 'react-select';
+import { useMemo } from 'react';
 
 function RegisterPage() {
   const [rol, setrol] = useState("");
   const [errors, setErrors] = useState({});
+  const options = useMemo(() => countryList().getData(), []);
+  const [departamento, setDepartamento] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [municipios, setMunicipios] = useState([]);
+
 
   const [formData, setFormData] = useState({
     nombres: "",
@@ -20,7 +27,7 @@ function RegisterPage() {
     fechaIngreso: "",
     fechaFinalizacion: "",
     departamentoNacimiento: "",
-    municipioNacimineto: "",
+    municipioNacimiento: "",
     nacionalidad: "",
     ciudadResidencia: "",
     direccionResidencia: "",
@@ -67,6 +74,9 @@ function RegisterPage() {
 
     setFormData((prev) => ({ ...prev, [name]: value }));
 
+    if (name === "rol") {
+      setrol(value);
+    }
 
     const error = validateField(name, value, formData, rol);
     setErrors((prev) => ({ ...prev, [name]: error }));
@@ -149,12 +159,20 @@ function RegisterPage() {
             )}
           </div>
 
-          <div className="col-span-2">
+          <div>
             <label className="block font-medium text-gray-700">Teléfono</label>
-            <input
-              name="telefono" type="text" placeholder="Teléfono (+57 3011234567)" value={formData.telefono} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            />
+            <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
+              <PhoneInput
+                defaultCountry="co"
+                value={formData.telefono}
+                onChange={(phone) =>
+                  setFormData((prev) => ({ ...prev, telefono: phone }))
+                }
+                className="w-full"
+                inputClassName="w-full border-none outline-none bg-transparent p-2"
+                placeholder="Número de teléfono"
+              />
+            </div>
             {errors.telefono && (
               <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
             )}
@@ -178,17 +196,39 @@ function RegisterPage() {
             <label className="block font-medium text-gray-700">
               Orientación Sexual
             </label>
-            <select
-              name="orientacionSexual" value={formData.orientacionSexual} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Identidad Sexual</option>
-              <option value="heterosexual">Heterosexual</option>
-              <option value="homosexual">Homosexual</option>
-              <option value="bisexual">Bisexual</option>
-              <option value="asexual">Asexual</option>
-            </select>
-            {errors.orientacionSexual && (<p className="text-red-500 text-sm mt-1">{errors.orientacionSexual}</p>
+            <Select
+              name="orientacionSexual"
+              options={[
+                { value: "heterosexual", label: "Heterosexual" },
+                { value: "homosexual", label: "Homosexual" },
+                { value: "bisexual", label: "Bisexual" },
+                { value: "pansexual", label: "Pansexual" },
+                { value: "asexual", label: "Asexual" },
+              ]}
+              placeholder="Selecciona Identidad Sexual"
+              value={
+                formData.orientacionSexual
+                  ? {
+                      value: formData.orientacionSexual,
+                      label:
+                        formData.orientacionSexual.charAt(0).toUpperCase() +
+                        formData.orientacionSexual.slice(1),
+                    }
+                  : null
+              }
+              onChange={(option) =>
+                handleSelectChange("orientacionSexual", option)
+              }
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({...base,borderColor: "#d1d5db",borderRadius: "0.5rem",padding: "2px","&:hover": { borderColor: "#16a34a" },boxShadow: "0 0 0 1px #d1d5db",
+                }),
+              }}
+            />
+            {errors.orientacionSexual && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.orientacionSexual}
+              </p>
             )}
           </div>
 
@@ -209,15 +249,40 @@ function RegisterPage() {
               Departamento de Nacimiento
             </label>
             <select
-              name="departamentoNacimiento"value={formData.departamentoNacimiento}onChange={handleChange}
+              name="departamentoNacimiento"
+              value={formData.departamentoNacimiento}
+              onChange={(e) => {
+                const selectedDepartamento = e.target.value;
+                setFormData((prev) => ({
+                  ...prev,
+                  departamentoNacimiento: selectedDepartamento,
+                  municipioNacimiento: "",
+                }));
+
+                const depto = colombia.find(
+                  (d) => d.departamento === selectedDepartamento
+                );
+                setMunicipios(
+                  depto && Array.isArray(depto.ciudades) ? depto.ciudades : []
+                );
+
+                const error = validateField(
+                  "departamentoNacimiento",selectedDepartamento,formData,rol);
+                setErrors((prev) => ({...prev,departamentoNacimiento: error,}));
+              }}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Departamento</option>
-              <option value="antioquia">Antioquia</option>
-              <option value="cundinamarca">Cundinamarca</option>
-              <option value="valle del cauca">Valle del Cauca</option>
+              {colombia.map((d) => (
+                <option key={d.departamento} value={d.departamento}>
+                  {d.departamento}
+                </option>
+              ))}
             </select>
-            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>
+            {errors.departamentoNacimiento && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.departamentoNacimiento}
+              </p>
             )}
           </div>
 
@@ -226,49 +291,65 @@ function RegisterPage() {
               Municipio de Nacimiento
             </label>
             <select
-              name="municipioNacimineto"value={formData.municipioNacimineto}onChange={handleChange}
+              name="municipioNacimiento"
+              value={formData.municipioNacimiento}
+              onChange={handleChange}
+              disabled={!formData.departamentoNacimiento}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Municipio</option>
-              <option value="medellin">Medellín</option>
-              <option value="bogota">Bogotá</option>
-              <option value="cali">Cali</option>
+              {municipios.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
             </select>
-            {errors.municipioNacimineto && (<p className="text-red-500 text-sm mt-1">{errors.municipioNacimineto}</p>
+            {errors.municipioNacimiento && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.municipioNacimiento}
+              </p>
             )}
           </div>
+
 
           <div className="col-span-2">
             <label className="block font-medium text-gray-700">
               Nacionalidad
             </label>
-            <select
-              name="nacionalidad" value={formData.nacionalidad} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Nacionalidad</option>
-              <option value="colombia">Colombia</option>
-              <option value="venezuela">Venezuela</option>
-              <option value="estados unidos">Estados Unidos</option>
-            </select>
-            {errors.nacionalidad && (<p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>)}
+            <Select
+              name="nacionalidad"
+              options={options}
+              placeholder="Selecciona Nacionalidad"
+              value={
+                formData.nacionalidad
+                  ? options.find(
+                      (option) => option.value === formData.nacionalidad
+                    )
+                  : null
+              }
+              onChange={(option) => handleSelectChange("nacionalidad", option)}
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({...base,borderColor: "#d1d5db",borderRadius: "0.5rem",padding: "2px","&:hover": { borderColor: "#16a34a" },boxShadow: "0 0 0 1px #d1d5db",}),
+              }}
+            />
+            {errors.nacionalidad && (
+              <p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>
+            )}
           </div>
 
           <div>
             <label className="block font-medium text-gray-700">
               Ciudad de Residencia
             </label>
-            <select
-              name="ciudadResidencia" value={formData.ciudadResidencia} onChange={handleChange}
+            <input
+              type="text" name="ciudadResidencia" value={formData.ciudadResidencia} onChange={handleChange}
+              placeholder="Escribe tu ciudad"
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Ciudad</option>
-              <option value="cucuta">Cucuta</option>
-              <option value="valledupar">Valledupar</option>
-              <option value="bogota">Bogota</option>
-            </select>
+            />
             {errors.ciudadResidencia && (<p className="text-red-500 text-sm mt-1">{errors.ciudadResidencia}</p>)}
           </div>
+
 
           <div>
             <label className="block font-medium text-gray-700">
@@ -545,7 +626,7 @@ function RegisterPage() {
                   Año de Finalización
                 </label>
                 <input
-                  name="fechaFinalizacion" type="date" value={ormData.fechaFinalizacion} onChange={handleChange}
+                  name="fechaFinalizacion" type="date" value={formData.fechaFinalizacion} onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
                 />
               </div>
