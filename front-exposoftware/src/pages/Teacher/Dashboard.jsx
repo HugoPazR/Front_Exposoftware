@@ -1,137 +1,44 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
-
-// BarChart Component
-function BarChart({ data, height = 200 }) {
-  if (!data || data.length === 0) return null;
-
-  const maxValue = Math.max(...data.map(d => d.value));
-
-  return (
-    <div className="w-full">
-      <div className="flex items-end justify-between gap-3 px-4" style={{ height: `${height}px` }}>
-        {data.map((item, idx) => {
-          const barHeight = (item.value / maxValue) * (height - 40);
-          return (
-            <div key={idx} className="flex flex-col items-center justify-end flex-1 h-full">
-              <div className="relative group flex flex-col items-center justify-end h-full w-full">
-                <span className="text-xs font-semibold text-gray-700 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {item.value}
-                </span>
-                
-                <div
-                  className="bg-green-600 rounded-t w-full transition-all hover:bg-green-700 relative"
-                  style={{ height: `${barHeight}px`, minHeight: '20px' }}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">{item.value}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <span className="text-xs text-gray-600 mt-2 text-center leading-tight">
-                {item.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// DonutChart Component
-function DonutChart({ data, total }) {
-  if (!data || data.length === 0) return null;
-
-  let cumulativePercent = 0;
-
-  const getCoordinatesForPercent = (percent) => {
-    const x = Math.cos(2 * Math.PI * percent);
-    const y = Math.sin(2 * Math.PI * percent);
-    return [x, y];
-  };
-
-  const slices = data.map((item) => {
-    const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-    cumulativePercent += item.value / total;
-    const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
-    const largeArcFlag = item.value / total > 0.5 ? 1 : 0;
-
-    const pathData = [
-      `M ${startX} ${startY}`,
-      `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-      `L 0 0`,
-    ].join(' ');
-
-    return { ...item, pathData, percentage: ((item.value / total) * 100).toFixed(1) };
-  });
-
-  return (
-    <div className="flex flex-col items-center w-full">
-      <div className="relative flex items-center justify-center" style={{ width: '220px', height: '220px' }}>
-        <svg viewBox="-1 -1 2 2" style={{ transform: 'rotate(-90deg)' }} className="w-full h-full">
-          {slices.map((slice, idx) => (
-            <path 
-              key={idx} 
-              d={slice.pathData} 
-              fill={slice.color}
-              className="transition-opacity hover:opacity-80 cursor-pointer"
-            />
-          ))}
-          <circle cx="0" cy="0" r="0.6" fill="white" />
-        </svg>
-        
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{total}</p>
-            <p className="text-xs text-gray-500">Proyectos</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex flex-col gap-2 mt-6 w-full">
-        {data.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full flex-shrink-0" 
-                style={{ backgroundColor: item.color }} 
-              />
-              <span className="text-sm text-gray-700">{item.label}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-900">{item.value}</span>
-              <span className="text-xs text-gray-500">({slices[idx].percentage}%)</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 
 // Main Dashboard Component
 export default function TeacherDashboard() {
   const [selectedMateria, setSelectedMateria] = useState("Todas");
   const [selectedGrupo, setSelectedGrupo] = useState("Todos");
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Datos para gráfica de barras - Estudiantes por Grupo
   const barChartData = [
-    { label: "G1 (Software)", value: 45 },
-    { label: "G2 (Redes)", value: 28 },
-    { label: "G3 (IA)", value: 52 },
-    { label: "G4 (SO)", value: 38 },
-    { label: "G5 (BD)", value: 35 },
+    { name: "G1 Software", estudiantes: 45 },
+    { name: "G2 Redes", estudiantes: 28 },
+    { name: "G3 IA", estudiantes: 52 },
+    { name: "G4 SO", estudiantes: 38 },
+    { name: "G5 BD", estudiantes: 35 },
   ];
 
+  // Datos para gráfica de dona - Estado de Proyectos
   const donutChartData = [
-    { label: "Aprobado", value: 15, color: "#10b981" },
-    { label: "Pendiente", value: 90, color: "#fbbf24" },
-    { label: "Rechazado", value: 5, color: "#ef4444" },
+    { name: "Aprobado", value: 15, color: "#10b981" },
+    { name: "Pendiente", value: 90, color: "#fbbf24" },
+    { name: "Rechazado", value: 5, color: "#ef4444" },
   ];
 
   const totalProyectos = donutChartData.reduce((sum, item) => sum + item.value, 0);
+  const COLORS = ["#10b981", "#fbbf24", "#ef4444"];
 
   const estudiantesData = [
     { nombre: "Ana López", materia: "Ingeniería de Software", grupo: "G1", estado: "Activo" },
@@ -140,6 +47,20 @@ export default function TeacherDashboard() {
     { nombre: "Fernando Vargas", materia: "Sistemas Operativos", grupo: "G4", estado: "Activo" },
     { nombre: "Gabriela Díaz", materia: "Ingeniería de Software", grupo: "G1", estado: "Activo" },
   ];
+
+  // Conteos rápidos para las tarjetas
+  const total = totalProyectos;
+  const aprobados = donutChartData.find(d => d.name === 'Aprobado')?.value || 0;
+  const pendientes = donutChartData.find(d => d.name === 'Pendiente')?.value || 0;
+
+  const filteredEstudiantes = useMemo(() => {
+    return estudiantesData.filter(e => {
+      const matchesSearch = e.nombre.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesMateria = selectedMateria === 'Todas' || e.materia === selectedMateria;
+      const matchesGrupo = selectedGrupo === 'Todos' || e.grupo === selectedGrupo;
+      return matchesSearch && matchesMateria && matchesGrupo;
+    });
+  }, [searchQuery, selectedMateria, selectedGrupo]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -165,6 +86,11 @@ export default function TeacherDashboard() {
                   <span className="text-green-600 font-bold text-lg">M</span>
                 </div>
               </div>
+
+                <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+                <i className="pi pi-sign-out"></i>
+                <span className="hidden sm:inline">Cerrar Sesión</span>
+              </button>
             </div>
           </div>
         </div>
@@ -211,33 +137,133 @@ export default function TeacherDashboard() {
           <main className="lg:col-span-3">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900">Bienvenido, María</h2>
+              <p className="text-sm text-gray-500">Resumen rápido de la convocatoria y proyectos</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                  Estudiantes por Grupo y Materia
-                </h3>
-                <div className="flex-1 flex items-center">
-                  <BarChart data={barChartData} height={240} />
+            {/* Tarjetas de métricas */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Total proyectos</p>
+                  <h3 className="text-2xl font-bold text-gray-900">{total}</h3>
+                </div>
+                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-folder-open text-green-600 text-xl"></i>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col">
+              <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Aprobados</p>
+                  <h3 className="text-2xl font-bold text-gray-900">{aprobados}</h3>
+                </div>
+                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-check text-green-600 text-xl"></i>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Pendientes</p>
+                  <h3 className="text-2xl font-bold text-gray-900">{pendientes}</h3>
+                </div>
+                <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-clock text-yellow-600 text-xl"></i>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Gráfica de Barras - Estudiantes por Grupo */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  Estudiantes por Grupo y Materia
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={barChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      stroke="#6b7280"
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      stroke="#6b7280"
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#fff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="estudiantes" 
+                      fill="#16a34a" 
+                      radius={[8, 8, 0, 0]}
+                      name="Estudiantes"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Gráfica de Dona - Estado de Proyectos */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">
                   Resumen de Proyectos Registrados
                 </h3>
-                <div className="flex-1 flex items-center justify-center">
-                  <DonutChart data={donutChartData} total={totalProyectos} />
-                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={donutChartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {donutChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#fff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      iconType="circle"
+                      formatter={(value, entry) => (
+                        <span className="text-sm text-gray-700">
+                          {value} ({entry.payload.value})
+                        </span>
+                      )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Lista de Estudiantes</h3>
-                
+
                 <div className="flex items-center gap-3">
+                  <input
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Buscar estudiante..."
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+
                   <select 
                     value={selectedMateria}
                     onChange={(e) => setSelectedMateria(e.target.value)}
@@ -274,7 +300,7 @@ export default function TeacherDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {estudiantesData.map((estudiante, idx) => (
+                    {filteredEstudiantes.map((estudiante, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="py-3 px-4 text-sm text-gray-900">{estudiante.nombre}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{estudiante.materia}</td>

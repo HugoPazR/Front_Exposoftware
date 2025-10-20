@@ -19,15 +19,17 @@ export default function TeacherProfile() {
 
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors">
-                Registrar Asistencia
-              </button>
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                   <span className="text-green-600 font-bold text-lg">M</span>
                 </div>
               </div>
+                
+              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+                <i className="pi pi-sign-out"></i>
+                <span className="hidden sm:inline">Cerrar Sesión</span>
+              </button>
             </div>
           </div>
         </div>

@@ -16,6 +16,9 @@ import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminProfile from "./pages/Admin/Profile";
 import CreateGroup from "./pages/Admin/CreateGroup";
 import CreateSubject from "./pages/Admin/CreateSubject";
+import GraduateDashboard from "./pages/Graduate/Dashboard";
+import GraduateProfile from "./pages/Graduate/Profile";
+import GraduateProjects from "./pages/Graduate/Proyects";
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -35,6 +38,9 @@ function App() {
     "/admin/profile",
     "/admin/crear-grupo",
     "/admin/crear-materia",
+    "/graduate/dashboard",
+    "/graduate/profile",
+    "/graduate/proyectos",
   ];
 
   return (
@@ -66,6 +72,11 @@ function App() {
           <Route path="/admin/profile" element={<AdminProfile />} />
           <Route path="/admin/crear-grupo" element={<CreateGroup />} />
           <Route path="/admin/crear-materia" element={<CreateSubject />} />
+
+          {/* ✅ Egresados */}
+          <Route path="/graduate/dashboard" element={<GraduateDashboard />} />
+          <Route path="/graduate/profile" element={<GraduateProfile />} />
+          <Route path="/graduate/proyectos" element={<GraduateProjects />} />
 
           {/* Página no encontrada */}
           <Route

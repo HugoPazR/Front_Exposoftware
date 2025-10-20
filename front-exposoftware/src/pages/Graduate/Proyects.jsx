@@ -5,39 +5,39 @@ import logo from "../../assets/Logo-unicesar.png";
 const MOCK_PROJECTS = [
   {
     id: 1,
-    title: "Sistema de Gestión de Bibliotecas con IA",
-    participants: ["Cristian Guzman", "Pedro Lopez", "Ana García"],
-    group: "Grupo A / Programación Avanzada",
+    title: "Sistema de Gestión Empresarial con Blockchain",
+    participants: ["Juan Carlos Pérez", "María González", "Roberto Silva"],
+    company: "Tech Solutions S.A.S",
     status: "Aprobado",
-    description: "Sistema inteligente para gestión automatizada de bibliotecas universitarias utilizando técnicas de IA para recomendaciones personalizadas y búsqueda avanzada.",
-    subject: "Programación Avanzada",
-    groupName: "Grupo A",
-    professor: "Dr. Pérez",
-    line: "Inteligencia Artificial",
-    subline: "Aprendizaje Automático",
-    area: "Ciencias de la computación",
-    poster: "poster_biblioteca_ia.jpg",
-    slides: "presentacion_biblioteca_ia.pptx",
+    description: "Desarrollo de un sistema de gestión empresarial descentralizado utilizando tecnología blockchain para garantizar trazabilidad, seguridad y transparencia en procesos de auditoría y cadena de suministro. Implementado en producción en 3 empresas del sector manufacturero.",
+    activityType: "Ponencia",
+    line: "Ciencias de la Computación",
+    subline: "Sistemas Distribuidos",
+    area: "Tecnologías de la información",
+    poster: "poster_blockchain_empresarial.pdf",
+    slides: "presentacion_blockchain_empresarial.pptx",
+    industry: "Manufactura",
+    impact: "Reducción del 40% en tiempos de auditoría",
   },
   {
     id: 2,
-    title: "App Móvil para Gestión de Turnos",
-    participants: ["Cristian Guzman", "Karen Martinez"],
-    group: "Grupo B / Programación Móvil",
-    status: "Aprobado",
-    description: "Aplicación móvil multiplataforma para la gestión eficiente de turnos en diferentes tipos de establecimientos, con sistema de notificaciones en tiempo real.",
-    subject: "Programación Móvil",
-    groupName: "Grupo B",
-    professor: "Ing. Ruiz",
-    line: "Ingeniería de Software",
-    subline: "Metodologías Ágiles",
-    area: "Ingeniería de software",
-    poster: "poster_turnos.jpg",
-    slides: "presentacion_turnos.pptx",
+    title: "Plataforma de Analítica Predictiva con Machine Learning",
+    participants: ["Juan Carlos Pérez", "Andrea Martínez"],
+    company: "Tech Solutions S.A.S",
+    status: "En Revisión",
+    description: "Plataforma SaaS para análisis predictivo de ventas y comportamiento de clientes utilizando algoritmos de machine learning. Incluye dashboards interactivos y API REST para integración con sistemas existentes. Actualmente utilizada por más de 50 clientes en sector retail.",
+    activityType: "Conferencia",
+    line: "Inteligencia Artificial",
+    subline: "Aprendizaje Automático",
+    area: "Inteligencia artificial",
+    poster: "poster_ml_analytics.pdf",
+    slides: "presentacion_ml_analytics.pptx",
+    industry: "Retail y E-commerce",
+    impact: "Incremento del 25% en precisión de pronósticos de venta",
   },
 ];
 
-export default function MyProjects() {
+export default function GraduateProjects() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -69,11 +69,11 @@ export default function MyProjects() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">CG</span>
+                  <span className="text-green-600 font-bold text-lg">EG</span>
                 </div>
               </div>
 
-                 <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -88,15 +88,15 @@ export default function MyProjects() {
           <aside className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <nav className="space-y-1">
-                <Link to="/student/dashboard" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <Link to="/graduate/dashboard" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                   <i className="pi pi-home text-base"></i>
                   Dashboard
                 </Link>
-                <Link to="/student/proyectos" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700">
-                  <i className="pi pi-book text-base"></i>
+                <Link to="/graduate/proyectos" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700">
+                  <i className="pi pi-briefcase text-base"></i>
                   Mis Proyectos
                 </Link>
-                <Link to="/student/profile" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <Link to="/graduate/profile" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
                   <i className="pi pi-cog text-base"></i>
                   Configuración
                 </Link>
@@ -105,27 +105,59 @@ export default function MyProjects() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Cristian Guzman</h3>
-                <p className="text-sm text-gray-500">Estudiante</p>
+                <h3 className="font-semibold text-gray-900">Juan Carlos Pérez</h3>
+                <p className="text-sm text-gray-500">Egresado UPC</p>
+                <p className="text-xs text-gray-400 mt-1">Promoción 2023</p>
               </div>
             </div>
           </aside>
 
           {/* Main content */}
           <main className="lg:col-span-3">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Mis Proyectos</h2>
-            <p className="text-gray-600 mb-6">Aquí puedes gestionar todos los proyectos académicos que has postulado o en los que participas. Revisa su estado, edita los detalles o visualiza la información completa de cada uno.</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Mis Proyectos Profesionales</h2>
+            <p className="text-gray-600 mb-6">Gestiona tus proyectos profesionales postulados al evento Exposoftware. Comparte tu experiencia en la industria y contribuye al desarrollo académico de nuevas generaciones.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {MOCK_PROJECTS.map(p => (
-                <div key={p.id} className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{p.title}</h3>
-                  <div className="text-sm text-gray-600 mb-3">
-                    <div className="flex items-center gap-2 mb-1"><i className="pi pi-user"></i><span>{p.participants.join(', ')}</span></div>
-                    <div className="flex items-center gap-2"><i className="pi pi-book"></i><span>{p.group}</span></div>
+                <div key={p.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 flex-1">{p.title}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 ${
+                      p.status === "Aprobado" 
+                        ? "bg-green-100 text-green-700"
+                        : p.status === "En Revisión"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    }`}>
+                      {p.status}
+                    </span>
                   </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">{p.status}</span>
+                  
+                  <div className="text-sm text-gray-600 mb-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-briefcase text-green-600"></i>
+                      <span className="font-medium">{p.company}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-tag text-green-600"></i>
+                      <span>{p.activityType}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-users text-green-600"></i>
+                      <span>{p.participants.length} participante{p.participants.length > 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">{p.description}</p>
+
+                  {p.impact && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <p className="text-xs font-semibold text-blue-900 mb-1">Impacto Industrial</p>
+                      <p className="text-xs text-blue-700">{p.impact}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-end">
                     <button 
                       onClick={() => handleViewDetails(p)}
                       className="border border-gray-200 px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
@@ -137,11 +169,15 @@ export default function MyProjects() {
               ))}
 
               {/* Postular nuevo proyecto card */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center">
-                <div className="text-4xl text-gray-400 mb-4">+</div>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center hover:border-green-500 transition-colors">
+                <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                  <i className="pi pi-plus text-3xl text-green-600"></i>
+                </div>
                 <h4 className="font-semibold text-gray-900 mb-2">Postular Nuevo Proyecto</h4>
-                <p className="text-gray-500 text-sm mb-4 text-center">Haga clic para iniciar una nueva postulación.</p>
-                <Link to="/student/register-project" className="bg-green-600 text-white px-4 py-2 rounded-lg">Postular</Link>
+                <p className="text-gray-500 text-sm mb-4 text-center">Comparte tu experiencia profesional con la comunidad académica.</p>
+                <Link to="/student/register-project" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                  Postular Proyecto
+                </Link>
               </div>
             </div>
           </main>
@@ -154,7 +190,7 @@ export default function MyProjects() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
             {/* Header del modal */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900">Detalles del Proyecto</h3>
+              <h3 className="text-xl font-bold text-gray-900">Detalles del Proyecto Profesional</h3>
               <button 
                 onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -169,22 +205,27 @@ export default function MyProjects() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.title}</h4>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
                     <span className="flex items-center gap-1">
-                      <i className="pi pi-user"></i>
-                      {selectedProject.participants[0]}
+                      <i className="pi pi-briefcase"></i>
+                      {selectedProject.company}
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <i className="pi pi-book"></i>
-                      {selectedProject.group}
+                      <i className="pi pi-tag"></i>
+                      {selectedProject.activityType}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <i className="pi pi-building"></i>
+                      {selectedProject.industry}
                     </span>
                   </div>
                 </div>
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
                   selectedProject.status === "Aprobado" 
                     ? "bg-green-100 text-green-800"
-                    : selectedProject.status === "Pendiente"
+                    : selectedProject.status === "En Revisión"
                     ? "bg-yellow-100 text-yellow-800"
                     : "bg-red-100 text-red-800"
                 }`}>
@@ -203,6 +244,17 @@ export default function MyProjects() {
                 </p>
               </div>
 
+              {/* Impacto Industrial */}
+              {selectedProject.impact && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h5 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                    <i className="pi pi-chart-line"></i>
+                    Impacto en la Industria
+                  </h5>
+                  <p className="text-sm text-blue-800">{selectedProject.impact}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Información del Proyecto */}
                 <div className="space-y-4">
@@ -213,16 +265,16 @@ export default function MyProjects() {
 
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Materia Asignada</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.subject}</p>
+                      <p className="text-xs text-gray-500 mb-1">Empresa</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.company}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Grupo</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.groupName}</p>
+                      <p className="text-xs text-gray-500 mb-1">Tipo de Actividad</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.activityType}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Profesor</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.professor}</p>
+                      <p className="text-xs text-gray-500 mb-1">Sector Industrial</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.industry}</p>
                     </div>
                   </div>
                 </div>
@@ -231,7 +283,7 @@ export default function MyProjects() {
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <i className="pi pi-sitemap text-green-600"></i>
-                    Líneas de Investigación
+                    Clasificación Técnica
                   </h5>
 
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
@@ -251,11 +303,11 @@ export default function MyProjects() {
                 </div>
               </div>
 
-              {/* Participantes */}
+              {/* Equipo de Trabajo */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <i className="pi pi-users text-green-600"></i>
-                  Participantes
+                  Equipo de Trabajo
                 </h5>
                 <div className="flex flex-wrap gap-2">
                   {selectedProject.participants.map((participant, idx) => (
@@ -278,29 +330,29 @@ export default function MyProjects() {
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <i className="pi pi-paperclip text-green-600"></i>
-                  Archivos Adjuntos
+                  Material de Presentación
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                    <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-                      <i className="pi pi-image text-blue-600 text-lg"></i>
+                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center flex-shrink-0">
+                      <i className="pi pi-file-pdf text-red-600 text-lg"></i>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.poster}</p>
-                      <p className="text-xs text-gray-500">Poster del proyecto</p>
+                      <p className="text-xs text-gray-500">Poster técnico</p>
                     </div>
                     <button className="text-green-600 hover:text-green-700">
                       <i className="pi pi-download"></i>
                     </button>
                   </div>
 
-                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer">
                     <div className="w-10 h-10 bg-orange-100 rounded flex items-center justify-center flex-shrink-0">
                       <i className="pi pi-file text-orange-600 text-lg"></i>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.slides}</p>
-                      <p className="text-xs text-gray-500">Presentación</p>
+                      <p className="text-xs text-gray-500">Presentación ejecutiva</p>
                     </div>
                     <button className="text-green-600 hover:text-green-700">
                       <i className="pi pi-download"></i>
