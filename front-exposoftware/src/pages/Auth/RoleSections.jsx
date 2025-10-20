@@ -57,7 +57,7 @@ function RoleSections({ rol, formData, errors, handleChange }) {
             <label className="block font-medium text-gray-700">Fecha de Ingreso</label>
             <input
               name="fechaIngreso"
-              type="date"
+              type="month"
               value={formData.fechaIngreso}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
@@ -206,7 +206,7 @@ function RoleSections({ rol, formData, errors, handleChange }) {
             <label className="block font-medium text-gray-700">Año de Finalización</label>
             <input
               name="fechaFinalizacion"
-              type="date"
+              type="month"
               value={formData.fechaFinalizacion}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
