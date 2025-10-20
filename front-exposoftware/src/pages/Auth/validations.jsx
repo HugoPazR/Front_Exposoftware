@@ -136,13 +136,6 @@ export const validateAllFields = (formData, rol) => {
     });
   }
 
-  if (rol === "profesor") {
-    ["correo", "tipoDocente", "codigoPrograma"].forEach((f) => {
-      const err = validateField(f, formData[f], formData, rol);
-      if (err) errors[f] = err;
-    });
-  }
-
   if (rol === "invitado") {
     ["correo", "sector", "nombreEmpresa"].forEach((f) => {
       const err = validateField(f, formData[f], formData, rol);

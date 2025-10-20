@@ -38,10 +38,8 @@ function RegisterPage() {
     correo: "",
     codigoPrograma: "",
     semestre: "",
-    tipoDocente: "",
     sector: "",
     nombreEmpresa: "",
-    categoriaDocente: "",
     titulado: "",
     contraseña: "",
     confirmarcontraseña: "",
@@ -371,7 +369,6 @@ function RegisterPage() {
             >
               <option value="">Selecciona Perfil</option>
               <option value="estudiante">Estudiante</option>
-              <option value="profesor">Profesor</option>
               <option value="invitado">Invitado</option>
               <option value="egresado">Egresado</option>
             </select>
