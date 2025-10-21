@@ -22,4 +22,16 @@ export const API_ENDPOINTS = {
   // Proyectos
   PROYECTOS: `${API_BASE_URL}/proyectos`,
   PROYECTO_BY_ID: (id) => `${API_BASE_URL}/proyectos/${id}`,
+  
+  // Líneas de Investigación
+  LINEAS_INVESTIGACION: `${API_BASE_URL}/lineas-investigacion`,
+  LINEA_BY_ID: (id) => `${API_BASE_URL}/lineas-investigacion/${id}`,
+  
+  // Sublíneas de Investigación
+  SUBLINEAS_INVESTIGACION: `${API_BASE_URL}/sublineas-investigacion`,
+  SUBLINEA_BY_ID: (id) => `${API_BASE_URL}/sublineas-investigacion/${id}`,
+  
+  // Áreas Temáticas
+  AREAS_TEMATICAS: `${API_BASE_URL}/areas-tematicas`,
+  AREA_BY_ID: (id) => `${API_BASE_URL}/areas-tematicas/${id}`,
 };

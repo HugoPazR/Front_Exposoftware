@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
+import AdminSidebar from "../../components/Layout/AdminSidebar";
 import {
   BarChart,
   Bar,
@@ -86,49 +87,8 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
-          {/* Sidebar */}
-          <aside className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <nav className="space-y-1">
-                <Link
-                  to="/admin/dashboard"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-green-50 text-green-700"
-                >
-                  <i className="pi pi-home text-base"></i>
-                  Dashboard
-                </Link>
-                <Link
-                  to="/admin/crear-materia"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-book text-base"></i>
-                  Crear Materia
-                </Link>
-                <Link
-                  to="/admin/crear-grupo"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-users text-base"></i>
-                  Crear Grupo
-                </Link>
-                <Link
-                  to="/admin/profile"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-cog text-base"></i>
-                  Configuración de Perfil
-                </Link>
-              </nav>
-
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-              <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Administrador</h3>
-                <p className="text-sm text-gray-500">Carlos Mendoza</p>
-              </div>
-            </div>
-          </aside>
+          {/* Sidebar Component */}
+          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3">

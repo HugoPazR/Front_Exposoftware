@@ -1,30 +1,33 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
+import AdminSidebar from "../../components/Layout/AdminSidebar";
 import { API_ENDPOINTS } from "../../utils/constants";
 
 // Mock data inicial de grupos
 const GRUPOS_INICIAL = [
-  { id: "grp1", codigo_grupo: 101, codigo_materia: "PROG3", fechaCreacion: "2025-01-15" },
-  { id: "grp2", codigo_grupo: 202, codigo_materia: "BD2", fechaCreacion: "2025-01-20" },
+  { id: "grp1", codigo_grupo: 101, id_docente: 1, fechaCreacion: "2025-01-15" },
+  { id: "grp2", codigo_grupo: 202, id_docente: 2, fechaCreacion: "2025-01-20" },
 ];
 
-// Mock data de materias disponibles (esto vendría del backend)
-const MATERIAS_MOCK = [
-  { codigo_materia: "PROG3", nombre_materia: "Programación III" },
-  { codigo_materia: "BD2", nombre_materia: "Bases de Datos II" },
-  { codigo_materia: "WEB1", nombre_materia: "Desarrollo Web I" },
-  { codigo_materia: "IA1", nombre_materia: "Inteligencia Artificial I" },
-  { codigo_materia: "SO1", nombre_materia: "Sistemas Operativos" },
+// Mock data de profesores disponibles (esto vendrá del backend)
+const PROFESORES_MOCK = [
+  { id: 1, nombre: "Dr. Alejandro José Meriño", departamento: "Ingeniería de Software" },
+  { id: 2, nombre: "Ing. Sofía Benítez", departamento: "Redes de Computadoras" },
+  { id: 3, nombre: "Lic. Carla Ruíz", departamento: "Inteligencia Artificial" },
+  { id: 4, nombre: "Dr. Fernando Vargas", departamento: "Sistemas Operativos" },
+  { id: 5, nombre: "Ing. María González", departamento: "Bases de Datos" },
+  { id: 6, nombre: "Dr. Juan Pérez", departamento: "Desarrollo Web" },
 ];
 
 export default function CreateGroup() {
   // Estados para el formulario
   const [codigoGrupo, setCodigoGrupo] = useState("");
-  const [codigoMateria, setCodigoMateria] = useState("");
+  const [idDocente, setIdDocente] = useState("");
   
-  // Estado para la lista de grupos
+  // Estado para la lista de grupos y profesores
   const [grupos, setGrupos] = useState(GRUPOS_INICIAL);
+  const [profesores, setProfesores] = useState(PROFESORES_MOCK);
   
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
@@ -34,9 +37,10 @@ export default function CreateGroup() {
   // Estado para búsqueda/filtro
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Cargar grupos al montar el componente
+  // Cargar grupos y profesores al montar el componente
   useEffect(() => {
     cargarGrupos();
+    cargarProfesores();
   }, []);
 
   // Función para cargar grupos desde el backend
@@ -56,17 +60,34 @@ export default function CreateGroup() {
     }
   };
 
-  // Obtener nombre de materia por código
-  const getMateriaNombre = (codigoMateria) => {
-    const materia = MATERIAS_MOCK.find(m => m.codigo_materia === codigoMateria);
-    return materia ? materia.nombre_materia : codigoMateria;
+  // Función para cargar profesores desde el backend
+  const cargarProfesores = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.DOCENTES);
+      if (response.ok) {
+        const data = await response.json();
+        setProfesores(data);
+        console.log('📥 Profesores cargados:', data.length);
+      } else {
+        console.error('❌ Error al cargar profesores:', response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error de conexión al cargar profesores:', error);
+      console.log('⚠️ Usando datos mock de profesores');
+    }
+  };
+
+  // Obtener nombre de profesor por ID
+  const getProfesorNombre = (idDocente) => {
+    const profesor = profesores.find(p => p.id === idDocente);
+    return profesor ? profesor.nombre : 'Sin asignar';
   };
 
   // Crear nuevo grupo
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!codigoGrupo || !codigoMateria) {
+    if (!codigoGrupo || !idDocente) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
@@ -74,7 +95,7 @@ export default function CreateGroup() {
     // Estructura exacta que espera el backend
     const payload = {
       codigo_grupo: parseInt(codigoGrupo),
-      codigo_materia: codigoMateria
+      id_docente: parseInt(idDocente)
     };
 
     console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
@@ -107,14 +128,14 @@ export default function CreateGroup() {
   // Limpiar formulario
   const limpiarFormulario = () => {
     setCodigoGrupo("");
-    setCodigoMateria("");
+    setIdDocente("");
   };
 
   // Iniciar edición
   const handleEdit = (grupo) => {
     setEditingId(grupo.id);
     setCodigoGrupo(grupo.codigo_grupo.toString());
-    setCodigoMateria(grupo.codigo_materia);
+    setIdDocente(grupo.id_docente.toString());
     setIsEditing(true);
     setShowEditModal(true);
   };
@@ -123,14 +144,14 @@ export default function CreateGroup() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     
-    if (!codigoGrupo || !codigoMateria) {
+    if (!codigoGrupo || !idDocente) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
       codigo_grupo: parseInt(codigoGrupo),
-      codigo_materia: codigoMateria
+      id_docente: parseInt(idDocente)
     };
 
     console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
@@ -204,8 +225,7 @@ export default function CreateGroup() {
   // Filtrar grupos por búsqueda
   const gruposFiltrados = grupos.filter(grupo =>
     grupo.codigo_grupo.toString().includes(searchTerm) ||
-    grupo.codigo_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getMateriaNombre(grupo.codigo_materia).toLowerCase().includes(searchTerm.toLowerCase())
+    getProfesorNombre(grupo.id_docente).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -243,48 +263,8 @@ export default function CreateGroup() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
-          {/* Sidebar */}
-          <aside className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <nav className="space-y-1">
-                <Link
-                  to="/admin/dash"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-home text-base"></i>
-                  Dashboard
-                </Link>
-                <Link
-                  to="/admin/crear-materia"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-book text-base"></i>
-                  Crear Materia
-                </Link>
-                <Link
-                  to="/admin/crear-grupo"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-green-50 text-green-700"
-                >
-                  <i className="pi pi-users text-base"></i>
-                  Crear Grupo
-                </Link>
-                <Link
-                  to="/admin/profile"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-cog text-base"></i>
-                  Configuración de Perfil
-                </Link>
-              </nav>
-            </div>
-
-             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-              <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Administrador</h3>
-                <p className="text-sm text-gray-500">Carlos Mendoza</p>
-              </div>
-            </div>
-          </aside>
+          {/* Sidebar Component */}
+          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3">
@@ -322,29 +302,29 @@ export default function CreateGroup() {
                   <p className="mt-1 text-xs text-gray-500">Número único que identifica el grupo</p>
                 </div>
 
-                {/* Código de Materia */}
+                {/* Asignar Profesor */}
                 <div>
                   <label 
-                    htmlFor="codigoMateria" 
+                    htmlFor="idDocente" 
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Materia <span className="text-red-500">*</span>
+                    Asignar Profesor <span className="text-red-500">*</span>
                   </label>
                   <select
-                    id="codigoMateria"
-                    value={codigoMateria}
-                    onChange={(e) => setCodigoMateria(e.target.value)}
+                    id="idDocente"
+                    value={idDocente}
+                    onChange={(e) => setIdDocente(e.target.value)}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                     required
                   >
-                    <option value="">Selecciona una materia</option>
-                    {MATERIAS_MOCK.map((materia) => (
-                      <option key={materia.codigo_materia} value={materia.codigo_materia}>
-                        {materia.codigo_materia} - {materia.nombre_materia}
+                    <option value="">Selecciona un profesor</option>
+                    {profesores.map((profesor) => (
+                      <option key={profesor.id} value={profesor.id}>
+                        {profesor.nombre} - {profesor.departamento}
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">Materia a la que pertenece el grupo</p>
+                  <p className="mt-1 text-xs text-gray-500">Profesor responsable del grupo</p>
                 </div>
 
                 {/* Botón de envío */}
@@ -390,10 +370,10 @@ export default function CreateGroup() {
                           Código Grupo
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Código Materia
+                          ID Docente
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nombre Materia
+                          Profesor Asignado
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha Creación
@@ -420,12 +400,12 @@ export default function CreateGroup() {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {grupo.codigo_materia}
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                {grupo.id_docente}
                               </span>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{getMateriaNombre(grupo.codigo_materia)}</div>
+                              <div className="text-sm text-gray-900">{getProfesorNombre(grupo.id_docente)}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-gray-500">{grupo.fechaCreacion || 'N/A'}</div>
@@ -485,21 +465,21 @@ export default function CreateGroup() {
                 />
               </div>
 
-              {/* Código de Materia */}
+              {/* Asignar Profesor */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Materia <span className="text-red-500">*</span>
+                  Asignar Profesor <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={codigoMateria}
-                  onChange={(e) => setCodigoMateria(e.target.value)}
+                  value={idDocente}
+                  onChange={(e) => setIdDocente(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
                   required
                 >
-                  <option value="">Seleccionar materia</option>
-                  {MATERIAS_MOCK.map((materia) => (
-                    <option key={materia.codigo_materia} value={materia.codigo_materia}>
-                      {materia.codigo_materia} - {materia.nombre_materia}
+                  <option value="">Seleccionar profesor</option>
+                  {profesores.map((profesor) => (
+                    <option key={profesor.id} value={profesor.id}>
+                      {profesor.nombre} - {profesor.departamento}
                     </option>
                   ))}
                 </select>

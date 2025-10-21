@@ -1,8 +1,76 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function TeacherProfile() {
+  const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const handleSave = () => {
+    setIsEditing(false);
+    alert("Cambios guardados exitosamente");
+  };
+
+  const handleOpenPasswordModal = () => {
+    setShowPasswordModal(true);
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
+  };
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordForm({
+      ...passwordForm,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSavePassword = (e) => {
+    e.preventDefault();
+    
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      alert("Por favor completa todos los campos");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      alert("Las contraseñas nuevas no coinciden");
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    alert("Contraseña cambiada exitosamente");
+    handleClosePasswordModal();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - mismo que dashboard */}
@@ -77,7 +145,18 @@ export default function TeacherProfile() {
           {/* Main content: Configuración de Perfil */}
           <main className="lg:col-span-3">
             <div className="bg-white rounded-lg border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Configuración de Perfil</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
+                {!isEditing && (
+                  <button 
+                    onClick={handleEdit}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                  >
+                    <i className="pi pi-pencil"></i>
+                    Editar Perfil
+                  </button>
+                )}
+              </div>
 
               {/* Información Personal */}
               <div className="mb-8">
@@ -95,9 +174,11 @@ export default function TeacherProfile() {
                         className="w-full h-full object-cover" 
                       />
                     </div>
-                    <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                      Cambiar Foto
-                    </button>
+                    {isEditing && (
+                      <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                        Cambiar Foto
+                      </button>
+                    )}
                   </div>
 
                   {/* Formulario de información */}
@@ -109,7 +190,8 @@ export default function TeacherProfile() {
                       <input 
                         type="text" 
                         defaultValue="Dr. Ana Gómez" 
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
                       />
                     </div>
 
@@ -120,7 +202,8 @@ export default function TeacherProfile() {
                       <input 
                         type="email" 
                         defaultValue="ana.gomez@universidad.edu" 
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
                       />
                     </div>
                   </div>
@@ -147,23 +230,116 @@ export default function TeacherProfile() {
                   </div>
 
                   <div>
-                    <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                    <button 
+                      onClick={handleOpenPasswordModal}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                    >
                       Cambiar Contraseña
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Botón de guardar */}
-              <div className="flex justify-end pt-6 border-t border-gray-200">
-                <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
-                  Guardar Cambios
-                </button>
-              </div>
+              {/* Botones de acción */}
+              {isEditing && (
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                  <button 
+                    onClick={handleCancel}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={handleSave}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    Guardar Cambios
+                  </button>
+                </div>
+              )}
             </div>
           </main>
         </div>
       </div>
+
+      {/* Modal para cambiar contraseña */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Cambiar Contraseña</h3>
+              <button 
+                onClick={handleClosePasswordModal}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <i className="pi pi-times text-xl"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Contraseña Actual <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="password"
+                  name="currentPassword"
+                  value={passwordForm.currentPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nueva Contraseña <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="password"
+                  name="newPassword"
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                  minLength={6}
+                />
+                <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirmar Nueva Contraseña <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="password"
+                  name="confirmPassword"
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={handleClosePasswordModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                >
+                  Guardar Contraseña
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
