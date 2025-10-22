@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {validateField,validateAllFields,isNumericField,hasErrors,}
 from "./validations";
 import RoleSections from "./RoleSections"; // 👈 importa el nuevo componente
-import 'react-international-phone/style.css';
+//import 'react-international-phone/style.css';
 import PhoneInput from "react-phone-input-2";
 
 import 'react-phone-input-2/lib/style.css';
