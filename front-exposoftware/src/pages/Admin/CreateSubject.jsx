@@ -1,300 +1,47 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
-import { API_ENDPOINTS } from "../../utils/constants";
-
-// Mock data de docentes disponibles
-const DOCENTES_MOCK = [
-  { id: "BU7rpAz6Nbn9DKq517wb", nombre: "Dr. Alejandro José Meriño" },
-  { id: "TEElkzBShoDC6beuFjHE", nombre: "Dr. Juan Pérez" },
-  { id: "doc3", nombre: "Ing. María González" },
-  { id: "doc4", nombre: "Lic. Carla Ruíz" },
-  { id: "doc5", nombre: "Ing. Sofía Benítez" },
-];
-
-// Opciones de ciclo semestral
-const CICLOS_SEMESTRALES = [
-  "Ciclo Básico",
-  "Ciclo Profesional",
-  "Ciclo de Profundización"
-];
-
-// Mock data inicial de materias (según estructura backend)
-const MATERIAS_INICIAL = [
-  {
-    id: "mat1",
-    codigo_materia: "PROG3",
-    nombre_materia: "Programación III",
-    ciclo_semestral: "Ciclo Profesional",
-    grupos_con_docentes: [
-      { codigo_grupo: 101, id_docente: "BU7rpAz6Nbn9DKq517wb" },
-      { codigo_grupo: 102, id_docente: "TEElkzBShoDC6beuFjHE" }
-    ],
-    fechaCreacion: "2025-01-15"
-  },
-  {
-    id: "mat2",
-    codigo_materia: "BD2",
-    nombre_materia: "Bases de Datos II",
-    ciclo_semestral: "Ciclo Profesional",
-    grupos_con_docentes: [
-      { codigo_grupo: 201, id_docente: "doc3" }
-    ],
-    fechaCreacion: "2025-01-20"
-  },
-];
+import AdminSidebar from "../../components/Layout/AdminSidebar";
+import { useSubjectManagement, CICLOS_SEMESTRALES } from "./useSubjectManagement";
 
 export default function CreateSubject() {
-  // Estados para el formulario principal
-  const [codigoMateria, setCodigoMateria] = useState("");
-  const [nombreMateria, setNombreMateria] = useState("");
-  const [cicloSemestral, setCicloSemestral] = useState("");
-  
-  // Estados para gestionar grupos y docentes
-  const [gruposConDocentes, setGruposConDocentes] = useState([
-    { codigo_grupo: "", id_docente: "" }
-  ]);
-  
-  // Estado para la lista de materias
-  const [materias, setMaterias] = useState(MATERIAS_INICIAL);
-  
-  // Estados para edición
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  
-  // Estado para búsqueda/filtro
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // Obtener nombre del docente por ID
-  const getDocenteNombre = (docenteId) => {
-    const docente = DOCENTES_MOCK.find(d => d.id === docenteId);
-    return docente ? docente.nombre : "Sin asignar";
-  };
-
-  // Agregar nuevo grupo-docente al formulario
-  const agregarGrupoDocente = () => {
-    setGruposConDocentes([...gruposConDocentes, { codigo_grupo: "", id_docente: "" }]);
-  };
-
-  // Eliminar grupo-docente del formulario
-  const eliminarGrupoDocente = (index) => {
-    if (gruposConDocentes.length > 1) {
-      setGruposConDocentes(gruposConDocentes.filter((_, i) => i !== index));
-    }
-  };
-
-  // Actualizar un grupo-docente específico
-  const actualizarGrupoDocente = (index, campo, valor) => {
-    const nuevosGrupos = [...gruposConDocentes];
-    nuevosGrupos[index][campo] = campo === 'codigo_grupo' ? parseInt(valor) || "" : valor;
-    setGruposConDocentes(nuevosGrupos);
-  };
-
-  // Crear nueva materia
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Obtener todas las funcionalidades del custom hook
+  const {
+    // Estados del formulario
+    codigoMateria,
+    setCodigoMateria,
+    nombreMateria,
+    setNombreMateria,
+    cicloSemestral,
+    setCicloSemestral,
     
-    if (!codigoMateria || !nombreMateria || !cicloSemestral) {
-      alert("Por favor complete todos los campos obligatorios");
-      return;
-    }
-
-    // Validar que haya al menos un grupo con docente
-    const gruposValidos = gruposConDocentes.filter(g => g.codigo_grupo && g.id_docente);
-    if (gruposValidos.length === 0) {
-      alert("Por favor agregue al menos un grupo con su docente asignado");
-      return;
-    }
-
-    // Estructura exacta que espera el backend
-    const payload = {
-      materia: {
-        codigo_materia: codigoMateria.toUpperCase(),
-        nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral
-      },
-      grupos_con_docentes: gruposValidos
-    };
-
-    console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
-
-    try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
-        // Recargar la lista de materias desde el backend
-        await cargarMaterias();
-        
-        alert("✅ Materia creada exitosamente");
-        limpiarFormulario();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear la materia: ${errorData.message || 'Error desconocido'}`);
-      }
-    } catch (error) {
-      console.error('❌ Error al crear materia:', error);
-      alert("❌ Error de conexión al crear la materia");
-    }
-  };
-
-  // Limpiar formulario
-  const limpiarFormulario = () => {
-    setCodigoMateria("");
-    setNombreMateria("");
-    setCicloSemestral("");
-    setGruposConDocentes([{ codigo_grupo: "", id_docente: "" }]);
-  };
-
-  // Iniciar edición
-  const handleEdit = (materia) => {
-    setEditingId(materia.id);
-    setCodigoMateria(materia.codigo_materia);
-    setNombreMateria(materia.nombre_materia);
-    setCicloSemestral(materia.ciclo_semestral);
-    setGruposConDocentes(materia.grupos_con_docentes.length > 0 
-      ? [...materia.grupos_con_docentes] 
-      : [{ codigo_grupo: "", id_docente: "" }]
-    );
-    setIsEditing(true);
-    setShowEditModal(true);
-  };
-
-  // Guardar edición
-  const handleSaveEdit = async (e) => {
-    e.preventDefault();
+    // Estados de grupos
+    gruposDisponibles,
+    gruposSeleccionados,
     
-    if (!codigoMateria || !nombreMateria || !cicloSemestral) {
-      alert("Por favor complete todos los campos obligatorios");
-      return;
-    }
-
-    const gruposValidos = gruposConDocentes.filter(g => g.codigo_grupo && g.id_docente);
-    if (gruposValidos.length === 0) {
-      alert("Por favor agregue al menos un grupo con su docente asignado");
-      return;
-    }
-
-    // Estructura exacta que espera el backend
-    const payload = {
-      materia: {
-        codigo_materia: codigoMateria.toUpperCase(),
-        nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral
-      },
-      grupos_con_docentes: gruposValidos
-    };
-
-    console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
-
-    try {
-      const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
-        // Recargar la lista de materias desde el backend
-        await cargarMaterias();
-        
-        alert("✅ Materia actualizada exitosamente");
-        handleCancelEdit();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar la materia: ${errorData.message || 'Error desconocido'}`);
-      }
-    } catch (error) {
-      console.error('❌ Error al actualizar materia:', error);
-      alert("❌ Error de conexión al actualizar la materia");
-    }
-  };
-
-  // Cancelar edición
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditingId(null);
-    setShowEditModal(false);
-    limpiarFormulario();
-  };
-
-  // Eliminar materia
-  const handleDelete = async (id) => {
-    const materiaAEliminar = materias.find(m => m.id === id);
+    // Estados de materias
+    materiasFiltradas,
+    materias,
     
-    if (window.confirm(`¿Está seguro de que desea eliminar la materia "${materiaAEliminar?.nombre_materia}"? Esta acción también eliminará todos los grupos asociados.`)) {
-      console.log('🗑️ Eliminando del backend - ID:', id);
-      console.log('📋 Materia a eliminar:', materiaAEliminar?.codigo_materia);
-      
-      try {
-        const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(id), { 
-          method: 'DELETE' 
-        });
-        
-        if (response.ok) {
-          console.log('✅ Materia eliminada del backend');
-          
-          // Recargar la lista de materias desde el backend
-          await cargarMaterias();
-          
-          alert("✅ Materia eliminada exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar la materia: ${errorData.message || 'Error desconocido'}`);
-        }
-      } catch (error) {
-        console.error('❌ Error al eliminar materia:', error);
-        alert("❌ Error de conexión al eliminar la materia");
-      }
-    }
-  };
-
-  const handleCancel = () => {
-    limpiarFormulario();
-  };
-
-  // Cargar materias al montar el componente
-  useEffect(() => {
-    cargarMaterias();
-  }, []);
-
-  // Función para cargar materias desde el backend
-  const cargarMaterias = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS);
-      if (response.ok) {
-        const data = await response.json();
-        setMaterias(data);
-        console.log('📥 Materias cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar materias:', response.statusText);
-      }
-    } catch (error) {
-      console.error('❌ Error de conexión al cargar materias:', error);
-      console.log('⚠️ Usando datos mock locales');
-      // Si falla, mantener las materias mock
-    }
-  };
-
-  // Filtrar materias por búsqueda
-  const materiasFiltradas = materias.filter(materia =>
-    materia.codigo_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    materia.nombre_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    materia.ciclo_semestral.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    // Estados de edición
+    showEditModal,
+    
+    // Estado de búsqueda
+    searchTerm,
+    setSearchTerm,
+    
+    // Funciones auxiliares
+    getDocenteNombre,
+    agregarGrupoSeleccionado,
+    eliminarGrupoSeleccionado,
+    
+    // Funciones CRUD
+    handleSubmit,
+    handleEdit,
+    handleSaveEdit,
+    handleCancelEdit,
+    handleDelete,
+    handleCancel,
+  } = useSubjectManagement();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -331,48 +78,8 @@ export default function CreateSubject() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
-          {/* Sidebar */}
-          <aside className="lg:col-span-1">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <nav className="space-y-1">
-                <Link
-                  to="/admin/dash"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-home text-base"></i>
-                  Dashboard
-                </Link>
-                <Link
-                  to="/admin/crear-materia"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-green-50 text-green-700"
-                >
-                  <i className="pi pi-book text-base"></i>
-                  Crear Materia
-                </Link>
-                <Link
-                  to="/admin/crear-grupo"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-users text-base"></i>
-                  Crear Grupo
-                </Link>
-                <Link
-                  to="/admin/profile"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50"
-                >
-                  <i className="pi pi-cog text-base"></i>
-                  Configuración de Perfil
-                </Link>
-              </nav>
-            </div>
-
-            <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-              <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Administrador</h3>
-                <p className="text-sm text-gray-500">Carlos Mendoza</p>
-              </div>
-            </div>
-          </aside>
+          {/* Sidebar Component */}
+          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3 space-y-6">
@@ -454,75 +161,83 @@ export default function CreateSubject() {
                   />
                 </div>
 
-                {/* Grupos con Docentes */}
+                {/* Asignar Grupos */}
                 <div className="border-t pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Grupos y Docentes Asignados <span className="text-red-500">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={agregarGrupoDocente}
-                      className="inline-flex items-center px-3 py-1.5 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors text-xs font-medium"
-                    >
-                      <i className="pi pi-plus mr-1.5"></i>
-                      Agregar Grupo
-                    </button>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Asignar Grupos a la Materia <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Selecciona un grupo de la lista. El docente asignado se mostrará automáticamente.
+                  </p>
 
-                  <div className="space-y-3">
-                    {gruposConDocentes.map((grupo, index) => (
-                      <div key={index} className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg">
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {/* Código de Grupo */}
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              Código de Grupo
-                            </label>
-                            <input
-                              type="number"
-                              value={grupo.codigo_grupo}
-                              onChange={(e) => actualizarGrupoDocente(index, 'codigo_grupo', e.target.value)}
-                              placeholder="Ej: 101, 102"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                              required
-                            />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Selector de Grupos */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-2">
+                        Grupos Disponibles
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white mb-2"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            agregarGrupoSeleccionado(e.target.value);
+                            e.target.value = "";
+                          }
+                        }}
+                      >
+                        <option value="">Seleccionar grupo...</option>
+                        {gruposDisponibles
+                          .filter(g => !gruposSeleccionados.find(gs => gs.codigo_grupo === g.codigo_grupo))
+                          .map((grupo) => (
+                            <option key={grupo.id} value={grupo.codigo_grupo}>
+                              Grupo {grupo.codigo_grupo} - {getDocenteNombre(grupo.id_docente)}
+                            </option>
+                          ))
+                        }
+                      </select>
+                    </div>
+
+                    {/* Grupos Seleccionados */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-2">
+                        Grupos Asignados ({gruposSeleccionados.length})
+                      </label>
+                      <div className="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[120px] max-h-[200px] overflow-y-auto">
+                        {gruposSeleccionados.length === 0 ? (
+                          <p className="text-xs text-gray-400 text-center py-4">
+                            No hay grupos asignados
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {gruposSeleccionados.map((grupo) => (
+                              <div 
+                                key={grupo.codigo_grupo} 
+                                className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
+                              >
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">
+                                      {grupo.codigo_grupo}
+                                    </span>
+                                    <span className="text-xs text-gray-600">
+                                      {getDocenteNombre(grupo.id_docente)}
+                                    </span>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => eliminarGrupoSeleccionado(grupo.codigo_grupo)}
+                                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  title="Quitar grupo"
+                                >
+                                  <i className="pi pi-times text-xs"></i>
+                                </button>
+                              </div>
+                            ))}
                           </div>
-
-                          {/* Docente Asignado */}
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              Docente Asignado
-                            </label>
-                            <select
-                              value={grupo.id_docente}
-                              onChange={(e) => actualizarGrupoDocente(index, 'id_docente', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                              required
-                            >
-                              <option value="">Seleccione un docente</option>
-                              {DOCENTES_MOCK.map((docente) => (
-                                <option key={docente.id} value={docente.id}>
-                                  {docente.nombre}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Botón Eliminar */}
-                        {gruposConDocentes.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => eliminarGrupoDocente(index)}
-                            className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar grupo"
-                          >
-                            <i className="pi pi-trash"></i>
-                          </button>
                         )}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
 
@@ -757,75 +472,83 @@ export default function CreateSubject() {
                 />
               </div>
 
-              {/* Grupos con Docentes */}
+              {/* Asignar Grupos */}
               <div className="border-t pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Grupos y Docentes Asignados <span className="text-red-500">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={agregarGrupoDocente}
-                    className="inline-flex items-center px-3 py-1.5 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors text-xs font-medium"
-                  >
-                    <i className="pi pi-plus mr-1.5"></i>
-                    Agregar Grupo
-                  </button>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Asignar Grupos a la Materia <span className="text-red-500">*</span>
+                </label>
+                <p className="text-xs text-gray-500 mb-4">
+                  Selecciona un grupo de la lista. El docente asignado se mostrará automáticamente.
+                </p>
 
-                <div className="space-y-3">
-                  {gruposConDocentes.map((grupo, index) => (
-                    <div key={index} className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* Código de Grupo */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Código de Grupo
-                          </label>
-                          <input
-                            type="number"
-                            value={grupo.codigo_grupo}
-                            onChange={(e) => actualizarGrupoDocente(index, 'codigo_grupo', e.target.value)}
-                            placeholder="Ej: 101, 102"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                            required
-                          />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Selector de Grupos */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-2">
+                      Grupos Disponibles
+                    </label>
+                    <select
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white mb-2"
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          agregarGrupoSeleccionado(e.target.value);
+                          e.target.value = "";
+                        }
+                      }}
+                    >
+                      <option value="">Seleccionar grupo...</option>
+                      {gruposDisponibles
+                        .filter(g => !gruposSeleccionados.find(gs => gs.codigo_grupo === g.codigo_grupo))
+                        .map((grupo) => (
+                          <option key={grupo.id} value={grupo.codigo_grupo}>
+                            Grupo {grupo.codigo_grupo} - {getDocenteNombre(grupo.id_docente)}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+
+                  {/* Grupos Seleccionados */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-2">
+                      Grupos Asignados ({gruposSeleccionados.length})
+                    </label>
+                    <div className="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[120px] max-h-[200px] overflow-y-auto">
+                      {gruposSeleccionados.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-4">
+                          No hay grupos asignados
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {gruposSeleccionados.map((grupo) => (
+                            <div 
+                              key={grupo.codigo_grupo} 
+                              className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">
+                                    {grupo.codigo_grupo}
+                                  </span>
+                                  <span className="text-xs text-gray-600">
+                                    {getDocenteNombre(grupo.id_docente)}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => eliminarGrupoSeleccionado(grupo.codigo_grupo)}
+                                className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                title="Quitar grupo"
+                              >
+                                <i className="pi pi-times text-xs"></i>
+                              </button>
+                            </div>
+                          ))}
                         </div>
-
-                        {/* Docente Asignado */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Docente Asignado
-                          </label>
-                          <select
-                            value={grupo.id_docente}
-                            onChange={(e) => actualizarGrupoDocente(index, 'id_docente', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                            required
-                          >
-                            <option value="">Seleccione un docente</option>
-                            {DOCENTES_MOCK.map((docente) => (
-                              <option key={docente.id} value={docente.id}>
-                                {docente.nombre}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Botón Eliminar */}
-                      {gruposConDocentes.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => eliminarGrupoDocente(index)}
-                          className="mt-6 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar grupo"
-                        >
-                          <i className="pi pi-trash"></i>
-                        </button>
                       )}
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
 

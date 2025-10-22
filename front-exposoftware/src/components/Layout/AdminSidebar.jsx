@@ -1,19 +1,52 @@
-          import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 /**
- * Componente Sidebar genérico para navegación
+ * Sidebar para el panel de administración
  * @param {Object} props - Propiedades del componente
- * @param {Array} props.menuItems - Array de items del menú
- * @param {string} props.userName - Nombre del usuario
- * @param {string} props.userRole - Rol del usuario
+ * @param {string} props.userName - Nombre del usuario administrador (opcional, default: "Carlos Mendoza")
+ * @param {string} props.userRole - Rol del usuario (opcional, default: "Administrador")
  */
-export default function Sidebar({ menuItems = [], userName = "Usuario", userRole = "Rol" }) {
+export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "Administrador" }) {
   const location = useLocation();
 
   // Función para determinar si un link está activo
   const isActive = (path) => {
     return location.pathname === path;
   };
+
+  // Configuración de los enlaces del sidebar
+  const menuItems = [
+    {
+      to: "/admin/dash",
+      icon: "pi-home",
+      label: "Dashboard"
+    },
+    {
+      to: "/admin/crear-materia",
+      icon: "pi-book",
+      label: "Crear Materia"
+    },
+    {
+      to: "/admin/crear-grupo",
+      icon: "pi-users",
+      label: "Crear Grupo"
+    },
+    {
+      to: "/admin/crear-profesor",
+      icon: "pi-user-plus",
+      label: "Gestión de Profesores"
+    },
+    {
+      to: "/admin/lineas-investigacion",
+      icon: "pi-lightbulb",
+      label: "Gestión de Líneas de Investigación"
+    },
+    {
+      to: "/admin/profile",
+      icon: "pi-cog",
+      label: "Configuración de Perfil"
+    }
+  ];
 
   return (
     <aside className="lg:col-span-1">

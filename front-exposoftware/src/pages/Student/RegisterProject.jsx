@@ -10,7 +10,9 @@ export default function RegisterProject() {
     titulo_proyecto: "",
     descripcion: "",
     poster: null,
-    diapositivas: null,
+    articulo: null,
+    video: null,
+    imagen: null,
     participantes: [],
     id_materia: "",
     id_grupo: "",
@@ -63,6 +65,19 @@ export default function RegisterProject() {
 
     cargarCatalogos();
   }, []);
+
+  // Limpiar archivos cuando cambia el tipo de actividad
+  useEffect(() => {
+    if (form.tipo_actividad) {
+      setForm(s => ({
+        ...s,
+        poster: null,
+        articulo: null,
+        video: null,
+        imagen: null,
+      }));
+    }
+  }, [form.tipo_actividad]);
 
   // Cargar grupos cuando cambia la materia
   useEffect(() => {
@@ -178,8 +193,14 @@ export default function RegisterProject() {
       if (form.poster) {
         formData.append('poster', form.poster);
       }
-      if (form.diapositivas) {
-        formData.append('diapositivas', form.diapositivas);
+      if (form.articulo) {
+        formData.append('articulo', form.articulo);
+      }
+      if (form.video) {
+        formData.append('video', form.video);
+      }
+      if (form.imagen) {
+        formData.append('imagen', form.imagen);
       }
 
       // Obtener token de autenticación (ajusta según tu método de auth)
@@ -278,33 +299,160 @@ export default function RegisterProject() {
             />
           </div>
 
-          {/* Archivos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Subida de poster.pdf</label>
-              <input 
-                type="file" 
-                accept=".pdf,application/pdf" 
-                onChange={e=>handleFile(e,'poster')} 
-                className="w-full text-sm" 
-              />
-              {form.poster && (
-                <p className="text-xs text-green-600 mt-1">✓ {form.poster.name}</p>
-              )}
+          {/* Archivos - Dinámicos según tipo de actividad */}
+          {form.tipo_actividad && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="text-sm font-semibold text-gray-800 mb-3">
+                Archivos requeridos
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Conferencia: artículo + video */}
+                {form.tipo_actividad === "1" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Artículo (PDF) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".pdf,application/pdf" 
+                        onChange={e=>handleFile(e,'articulo')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.articulo && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Video (MP4) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".mp4,video/mp4" 
+                        onChange={e=>handleFile(e,'video')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.video && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.video.name}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Taller: artículo + imagen */}
+                {form.tipo_actividad === "2" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Artículo (PDF) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".pdf,application/pdf" 
+                        onChange={e=>handleFile(e,'articulo')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.articulo && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Imagen (JPG/PNG) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".jpg,.jpeg,.png,image/jpeg,image/png" 
+                        onChange={e=>handleFile(e,'imagen')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.imagen && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.imagen.name}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Exposoftware (Proyecto): poster + artículo */}
+                {form.tipo_actividad === "3" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Póster (PDF) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".pdf,application/pdf" 
+                        onChange={e=>handleFile(e,'poster')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.poster && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.poster.name}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Artículo (PDF) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".pdf,application/pdf" 
+                        onChange={e=>handleFile(e,'articulo')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.articulo && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Ponencia: poster + artículo */}
+                {form.tipo_actividad === "4" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Póster (PDF) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".pdf,application/pdf" 
+                        onChange={e=>handleFile(e,'poster')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.poster && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.poster.name}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Artículo (PDF) <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="file" 
+                        accept=".pdf,application/pdf" 
+                        onChange={e=>handleFile(e,'articulo')} 
+                        className="w-full text-sm" 
+                        required
+                      />
+                      {form.articulo && (
+                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Subida de diapositivas.ppt</label>
-              <input 
-                type="file" 
-                accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" 
-                onChange={e=>handleFile(e,'diapositivas')} 
-                className="w-full text-sm" 
-              />
-              {form.diapositivas && (
-                <p className="text-xs text-green-600 mt-1">✓ {form.diapositivas.name}</p>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* Participantes */}
           <div>
