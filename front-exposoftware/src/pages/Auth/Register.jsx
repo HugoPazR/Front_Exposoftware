@@ -3,9 +3,15 @@ import {validateField,validateAllFields,isNumericField,hasErrors,}
 from "./validations";
 import RoleSections from "./RoleSections"; // 👈 importa el nuevo componente
 import 'react-international-phone/style.css';
-import { PhoneInput } from "react-international-phone";
+import PhoneInput from "react-phone-input-2";
+
+import 'react-phone-input-2/lib/style.css';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
 import countryList from 'react-select-country-list';
 import colombia from "../../assets/colombia-json-master/colombia.json"
+import vista from "../../assets/icons/vista.png"
+import esconder from "../../assets/icons/esconder.png"
 import Select from 'react-select';
 import { useMemo } from 'react';
 
@@ -13,10 +19,9 @@ function RegisterPage() {
   const [rol, setrol] = useState("");
   const [errors, setErrors] = useState({});
   const options = useMemo(() => countryList().getData(), []);
-  const [departamento, setDepartamento] = useState("");
-  const [municipio, setMunicipio] = useState("");
-  const [municipios, setMunicipios] = useState([]);
 
+  const [municipios, setMunicipios] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     nombres: "",
@@ -30,6 +35,7 @@ function RegisterPage() {
     departamentoNacimiento: "",
     municipioNacimiento: "",
     nacionalidad: "",
+    paisResidencia: "",
     ciudadResidencia: "",
     direccionResidencia: "",
     rol: "",
@@ -40,6 +46,7 @@ function RegisterPage() {
     semestre: "",
     sector: "",
     nombreEmpresa: "",
+    periodo: "",
     titulado: "",
     contraseña: "",
     confirmarcontraseña: "",
@@ -55,6 +62,7 @@ function RegisterPage() {
 
   // Cambia automáticamente la imagen cada 5 segundos
   useEffect(() => {
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex === images.length - 1 ? 0 : prevIndex + 1
@@ -64,23 +72,32 @@ function RegisterPage() {
   }, [images.length]);
 
   // Manejo del cambio en los inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+const handleChange = (e) => {
+  const { name, value } = e.target;
 
-    
-    if (isNumericField(name) && value !== "" && /[^\d]/.test(value)) {
-      return;
-    }
+  if ((name === "nombres" || name === "apellidos" || name === "ciudadResidencia") && /[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
+    return; 
+  }
 
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // 🔹 Evitar caracteres no numéricos en campos numéricos
+  if (isNumericField(name) && value !== "" && /[^\d]/.test(value)) {
+    return;
+  }
 
-    if (name === "rol") {
-      setrol(value);
-    }
+  if (name === "rol") {
+    setrol(value);
+  }
 
-    const error = validateField(name, value, formData, rol);
-    setErrors((prev) => ({ ...prev, [name]: error }));
-  };
+  setFormData((prev) => {
+    const updatedForm = { ...prev, [name]: value };
+
+    const error = validateField(name, value, updatedForm, name === "rol" ? value : rol);
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+
+    return updatedForm;
+  });
+};
+
 
   // Manejo de cambios en Selects (react-select)
   const handleSelectChange = (name, option) => {
@@ -95,7 +112,18 @@ function RegisterPage() {
     const error = validateField(name, value, formData, rol);
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
-  
+
+  // 🔹 Desactivar Departamento y Municipio si el país no es Colombia
+  useEffect(() => {
+    if (formData.paisResidencia !== "CO") { // "CO" es el código ISO de Colombia en react-select-country-list
+      setFormData((prev) => ({
+        ...prev,
+        departamentoNacimiento: "",
+        municipioNacimiento: "",
+      }));
+      setMunicipios([]); // limpia lista de municipios
+    }
+  }, [formData.paisResidencia]);
 
   // Manejo del envío del formulario
   const handleSubmit = (e) => {
@@ -178,17 +206,20 @@ function RegisterPage() {
             <label className="block font-medium text-gray-700">Teléfono</label>
             <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
               <PhoneInput
-                defaultCountry="co" value={formData.telefono}
-                onChange={(phone) =>
-                  setFormData((prev) => ({ ...prev, telefono: phone }))
-                }
-                className="w-full" inputClassName="w-full border-none outline-none bg-transparent p-2"
+                country={"co"}
+                value={formData.telefono}
+                onChange={(phone) => {
+                  const parsed = parsePhoneNumberFromString("+" + phone);
+                  setFormData((prev) => ({
+                    ...prev,
+                    telefono: parsed?.number ?? phone,
+                  }));
+                }}
+                inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2" buttonClass="!border-none !bg-transparent" dropdownClass="!border-gray-300"
                 placeholder="Número de teléfono"
               />
             </div>
-            {errors.telefono && (
-              <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
-            )}
+            {errors.telefono && (<p className="text-red-500 text-sm mt-1">{errors.telefono}</p>)}
           </div>
 
           <div>
@@ -212,11 +243,15 @@ function RegisterPage() {
             <Select
               name="orientacionSexual"
               options={[
+                { value: "", label: "Selecciona Orientacion" },
                 { value: "heterosexual", label: "Heterosexual" },
                 { value: "homosexual", label: "Homosexual" },
                 { value: "bisexual", label: "Bisexual" },
                 { value: "pansexual", label: "Pansexual" },
                 { value: "asexual", label: "Asexual" },
+                { value: "Transexual", label: "Transexual" },
+                { value: "No-Binario", label: "No-Binario" },
+                { value: "Otro", label: "Otro" },
               ]}
               placeholder="Selecciona Identidad Sexual"
               value={
@@ -255,58 +290,6 @@ function RegisterPage() {
 
           <div>
             <label className="block font-medium text-gray-700">
-              Departamento de Nacimiento
-            </label>
-            <select
-              name="departamentoNacimiento" value={formData.departamentoNacimiento}
-              onChange={(e) => {
-                const selectedDepartamento = e.target.value;
-                setFormData((prev) => ({
-                  ...prev,
-                  departamentoNacimiento: selectedDepartamento,
-                  municipioNacimiento: "",
-                }));
-
-                const depto = colombia.find((d) => d.departamento === selectedDepartamento);
-                setMunicipios(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
-
-                const error = validateField(
-                  "departamentoNacimiento",selectedDepartamento,formData,rol);
-                setErrors((prev) => ({...prev,departamentoNacimiento: error,}));
-              }}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Departamento</option>
-              {colombia.map((d) => (
-                <option key={d.departamento} value={d.departamento}>
-                  {d.departamento}
-                </option>
-              ))}
-            </select>
-            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>)}
-          </div>
-
-          <div>
-            <label className="block font-medium text-gray-700">
-              Municipio de Nacimiento
-            </label>
-            <select
-              name="municipioNacimiento" value={formData.municipioNacimiento} onChange={handleChange} disabled={!formData.departamentoNacimiento}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Municipio</option>
-              {municipios.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            {errors.municipioNacimiento && (<p className="text-red-500 text-sm mt-1"> {errors.municipioNacimiento} </p>)}
-          </div>
-
-
-          <div className="col-span-2">
-            <label className="block font-medium text-gray-700">
               Nacionalidad
             </label>
             <Select
@@ -326,6 +309,80 @@ function RegisterPage() {
             />
             {errors.nacionalidad && (<p className="text-red-500 text-sm mt-1">{errors.nacionalidad}</p>)}
           </div>
+
+          <div>
+            <label className="block font-medium text-gray-700">
+              Pais de Recidencia
+            </label>
+            <Select
+              name="paisResidencia" options={options} placeholder="Selecciona Nacionalidad"
+              value={
+                formData.paisResidencia
+                  ? options.find(
+                      (option) => option.value === formData.paisResidencia
+                    )
+                  : null
+              }
+              onChange={(option) => handleSelectChange("paisResidencia", option)}
+              classNamePrefix="react-select"
+              styles={{
+                control: (base) => ({...base,borderColor: "#d1d5db",borderRadius: "0.5rem",padding: "2px","&:hover": { borderColor: "#16a34a" },boxShadow: "0 0 0 1px #d1d5db",}),
+              }}
+            />
+            {errors.paisResidencia && (<p className="text-red-500 text-sm mt-1">{errors.paisResidencia}</p>)}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700">
+              Departamento de Nacimiento
+            </label>
+            <select
+              name="departamentoNacimiento" value={formData.departamentoNacimiento}
+              onChange={(e) => {
+                const selectedDepartamento = e.target.value;
+                setFormData((prev) => ({
+                  ...prev,
+                  departamentoNacimiento: selectedDepartamento,
+                  municipioNacimiento: "",
+                }));
+
+                const depto = colombia.find((d) => d.departamento === selectedDepartamento);
+                setMunicipios(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
+
+                const error = validateField("departamentoNacimiento",selectedDepartamento,formData,rol);
+                setErrors((prev) => ({...prev,departamentoNacimiento: error,}));
+              }}
+              disabled={formData.paisResidencia !== "CO"}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
+            >
+              <option value="">Selecciona Departamento</option>
+              {colombia.map((d) => (
+                <option key={d.departamento} value={d.departamento}>
+                  {d.departamento}
+                </option>
+              ))}
+            </select>
+            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>)}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700">
+              Municipio de Nacimiento
+            </label>
+            <select
+              name="municipioNacimiento" value={formData.municipioNacimiento} onChange={handleChange} disabled={!formData.departamentoNacimiento || formData.paisResidencia !== "CO"}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
+            >
+              <option value="">Selecciona Municipio</option>
+              {municipios.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            {errors.municipioNacimiento && (<p className="text-red-500 text-sm mt-1"> {errors.municipioNacimiento} </p>)}
+          </div>
+
 
           <div>
             <label className="block font-medium text-gray-700">
@@ -398,7 +455,7 @@ function RegisterPage() {
               Número de Documento
             </label>
             <input
-              name="numeroDocumento" type="text" placeholder="Número de Documento" value={formData.numeroDocumento} onChange={handleChange}
+              name="numeroDocumento" type="text" maxLength="10" placeholder="Número de Documento" value={formData.numeroDocumento} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             />
             {errors.numeroDocumento && (<p className="text-red-500 text-sm mt-1">{errors.numeroDocumento}</p>)}
@@ -419,15 +476,27 @@ function RegisterPage() {
             </h2>
           </div>
 
-          <div>
-            <label className="block font-medium text-gray-700">
-              Contraseña
-            </label>
-            <input
-              name="contraseña" type="password" placeholder="Contraseña" value={formData.contraseña} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            />
-            {errors.contraseña && (<p className="text-red-500 text-sm mt-1">{errors.contraseña}</p>)}
+          <div className="relative">
+            <label className="block font-medium text-gray-700">Contraseña</label>
+            <div className="relative">
+              <input
+                name="contraseña" type={showPassword ? "text" : "password"} placeholder="Contraseña" value={formData.contraseña} onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2 pr-10 focus:ring-2 focus:ring-green-400 outline-none"
+              />
+              <button
+                type="button" onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-green-600"
+              >
+                <img
+                  src={showPassword ? esconder : vista}
+                  alt={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+                />
+              </button>
+            </div>
+            {errors.contraseña && (
+              <p className="text-red-500 text-sm mt-1">{errors.contraseña}</p>
+            )}
           </div>
 
           <div>

@@ -54,14 +54,39 @@ function RoleSections({ rol, formData, errors, handleChange }) {
           </div>
 
           <div>
-            <label className="block font-medium text-gray-700">Fecha de Ingreso</label>
-            <input
+            <label className="block font-medium text-gray-700">Año de Ingreso</label>
+            <select
               name="fechaIngreso"
-              type="month"
               value={formData.fechaIngreso}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            />
+            >
+              <option value="">Seleccione un año</option>
+              {Array.from(
+                { length: new Date().getFullYear() - 1976 + 1 },
+                (_, i) => 1976 + i
+              ).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+            {errors.fechaIngreso && <p className="text-red-500 text-sm mt-1">{errors.fechaIngreso}</p>}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700">Periodo</label>
+            <select
+              name="periodo" // agg variable Periodo
+              value={formData.periodo}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
+            >
+              <option value="">Selecciona Periodo</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+            {errors.periodo && <p className="text-red-500 text-sm mt-1">{errors.periodo}</p>}
           </div>
         </>
       )}
@@ -102,15 +127,10 @@ function RoleSections({ rol, formData, errors, handleChange }) {
 
           <div>
             <label className="block font-medium text-gray-700">Nombre de la Empresa</label>
-            <select
-              name="nombreEmpresa"
-              value={formData.nombreEmpresa}
-              onChange={handleChange}
+            <input
+              name="nombreEmpresa" type="text" placeholder="Nombre de la Empresa"value={formData.nombreEmpresa} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona</option>
-              <option value="AgroSostenible">AgroSostenible</option>
-            </select>
+            />
             {errors.nombreEmpresa && <p className="text-red-500 text-sm mt-1">{errors.nombreEmpresa}</p>}
           </div>
         </>
@@ -152,14 +172,40 @@ function RoleSections({ rol, formData, errors, handleChange }) {
           </div>
 
           <div>
-            <label className="block font-medium text-gray-700">Año de Finalización</label>
-            <input
+            <label className="block font-medium text-gray-700">Año de Finalizacion</label>
+            <select
               name="fechaFinalizacion"
-              type="month"
               value={formData.fechaFinalizacion}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            />
+            >
+              <option value="">Seleccione un año</option>
+              {Array.from(
+                { length: new Date().getFullYear() - 1976 + 1 },
+                (_, i) => 1976 + i
+              ).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+            {errors.fechaFinalizacion && <p className="text-red-500 text-sm mt-1">{errors.fechaFinalizacion}</p>}
+          </div>
+
+
+          <div>
+            <label className="block font-medium text-gray-700">Periodo</label>
+            <select
+              name="periodo" // agg variable Periodo
+              value={formData.periodo}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
+            >
+              <option value="">Selecciona Periodo</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+            {errors.periodo && <p className="text-red-500 text-sm mt-1">{errors.periodo}</p>}
           </div>
         </>
       )}

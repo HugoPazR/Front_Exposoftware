@@ -12,9 +12,12 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     "sexo",
     "orientacionSexual",
     "fechaNacimiento",
+    "fechaIngreso",
+    "fechaFinalizacion",
     "departamentoNacimiento",
     "municipioNacimiento",
     "nacionalidad",
+    "paisResidencia",
     "ciudadResidencia",
     "direccionResidencia",
     "rol",
@@ -29,6 +32,7 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     "sector",
     "nombreEmpresa",
     "titulado",
+    "periodo"
   ];
 
   if (requiredFields.includes(name) && (!val || String(val).trim() === "")) {
@@ -39,8 +43,11 @@ export const validateField = (name, value, formData = {}, rol = "") => {
   switch (name) {
     case "nombres":
     case "apellidos":
+      case "ciudadResidencia":
       if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
         error = "Solo se permiten letras y espacios.";
+      }else if (val.trim().length <= 3) {
+        error = "Debe tener al menos 4 letras.";
       }
       break;
 
@@ -52,10 +59,13 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       break;
 
     case "numeroDocumento":
-      if (!/^[0-9]*$/.test(val)) {
-        error = "Solo se permiten números.";
+      if (!/^\d{0,10}$/.test(val)) {
+        error = "Solo se permiten números (máximo 10 dígitos).";
+      }else if (val.length !== 10) {
+        error = "Debe tener exactamente 10 dígitos.";
       }
       break;
+
 
     case "correo":
       if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {
@@ -130,7 +140,7 @@ export const validateAllFields = (formData, rol) => {
 
   // Dependiendo del rol, se agregan campos extra
   if (rol === "estudiante") {
-    ["correo", "codigoPrograma", "semestre"].forEach((f) => {
+    ["correo", "codigoPrograma", "semestre", "fechaIngreso", "periodo"].forEach((f) => {
       const err = validateField(f, formData[f], formData, rol);
       if (err) errors[f] = err;
     });
@@ -144,7 +154,7 @@ export const validateAllFields = (formData, rol) => {
   }
 
   if (rol === "egresado") {
-    ["correo", "titulado"].forEach((f) => {
+    ["correo", "titulado", "fechaFinalizacion", "periodo"].forEach((f) => {
       const err = validateField(f, formData[f], formData, rol);
       if (err) errors[f] = err;
     });

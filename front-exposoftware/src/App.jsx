@@ -1,19 +1,26 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
+
 import Home from "./pages/Home/Home";
+
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register"
+
+import StudentProjects from './pages/Teacher/Studentprojects.jsx';
 import StudentDashboard from './pages/Student/Dashboard.jsx';
-import MyProjects from './pages/Student/MyProjects.jsx';
 import Profile from './pages/Student/Profile.jsx';
+import MyProjects from './pages/Student/MyProjects.jsx';
 import RegisterProject from './pages/Student/RegisterProject.jsx';
+
 import TeacherDashboard from './pages/Teacher/Dashboard.jsx';
 import TeacherProfile from './pages/Teacher/Profile.jsx';
-import StudentProjects from './pages/Teacher/Studentprojects.jsx';
+
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+
+
 
 function App() {
   const location = useLocation();
