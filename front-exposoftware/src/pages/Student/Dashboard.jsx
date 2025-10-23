@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/Logo-unicesar.png";
 import {
   BarChart,
@@ -16,6 +17,14 @@ import {
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { user, getFullName, getInitials, logout, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Handler para cerrar sesión
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // Datos para gráfica de barras - Proyectos por Materia
   const proyectosPorMateria = [
@@ -35,6 +44,18 @@ export default function StudentDashboard() {
 
   const totalProyectos = estadoInscripciones.reduce((sum, item) => sum + item.value, 0);
   const COLORS = ["#16a34a", "#fbbf24", "#3b82f6"];
+
+  // Mostrar loading mientras se cargan los datos del usuario
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -58,11 +79,18 @@ export default function StudentDashboard() {
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">CG</span>
+                  <span className="text-green-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
                 </div>
               </div>
 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -121,8 +149,17 @@ export default function StudentDashboard() {
             {/* User Info */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Cristian Guzman</h3>
-                <p className="text-sm text-gray-500">Estudiante</p>
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-600 font-bold text-2xl">{getInitials()}</span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
+                {user?.codigo_programa && (
+                  <p className="text-xs text-gray-400 mt-1">Código: {user.codigo_programa}</p>
+                )}
+                {user?.semestre && (
+                  <p className="text-xs text-gray-400">Semestre: {user.semestre}</p>
+                )}
               </div>
             </div>
           </aside>
@@ -132,9 +169,12 @@ export default function StudentDashboard() {
             
             {/* Welcome Section */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 mb-6 text-white">
-              <h2 className="text-2xl font-bold mb-2">XXI Jornada de Investigación</h2>
-              <p className="text-green-50 mb-4">
-                Bienvenido al evento más importante de innovación y tecnología de la UPC
+              <h2 className="text-2xl font-bold mb-2">¡Bienvenido, {user?.nombres || 'Estudiante'}!</h2>
+              <p className="text-green-50 mb-1">
+                XXI Jornada de Investigación
+              </p>
+              <p className="text-green-50 text-sm">
+                Evento de innovación y tecnología de la UPC
               </p>
             </div>
 

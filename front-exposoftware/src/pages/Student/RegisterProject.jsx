@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function RegisterProject() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
+  const { user, getAuthToken } = useAuth();
   
   // Estado del formulario
   const [form, setForm] = useState({
@@ -190,6 +192,14 @@ export default function RegisterProject() {
       formData.append('area', form.area);
       formData.append('participantes', JSON.stringify(form.participantes));
       
+      // Agregar datos del usuario que está creando el proyecto
+      if (user) {
+        formData.append('id_estudiante', user.id_estudiante);
+        formData.append('id_usuario', user.id_usuario);
+        formData.append('correo_autor', user.correo);
+        formData.append('nombre_autor', `${user.nombres} ${user.apellidos}`);
+      }
+      
       if (form.poster) {
         formData.append('poster', form.poster);
       }
@@ -203,8 +213,8 @@ export default function RegisterProject() {
         formData.append('imagen', form.imagen);
       }
 
-      // Obtener token de autenticación (ajusta según tu método de auth)
-      const token = localStorage.getItem('authToken'); // o sessionStorage, cookies, etc.
+      // Obtener token de autenticación del contexto
+      const token = getAuthToken();
 
       const response = await fetch('/api/proyectos', {
         method: 'POST',

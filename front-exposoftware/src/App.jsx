@@ -47,7 +47,7 @@ function App() {
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
-    
+
 
   ];
 
@@ -87,6 +87,7 @@ function App() {
           <Route path="/graduate/dashboard" element={<GraduateDashboard />} />
           <Route path="/graduate/profile" element={<GraduateProfile />} />
           <Route path="/graduate/proyectos" element={<GraduateProjects />} />
+
 
           {/* Página no encontrada */}
           <Route

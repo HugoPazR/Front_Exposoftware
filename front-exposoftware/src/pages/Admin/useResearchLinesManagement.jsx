@@ -3,22 +3,22 @@ import { API_ENDPOINTS } from "../../utils/constants";
 
 // Mock data inicial de líneas de investigación
 const LINEAS_INICIAL = [
-  { id: "lin1", nombre_linea: "Inteligencia Artificial", fechaCreacion: "2025-01-15" },
-  { id: "lin2", nombre_linea: "Desarrollo de Software", fechaCreacion: "2025-01-20" },
+  { id: "lin1", codigo_linea: "LI-001", nombre_linea: "Inteligencia Artificial", fechaCreacion: "2025-01-15" },
+  { id: "lin2", codigo_linea: "LI-002", nombre_linea: "Desarrollo de Software", fechaCreacion: "2025-01-20" },
 ];
 
 // Mock data de sublíneas
 const SUBLINEAS_INICIAL = [
-  { id: "sub1", nombre_sublinea: "Deep Learning", id_linea: "lin1", fechaCreacion: "2025-01-16" },
-  { id: "sub2", nombre_sublinea: "Visión por Computador", id_linea: "lin1", fechaCreacion: "2025-01-17" },
-  { id: "sub3", nombre_sublinea: "Desarrollo Web", id_linea: "lin2", fechaCreacion: "2025-01-21" },
+  { id: "sub1", codigo_sublinea: "SL-001", nombre_sublinea: "Deep Learning", id_linea: "lin1", fechaCreacion: "2025-01-16" },
+  { id: "sub2", codigo_sublinea: "SL-002", nombre_sublinea: "Visión por Computador", id_linea: "lin1", fechaCreacion: "2025-01-17" },
+  { id: "sub3", codigo_sublinea: "SL-003", nombre_sublinea: "Desarrollo Web", id_linea: "lin2", fechaCreacion: "2025-01-21" },
 ];
 
 // Mock data de áreas temáticas
 const AREAS_INICIAL = [
-  { id: "area1", nombre_area: "Redes Neuronales", id_sublinea: "sub1", fechaCreacion: "2025-01-18" },
-  { id: "area2", nombre_area: "Reconocimiento de Imágenes", id_sublinea: "sub2", fechaCreacion: "2025-01-19" },
-  { id: "area3", nombre_area: "Frontend Frameworks", id_sublinea: "sub3", fechaCreacion: "2025-01-22" },
+  { id: "area1", codigo_area: "AT-001", nombre_area: "Redes Neuronales", id_sublinea: "sub1", fechaCreacion: "2025-01-18" },
+  { id: "area2", codigo_area: "AT-002", nombre_area: "Reconocimiento de Imágenes", id_sublinea: "sub2", fechaCreacion: "2025-01-19" },
+  { id: "area3", codigo_area: "AT-003", nombre_area: "Frontend Frameworks", id_sublinea: "sub3", fechaCreacion: "2025-01-22" },
 ];
 
 /**
@@ -27,6 +27,7 @@ const AREAS_INICIAL = [
  */
 export function useResearchLinesManagement() {
   // ========== ESTADOS PARA LÍNEAS ==========
+  const [codigoLinea, setCodigoLinea] = useState("");
   const [nombreLinea, setNombreLinea] = useState("");
   const [lineas, setLineas] = useState(LINEAS_INICIAL);
   const [isEditingLinea, setIsEditingLinea] = useState(false);
@@ -35,6 +36,7 @@ export function useResearchLinesManagement() {
   const [searchTermLinea, setSearchTermLinea] = useState("");
 
   // ========== ESTADOS PARA SUBLÍNEAS ==========
+  const [codigoSublinea, setCodigoSublinea] = useState("");
   const [nombreSublinea, setNombreSublinea] = useState("");
   const [idLineaParaSublinea, setIdLineaParaSublinea] = useState("");
   const [sublineas, setSublineas] = useState(SUBLINEAS_INICIAL);
@@ -44,6 +46,7 @@ export function useResearchLinesManagement() {
   const [searchTermSublinea, setSearchTermSublinea] = useState("");
 
   // ========== ESTADOS PARA ÁREAS TEMÁTICAS ==========
+  const [codigoArea, setCodigoArea] = useState("");
   const [nombreArea, setNombreArea] = useState("");
   const [idSublineaParaArea, setIdSublineaParaArea] = useState("");
   const [areas, setAreas] = useState(AREAS_INICIAL);
@@ -125,18 +128,20 @@ export function useResearchLinesManagement() {
 
   // ========== CRUD LÍNEAS ==========
   const limpiarFormularioLinea = () => {
+    setCodigoLinea("");
     setNombreLinea("");
   };
 
   const handleSubmitLinea = async (e) => {
     e.preventDefault();
     
-    if (!nombreLinea) {
-      alert("Por favor ingrese el nombre de la línea");
+    if (!codigoLinea || !nombreLinea) {
+      alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
+      codigo_linea: codigoLinea,
       nombre_linea: nombreLinea
     };
 
@@ -168,6 +173,7 @@ export function useResearchLinesManagement() {
 
   const handleEditLinea = (linea) => {
     setEditingLineaId(linea.id);
+    setCodigoLinea(linea.codigo_linea);
     setNombreLinea(linea.nombre_linea);
     setIsEditingLinea(true);
     setShowEditLineaModal(true);
@@ -176,12 +182,13 @@ export function useResearchLinesManagement() {
   const handleSaveEditLinea = async (e) => {
     e.preventDefault();
     
-    if (!nombreLinea) {
-      alert("Por favor ingrese el nombre de la línea");
+    if (!codigoLinea || !nombreLinea) {
+      alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
+      codigo_linea: codigoLinea,
       nombre_linea: nombreLinea
     };
 
@@ -249,6 +256,7 @@ export function useResearchLinesManagement() {
 
   // ========== CRUD SUBLÍNEAS ==========
   const limpiarFormularioSublinea = () => {
+    setCodigoSublinea("");
     setNombreSublinea("");
     setIdLineaParaSublinea("");
   };
@@ -256,12 +264,13 @@ export function useResearchLinesManagement() {
   const handleSubmitSublinea = async (e) => {
     e.preventDefault();
     
-    if (!nombreSublinea || !idLineaParaSublinea) {
+    if (!codigoSublinea || !nombreSublinea || !idLineaParaSublinea) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
+      codigo_sublinea: codigoSublinea,
       nombre_sublinea: nombreSublinea,
       id_linea: idLineaParaSublinea
     };
@@ -294,6 +303,7 @@ export function useResearchLinesManagement() {
 
   const handleEditSublinea = (sublinea) => {
     setEditingSublineaId(sublinea.id);
+    setCodigoSublinea(sublinea.codigo_sublinea);
     setNombreSublinea(sublinea.nombre_sublinea);
     setIdLineaParaSublinea(sublinea.id_linea);
     setIsEditingSublinea(true);
@@ -303,12 +313,13 @@ export function useResearchLinesManagement() {
   const handleSaveEditSublinea = async (e) => {
     e.preventDefault();
     
-    if (!nombreSublinea || !idLineaParaSublinea) {
+    if (!codigoSublinea || !nombreSublinea || !idLineaParaSublinea) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
+      codigo_sublinea: codigoSublinea,
       nombre_sublinea: nombreSublinea,
       id_linea: idLineaParaSublinea
     };
@@ -376,6 +387,7 @@ export function useResearchLinesManagement() {
 
   // ========== CRUD ÁREAS TEMÁTICAS ==========
   const limpiarFormularioArea = () => {
+    setCodigoArea("");
     setNombreArea("");
     setIdSublineaParaArea("");
   };
@@ -383,12 +395,13 @@ export function useResearchLinesManagement() {
   const handleSubmitArea = async (e) => {
     e.preventDefault();
     
-    if (!nombreArea || !idSublineaParaArea) {
+    if (!codigoArea || !nombreArea || !idSublineaParaArea) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
+      codigo_area: codigoArea,
       nombre_area: nombreArea,
       id_sublinea: idSublineaParaArea
     };
@@ -421,6 +434,7 @@ export function useResearchLinesManagement() {
 
   const handleEditArea = (area) => {
     setEditingAreaId(area.id);
+    setCodigoArea(area.codigo_area);
     setNombreArea(area.nombre_area);
     setIdSublineaParaArea(area.id_sublinea);
     setIsEditingArea(true);
@@ -430,12 +444,13 @@ export function useResearchLinesManagement() {
   const handleSaveEditArea = async (e) => {
     e.preventDefault();
     
-    if (!nombreArea || !idSublineaParaArea) {
+    if (!codigoArea || !nombreArea || !idSublineaParaArea) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
     const payload = {
+      codigo_area: codigoArea,
       nombre_area: nombreArea,
       id_sublinea: idSublineaParaArea
     };
@@ -502,22 +517,27 @@ export function useResearchLinesManagement() {
 
   // ========== FILTROS ==========
   const lineasFiltradas = lineas.filter(linea =>
-    linea.nombre_linea.toLowerCase().includes(searchTermLinea.toLowerCase())
+    linea.nombre_linea.toLowerCase().includes(searchTermLinea.toLowerCase()) ||
+    linea.codigo_linea?.toLowerCase().includes(searchTermLinea.toLowerCase())
   );
 
   const sublineasFiltradas = sublineas.filter(sublinea =>
     sublinea.nombre_sublinea.toLowerCase().includes(searchTermSublinea.toLowerCase()) ||
+    sublinea.codigo_sublinea?.toLowerCase().includes(searchTermSublinea.toLowerCase()) ||
     getLineaNombre(sublinea.id_linea).toLowerCase().includes(searchTermSublinea.toLowerCase())
   );
 
   const areasFiltradas = areas.filter(area =>
     area.nombre_area.toLowerCase().includes(searchTermArea.toLowerCase()) ||
+    area.codigo_area?.toLowerCase().includes(searchTermArea.toLowerCase()) ||
     getSublineaNombre(area.id_sublinea).toLowerCase().includes(searchTermArea.toLowerCase())
   );
 
   // ========== RETORNAR TODO ==========
   return {
     // Estados de líneas
+    codigoLinea,
+    setCodigoLinea,
     nombreLinea,
     setNombreLinea,
     lineas,
@@ -527,6 +547,8 @@ export function useResearchLinesManagement() {
     showEditLineaModal,
 
     // Estados de sublíneas
+    codigoSublinea,
+    setCodigoSublinea,
     nombreSublinea,
     setNombreSublinea,
     idLineaParaSublinea,
@@ -538,6 +560,8 @@ export function useResearchLinesManagement() {
     showEditSublineaModal,
 
     // Estados de áreas
+    codigoArea,
+    setCodigoArea,
     nombreArea,
     setNombreArea,
     idSublineaParaArea,
