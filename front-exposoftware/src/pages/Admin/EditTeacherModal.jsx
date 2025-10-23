@@ -349,7 +349,7 @@ export default function EditTeacherModal({
               {/* Municipio - Select dinámico */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Municipio
+                  Ciudad
                 </label>
                 <select
                   value={municipio}
@@ -364,19 +364,6 @@ export default function EditTeacherModal({
                 </select>
               </div>
 
-              {/* Ciudad */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad
-                </label>
-                <input
-                  type="text"
-                  value={ciudad}
-                  onChange={(e) => setCiudad(e.target.value)}
-                  maxLength={30}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
-                />
-              </div>
             </div>
           </div>
 

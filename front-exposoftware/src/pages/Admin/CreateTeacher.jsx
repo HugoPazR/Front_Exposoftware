@@ -386,27 +386,59 @@ export default function CreateTeacher() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Teléfono <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="tel"
-                        name="telefono"
-                        value={telefono}
-                        onChange={(e) => handleInputChange('telefono', e.target.value, setTelefono)}
-                        placeholder="Ej: 3001234567"
-                        className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                          errors.telefono 
-                            ? 'border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:ring-green-500'
-                        }`}
-                        required
-                        maxLength={10}
-                      />
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-medium">
+                          +57
+                        </span>
+                        <input
+                          type="tel"
+                          name="telefono"
+                          value={telefono}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, ''); // Solo números
+                            
+                            // Si está vacío o borra todo, forzar que empiece con 3
+                            if (value === '' || value.length === 0) {
+                              value = '3';
+                            }
+                            
+                            // Asegurar que siempre empiece con 3
+                            if (!value.startsWith('3')) {
+                              value = '3' + value.replace(/^3*/, '');
+                            }
+                            
+                            // Limitar a 10 dígitos
+                            if (value.length > 10) {
+                              value = value.slice(0, 10);
+                            }
+                            
+                            handleInputChange('telefono', value, setTelefono);
+                          }}
+                          onFocus={(e) => {
+                            // Si está vacío al hacer foco, iniciar con 3
+                            if (e.target.value === '') {
+                              handleInputChange('telefono', '3', setTelefono);
+                            }
+                          }}
+                          placeholder="3001234567"
+                          className={`w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                            errors.telefono 
+                              ? 'border-red-500 focus:ring-red-500' 
+                              : 'border-gray-300 focus:ring-green-500'
+                          }`}
+                          required
+                          maxLength={10}
+                        />
+                      </div>
                       {errors.telefono && (
                         <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                           <i className="pi pi-exclamation-circle"></i>
                           {errors.telefono}
                         </p>
                       )}
-                      <p className="mt-1 text-xs text-gray-500">Formato: 10 dígitos, debe iniciar con 3</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Formato: +57 3XX XXX XXXX (10 dígitos, inicia con 3)
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -478,22 +510,6 @@ export default function CreateTeacher() {
                       />
                     </div>
 
-                    {/* Departamento de Residencia */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Departamento de Residencia
-                      </label>
-                      <select
-                        value={departamentoResidencia}
-                        onChange={(e) => setDepartamentoResidencia(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                      >
-                        <option value="">Seleccionar departamento</option>
-                        {DEPARTAMENTOS_COLOMBIA.map((dept) => (
-                          <option key={dept} value={dept}>{dept}</option>
-                        ))}
-                      </select>
-                    </div>
 
                     {/* Ciudad de Residencia - Select dinámico */}
                     <div>
@@ -551,7 +567,7 @@ export default function CreateTeacher() {
                     {/* Municipio - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Municipio
+                        Ciudad
                       </label>
                       <select
                         value={municipio}
@@ -569,21 +585,6 @@ export default function CreateTeacher() {
                       )}
                     </div>
 
-                    {/* Ciudad - Se puede usar el mismo selector que municipio o dejarlo manual */}
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ciudad
-                      </label>
-                      <input
-                        type="text"
-                        value={ciudad}
-                        onChange={(e) => setCiudad(e.target.value)}
-                        placeholder="Ej: Valledupar"
-                        maxLength={30}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">También puedes escribir manualmente si no aparece en las listas</p>
-                    </div>
                   </div>
                 </div>
 
