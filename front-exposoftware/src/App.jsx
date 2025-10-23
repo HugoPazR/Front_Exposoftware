@@ -23,6 +23,9 @@ import AdminCreatelines from "./pages/Admin/CreateLines";
 import GraduateDashboard from "./pages/Graduate/Dashboard";
 import GraduateProfile from "./pages/Graduate/Profile";
 import GraduateProjects from "./pages/Graduate/Proyects";
+import GuestDashboard from "./pages/Guest/Dashboard.jsx";
+import GuestProjects from "./pages/Guest/Proyects";
+import GuestProfile from "./pages/Guest/Profile";
 
 
 
@@ -61,8 +64,9 @@ function App() {
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
-
-
+    "/guest/dashboard",
+    "/guest/profile",
+    "/guest/proyectos"
   ];
 
   return (
@@ -101,6 +105,10 @@ function App() {
           <Route path="/graduate/dashboard" element={<GraduateDashboard />} />
           <Route path="/graduate/profile" element={<GraduateProfile />} />
           <Route path="/graduate/proyectos" element={<GraduateProjects />} />
+          {/* Dashboard de Invitado/Guest */}
+          <Route path="/guest/dashboard" element={<GuestDashboard />} />
+          <Route path="/guest/proyectos" element={<GuestProjects />} />
+          <Route path="/guest/profile" element={<GuestProfile/>}/>
 
 
           {/* Página no encontrada */}
