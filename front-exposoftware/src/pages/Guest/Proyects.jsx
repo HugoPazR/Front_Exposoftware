@@ -103,6 +103,17 @@ export default function GuestProjects() {
   const [selectedLine, setSelectedLine] = useState("all");
   const [selectedDate, setSelectedDate] = useState("all");
 
+  // Datos del invitado (simulados - vendrían del backend)
+  const invitadoData = {
+    id_invitado: "INV-2025-001",
+    nombres: "Andrés Felipe",
+    apellidos: "López Martínez",
+    nombre_empresa: "Tech Solutions S.A.S",
+    id_sector: "empresarial",
+    correo: "andres.lopez@techsolutions.com",
+    rol: "Invitado" // ⭐ ROL FUNDAMENTAL
+  };
+
   const handleViewDetails = (project) => {
     setSelectedProject(project);
     setShowModal(true);
@@ -121,8 +132,8 @@ export default function GuestProjects() {
   // Filtrar proyectos
   const filteredProjects = MOCK_PROJECTS.filter(project => {
     const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.participants.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
+    project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.participants.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesSubject = selectedSubject === "all" || project.subject === selectedSubject;
     const matchesLine = selectedLine === "all" || project.line === selectedLine;
     const matchesDate = selectedDate === "all" || project.presentationDate.startsWith(selectedDate);
@@ -144,11 +155,17 @@ export default function GuestProjects() {
               </div>
             </div>
 
+            {/* User avatar and info */}
             <div className="flex items-center gap-4">
+
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Andres</span>
+                <span className="text-sm text-gray-700 hidden sm:block">
+                  {invitadoData.nombres} {invitadoData.apellidos}
+                </span>
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">A</span>
+                  <span className="text-green-600 font-bold text-lg">
+                    {invitadoData.nombres.charAt(0)}{invitadoData.apellidos.charAt(0)}
+                  </span>
                 </div>
               </div>
               
@@ -192,9 +209,53 @@ export default function GuestProjects() {
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-              <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Andres Lopez</h3>
-                <p className="text-sm text-gray-500">Invitado</p>
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-700 font-bold text-2xl">
+                    {invitadoData.nombres.charAt(0)}{invitadoData.apellidos.charAt(0)}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900">
+                  {invitadoData.nombres} {invitadoData.apellidos}
+                </h3>
+                <p className="text-sm text-green-600 font-medium mt-1 flex items-center justify-center gap-1">
+                  <i className="pi pi-user"></i>
+                  {invitadoData.rol}
+                </p>
+              </div>
+              
+              <div className="border-t border-gray-100 pt-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-building text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">Empresa/Institución</p>
+                    <p className="text-sm text-gray-900 font-medium">{invitadoData.nombre_empresa}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-tag text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">Sector</p>
+                    <p className="text-sm text-gray-900 font-medium capitalize">{invitadoData.id_sector}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-envelope text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">Correo</p>
+                    <p className="text-sm text-gray-900 font-medium break-all">{invitadoData.correo}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-id-card text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">ID Invitado</p>
+                    <p className="text-sm text-gray-900 font-medium">{invitadoData.id_invitado}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </aside>

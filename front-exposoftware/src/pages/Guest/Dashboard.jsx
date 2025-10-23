@@ -14,6 +14,32 @@ import {
 } from "recharts";
 
 export default function GuestDashboard() {
+  // Datos del invitado (simulados - vendrían del backend/Firebase)
+  const invitadoData = {
+    // Atributos propios de Invitado
+    id_invitado: "INV-2025-001",
+    id_usuario: "USR-2025-456", // FK a Usuarios
+    id_sector: "empresarial", // educativo, empresarial, social, gobierno
+    nombre_empresa: "Tech Solutions S.A.S",
+    
+    // Atributos heredados de Usuarios
+    tipo_documento: "CC",
+    identificacion: "1065987654",
+    nombres: "Andrés Felipe",
+    apellidos: "López Martínez",
+    genero: "Masculino",
+    identidad_sexual: "Heterosexual",
+    fecha_nacimiento: "1990-05-15",
+    direccion_residencia: "Calle 15 #23-45",
+    ciudad_residencia: "Valledupar",
+    departamento_residencia: "Cesar",
+    pais: "Colombia",
+    nacionalidad: "Colombiana",
+    telefono: "+57 300 123 4567",
+    correo: "andres.lopez@techsolutions.com",
+    rol: "Invitado" // ⭐ ROL FUNDAMENTAL para identificar tipo de usuario
+  };
+
   // Datos para gráficas - Proyectos Inscritos
   const proyectosPorMateria = [
     { name: "Ing. Software", proyectos: 18 },
@@ -54,9 +80,13 @@ export default function GuestDashboard() {
               </button>
 
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Andres</span>
+                <span className="text-sm text-gray-700 hidden sm:block">
+                  {invitadoData.nombres} {invitadoData.apellidos}
+                </span>
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">A</span>
+                  <span className="text-green-600 font-bold text-lg">
+                    {invitadoData.nombres.charAt(0)}{invitadoData.apellidos.charAt(0)}
+                  </span>
                 </div>
               </div>
               
@@ -102,9 +132,53 @@ export default function GuestDashboard() {
 
             {/* User Info */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-              <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Andres Lopez</h3>
-                <p className="text-sm text-gray-500">Invitado</p>
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-700 font-bold text-2xl">
+                    {invitadoData.nombres.charAt(0)}{invitadoData.apellidos.charAt(0)}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900">
+                  {invitadoData.nombres} {invitadoData.apellidos}
+                </h3>
+                <p className="text-sm text-green-600 font-medium mt-1 flex items-center justify-center gap-1">
+                  <i className="pi pi-user"></i>
+                  {invitadoData.rol}
+                </p>
+              </div>
+              
+              <div className="border-t border-gray-100 pt-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-building text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">Empresa/Institución</p>
+                    <p className="text-sm text-gray-900 font-medium">{invitadoData.nombre_empresa}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-tag text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">Sector</p>
+                    <p className="text-sm text-gray-900 font-medium capitalize">{invitadoData.id_sector}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-envelope text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">Correo</p>
+                    <p className="text-sm text-gray-900 font-medium break-all">{invitadoData.correo}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <i className="pi pi-id-card text-green-600 text-sm mt-0.5"></i>
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">ID Invitado</p>
+                    <p className="text-sm text-gray-900 font-medium">{invitadoData.id_invitado}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </aside>
@@ -114,10 +188,27 @@ export default function GuestDashboard() {
             
             {/* Welcome Section */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 mb-6 text-white">
-              <h2 className="text-2xl font-bold mb-2">Bienvenido a Expo-software 2025</h2>
-              <p className="text-green-50 mb-4">
-                Explora los increíbles proyectos de nuestros estudiantes
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-2xl font-bold">
+                  ¡Bienvenido, {invitadoData.nombres}!
+                </h2>
+                <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                  👤 {invitadoData.rol}
+                </span>
+              </div>
+              <p className="text-green-50 mb-2">
+                Explora los increíbles proyectos de nuestros estudiantes en Expo-software 2025
               </p>
+              <div className="flex items-center gap-4 mt-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <i className="pi pi-building"></i>
+                  <span>{invitadoData.nombre_empresa}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <i className="pi pi-tag"></i>
+                  <span className="capitalize">Sector {invitadoData.id_sector}</span>
+                </div>
+              </div>
             </div>
 
             {/* Stats Cards */}
