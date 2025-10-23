@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_ENDPOINTS } from "../../utils/constants";
+import { researchLinesService } from '../../services/researchLinesService';
 
 // Mock data inicial de líneas de investigación
 const LINEAS_INICIAL = [
@@ -62,49 +63,31 @@ export function useResearchLinesManagement() {
   // ========== FUNCIONES DE CARGA ==========
   const cargarLineas = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.LINEAS_INVESTIGACION);
-      if (response.ok) {
-        const data = await response.json();
-        setLineas(data);
-        console.log('📥 Líneas cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar líneas:', response.statusText);
-      }
+      const data = researchLinesService.listLineas();
+      setLineas(data.length ? data : LINEAS_INICIAL);
+      console.log('📥 Líneas cargadas (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar líneas:', error);
-      console.log('⚠️ Usando datos mock de líneas');
+      console.error('❌ Error cargando líneas locales:', error);
     }
   };
 
   const cargarSublineas = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.SUBLINEAS_INVESTIGACION);
-      if (response.ok) {
-        const data = await response.json();
-        setSublineas(data);
-        console.log('📥 Sublíneas cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar sublíneas:', response.statusText);
-      }
+      const data = researchLinesService.listSublineas();
+      setSublineas(data.length ? data : SUBLINEAS_INICIAL);
+      console.log('📥 Sublíneas cargadas (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar sublíneas:', error);
-      console.log('⚠️ Usando datos mock de sublíneas');
+      console.error('❌ Error cargando sublíneas locales:', error);
     }
   };
 
   const cargarAreas = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.AREAS_TEMATICAS);
-      if (response.ok) {
-        const data = await response.json();
-        setAreas(data);
-        console.log('📥 Áreas cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar áreas:', response.statusText);
-      }
+      const data = researchLinesService.listAreas();
+      setAreas(data.length ? data : AREAS_INICIAL);
+      console.log('📥 Áreas cargadas (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar áreas:', error);
-      console.log('⚠️ Usando datos mock de áreas');
+      console.error('❌ Error cargando áreas locales:', error);
     }
   };
 
@@ -143,26 +126,14 @@ export function useResearchLinesManagement() {
     console.log('📤 Enviando línea al backend:', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.LINEAS_INVESTIGACION, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Línea creada:', data);
-        await cargarLineas();
-        alert("✅ Línea de investigación creada exitosamente");
-        limpiarFormularioLinea();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error: ${errorData.message || 'Error desconocido'}`);
-      }
+      const created = researchLinesService.createLinea(payload);
+      console.log('✅ Línea creada (local):', created);
+      await cargarLineas();
+      alert("✅ Línea de investigación creada exitosamente");
+      limpiarFormularioLinea();
     } catch (error) {
-      console.error('❌ Error al crear línea:', error);
-      alert("❌ Error de conexión al crear la línea");
+      console.error('❌ Error al crear línea local:', error);
+      alert("❌ Error al crear la línea");
     }
   };
 
@@ -188,26 +159,18 @@ export function useResearchLinesManagement() {
     console.log('📤 Actualizando línea (ID: ' + editingLineaId + '):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.LINEA_BY_ID(editingLineaId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Línea actualizada:', data);
+      const updated = researchLinesService.updateLinea(editingLineaId, payload);
+      if (updated) {
+        console.log('✅ Línea actualizada (local):', updated);
         await cargarLineas();
         alert("✅ Línea actualizada exitosamente");
         handleCancelEditLinea();
       } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error: ${errorData.message || 'Error desconocido'}`);
+        alert('❌ Línea no encontrada');
       }
     } catch (error) {
-      console.error('❌ Error al actualizar línea:', error);
-      alert("❌ Error de conexión al actualizar la línea");
+      console.error('❌ Error al actualizar línea local:', error);
+      alert("❌ Error al actualizar la línea");
     }
   };
 
@@ -225,24 +188,15 @@ export function useResearchLinesManagement() {
       console.log('🗑️ Eliminando línea - ID:', id);
       
       try {
-        const response = await fetch(API_ENDPOINTS.LINEA_BY_ID(id), { 
-          method: 'DELETE' 
-        });
-        
-        if (response.ok) {
-          console.log('✅ Línea eliminada del backend');
-          await cargarLineas();
-          await cargarSublineas();
-          await cargarAreas();
-          alert("✅ Línea eliminada exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error: ${errorData.message || 'Error desconocido'}`);
-        }
+        researchLinesService.removeLinea(id);
+        console.log('✅ Línea eliminada (local):', id);
+        await cargarLineas();
+        await cargarSublineas();
+        await cargarAreas();
+        alert("✅ Línea eliminada exitosamente");
       } catch (error) {
-        console.error('❌ Error al eliminar línea:', error);
-        alert("❌ Error de conexión al eliminar la línea");
+        console.error('❌ Error al eliminar línea local:', error);
+        alert("❌ Error al eliminar la línea");
       }
     }
   };

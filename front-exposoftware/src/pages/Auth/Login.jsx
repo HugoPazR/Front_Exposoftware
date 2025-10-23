@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from '../../contexts/AuthContext';
 
 function LoginPage() {
   const images = [
@@ -72,10 +73,18 @@ function LoginPage() {
   const manejarSubmit = (e) => {
     e.preventDefault();
     if (validarCampos()) {
-      console.log("✅ Inicio de sesión exitoso con:", { correo, contraseña });
-      // Aquí iría la lógica real del login (fetch o axios)
+      (async () => {
+        const result = await login({ correo, contraseña });
+        if (result.ok) {
+          alert('Inicio de sesión correcto');
+        } else {
+          alert('Error: ' + result.error);
+        }
+      })();
     }
   };
+
+  const { login } = useAuth();
 
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden">

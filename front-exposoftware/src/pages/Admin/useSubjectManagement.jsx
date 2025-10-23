@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { API_ENDPOINTS } from "../../utils/constants";
+import { materiasService } from '../../services/materiasService';
+import { gruposService } from '../../services/gruposService';
+import { docentesService } from '../../services/docentesService';
 
 // Mock data de docentes disponibles
 const DOCENTES_MOCK = [
@@ -132,17 +135,11 @@ export const useSubjectManagement = () => {
    */
   const cargarMaterias = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS);
-      if (response.ok) {
-        const data = await response.json();
-        setMaterias(data);
-        console.log('📥 Materias cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar materias:', response.statusText);
-      }
+      const data = materiasService.list();
+      setMaterias(data.length ? data : MATERIAS_INICIAL);
+      console.log('📥 Materias cargadas (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar materias:', error);
-      console.log('⚠️ Usando datos mock locales');
+      console.error('❌ Error cargando materias locales:', error);
     }
   };
 
@@ -151,17 +148,11 @@ export const useSubjectManagement = () => {
    */
   const cargarGrupos = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPOS);
-      if (response.ok) {
-        const data = await response.json();
-        setGruposDisponibles(data);
-        console.log('📥 Grupos cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar grupos:', response.statusText);
-      }
+      const data = gruposService.list();
+      setGruposDisponibles(data.length ? data : GRUPOS_MOCK);
+      console.log('📥 Grupos cargados (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar grupos:', error);
-      console.log('⚠️ Usando grupos mock locales');
+      console.error('❌ Error cargando grupos locales:', error);
     }
   };
 
@@ -170,17 +161,11 @@ export const useSubjectManagement = () => {
    */
   const cargarProfesores = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES);
-      if (response.ok) {
-        const data = await response.json();
-        setProfesores(data);
-        console.log('📥 Profesores cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar profesores:', response.statusText);
-      }
+      const data = docentesService.list();
+      setProfesores(data.length ? data : DOCENTES_MOCK);
+      console.log('📥 Profesores cargados (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar profesores:', error);
-      console.log('⚠️ Usando profesores mock locales');
+      console.error('❌ Error cargando profesores locales:', error);
     }
   };
 
@@ -214,27 +199,14 @@ export const useSubjectManagement = () => {
     console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
-        await cargarMaterias();
-        alert("✅ Materia creada exitosamente");
-        limpiarFormulario();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear la materia: ${errorData.message || 'Error desconocido'}`);
-      }
+      const created = materiasService.create({ materia: payload.materia, grupos_con_docentes: payload.grupos_con_docentes });
+      console.log('✅ Materia creada (local):', created);
+      await cargarMaterias();
+      alert("✅ Materia creada exitosamente");
+      limpiarFormulario();
     } catch (error) {
-      console.error('❌ Error al crear materia:', error);
-      alert("❌ Error de conexión al crear la materia");
+      console.error('❌ Error al crear materia local:', error);
+      alert("❌ Error al crear la materia");
     }
   };
 
@@ -282,27 +254,18 @@ export const useSubjectManagement = () => {
     console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
+      const updated = materiasService.update(editingId, payload);
+      if (updated) {
+        console.log('✅ Materia actualizada (local):', updated);
         await cargarMaterias();
         alert("✅ Materia actualizada exitosamente");
         handleCancelEdit();
       } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar la materia: ${errorData.message || 'Error desconocido'}`);
+        alert('❌ Materia no encontrada');
       }
     } catch (error) {
-      console.error('❌ Error al actualizar materia:', error);
-      alert("❌ Error de conexión al actualizar la materia");
+      console.error('❌ Error al actualizar materia local:', error);
+      alert("❌ Error al actualizar la materia");
     }
   };
 
@@ -327,22 +290,13 @@ export const useSubjectManagement = () => {
       console.log('📋 Materia a eliminar:', materiaAEliminar?.codigo_materia);
       
       try {
-        const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(id), { 
-          method: 'DELETE' 
-        });
-        
-        if (response.ok) {
-          console.log('✅ Materia eliminada del backend');
-          await cargarMaterias();
-          alert("✅ Materia eliminada exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar la materia: ${errorData.message || 'Error desconocido'}`);
-        }
+        materiasService.remove(id);
+        console.log('✅ Materia eliminada (local):', id);
+        await cargarMaterias();
+        alert("✅ Materia eliminada exitosamente");
       } catch (error) {
-        console.error('❌ Error al eliminar materia:', error);
-        alert("❌ Error de conexión al eliminar la materia");
+        console.error('❌ Error al eliminar materia local:', error);
+        alert("❌ Error al eliminar la materia");
       }
     }
   };

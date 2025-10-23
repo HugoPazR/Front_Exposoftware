@@ -14,6 +14,7 @@ import vista from "../../assets/icons/vista.png"
 import esconder from "../../assets/icons/esconder.png"
 import Select from 'react-select';
 import { useMemo } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 
 function RegisterPage() {
   const [rol, setrol] = useState("");
@@ -21,6 +22,7 @@ function RegisterPage() {
   const options = useMemo(() => countryList().getData(), []);
 
   const [municipios, setMunicipios] = useState([]);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -135,12 +137,28 @@ const handleChange = (e) => {
 
     // Si no hay errores, proceder con el envío
     if (!hasErrors(allErrors)) {
-      console.log("Formulario válido, enviando datos:", formData);
-      // Aquí iría la lógica para enviar los datos al backend
+      // Usar el contexto de autenticación para registrar y persistir en localStorage
+      (async () => {
+        try {
+          const result = await register(formData);
+          if (result.ok) {
+            console.log('Registro exitoso', result.user);
+            // Puedes redirigir al usuario o mostrar mensaje
+            alert('Registro exitoso');
+          } else {
+            alert('Error: ' + result.error);
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error inesperado');
+        }
+      })();
     } else {
       console.log("Hay errores en el formulario:", allErrors);
     }
   };
+
+  const { register } = useAuth();
 
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden py-20">
@@ -499,16 +517,26 @@ const handleChange = (e) => {
             )}
           </div>
 
-          <div>
-            <label className="block font-medium text-gray-700">
-              Confirmar Contraseña
-            </label>
-            <input
-              name="confirmarcontraseña" type="password" placeholder="Confirmar Contraseña" value={formData.confirmarcontraseña} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            />
+          <div className="relative">
+            <label className="block font-medium text-gray-700">Confirmar Contraseña</label>
+            <div className="relative">
+              <input
+                name="confirmarcontraseña" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmar Contraseña" value={formData.confirmarcontraseña} onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2 pr-10 focus:ring-2 focus:ring-green-400 outline-none"
+              />
+              <button
+                type="button" onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-green-600"
+              >
+                <img
+                  src={showConfirmPassword ? esconder : vista}
+                  alt={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+                />
+              </button>
+            </div>
             {errors.confirmarcontraseña && (<p className="text-red-500 text-sm mt-1">{errors.confirmarcontraseña}</p>)}
-          </div>
+          </div>
 
           <div className="col-span-2 mt-4">
             <button

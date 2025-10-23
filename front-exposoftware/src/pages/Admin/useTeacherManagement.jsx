@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_ENDPOINTS } from "../../utils/constants";
+import { docentesService } from '../../services/docentesService';
 
 // Opciones de tipo de documento
 export const TIPOS_DOCUMENTO = ["CC", "TI", "CE", "PEP", "Pasaporte"];
@@ -98,17 +99,11 @@ export function useTeacherManagement() {
   // Función para cargar profesores desde el backend
   const cargarProfesores = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES);
-      if (response.ok) {
-        const data = await response.json();
-        setProfesores(data);
-        console.log('📥 Profesores cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar profesores:', response.statusText);
-      }
+      const data = docentesService.list();
+      setProfesores(data.length ? data : PROFESORES_INICIAL);
+      console.log('📥 Profesores cargados (local):', data.length);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar profesores:', error);
-      console.log('⚠️ Usando datos mock locales');
+      console.error('❌ Error cargando profesores locales:', error);
     }
   };
 
@@ -167,27 +162,14 @@ export function useTeacherManagement() {
     console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-
-        await cargarProfesores();
-        alert("✅ Profesor creado exitosamente");
-        limpiarFormulario();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear el profesor: ${errorData.message || 'Error desconocido'}`);
-      }
+      const created = docentesService.create(payload);
+      console.log('✅ Profesor creado (local):', created);
+      await cargarProfesores();
+      alert("✅ Profesor creado exitosamente");
+      limpiarFormulario();
     } catch (error) {
-      console.error('❌ Error al crear profesor:', error);
-      alert("❌ Error de conexión al crear el profesor");
+      console.error('❌ Error al crear profesor local:', error);
+      alert("❌ Error al crear el profesor");
     }
   };
 
@@ -251,27 +233,18 @@ export function useTeacherManagement() {
     console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTE_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-
+      const updated = docentesService.update(editingId, payload);
+      if (updated) {
+        console.log('✅ Profesor actualizado (local):', updated);
         await cargarProfesores();
         alert("✅ Profesor actualizado exitosamente");
         handleCancelEdit();
       } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar el profesor: ${errorData.message || 'Error desconocido'}`);
+        alert('❌ Profesor no encontrado');
       }
     } catch (error) {
-      console.error('❌ Error al actualizar profesor:', error);
-      alert("❌ Error de conexión al actualizar el profesor");
+      console.error('❌ Error al actualizar profesor local:', error);
+      alert("❌ Error al actualizar el profesor");
     }
   };
 
@@ -292,22 +265,13 @@ export function useTeacherManagement() {
       console.log('📋 Profesor a eliminar:', `${profesorAEliminar?.usuario.nombres} ${profesorAEliminar?.usuario.apellidos}`);
 
       try {
-        const response = await fetch(API_ENDPOINTS.DOCENTE_BY_ID(id), {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
-          console.log('✅ Profesor eliminado del backend');
-          await cargarProfesores();
-          alert("✅ Profesor eliminado exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar el profesor: ${errorData.message || 'Error desconocido'}`);
-        }
+        docentesService.remove(id);
+        console.log('✅ Profesor eliminado (local) ID:', id);
+        await cargarProfesores();
+        alert("✅ Profesor eliminado exitosamente");
       } catch (error) {
-        console.error('❌ Error al eliminar profesor:', error);
-        alert("❌ Error de conexión al eliminar el profesor");
+        console.error('❌ Error al eliminar profesor local:', error);
+        alert("❌ Error al eliminar el profesor");
       }
     }
   };

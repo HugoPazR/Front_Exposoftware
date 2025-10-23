@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { materiasService } from '../../services/materiasService';
+import { researchLinesService } from '../../services/researchLinesService';
+import { estudiantesService } from '../../services/estudiantesService';
+import { proyectosService } from '../../services/proyectosService';
+import { gruposService } from '../../services/gruposService';
+import { docentesService } from '../../services/docentesService';
 
 export default function RegisterProject() {
   const navigate = useNavigate();
@@ -48,15 +54,13 @@ export default function RegisterProject() {
   useEffect(() => {
     const cargarCatalogos = async () => {
       try {
-        const [materiasRes, lineasRes, estudiantesRes] = await Promise.all([
-          fetch('/api/materias'),
-          fetch('/api/lineas'),
-          fetch('/api/estudiantes')
-        ]);
+        const materias = materiasService.list();
+        const lineas = researchLinesService.listLineas();
+        const estudiantes = estudiantesService.list();
 
-        setMaterias(await materiasRes.json());
-        setLineas(await lineasRes.json());
-        setEstudiantes(await estudiantesRes.json());
+        setMaterias(materias);
+        setLineas(lineas);
+        setEstudiantes(estudiantes);
       } catch (error) {
         console.error('Error cargando catálogos:', error);
         alert('Error al cargar los datos iniciales');
@@ -82,10 +86,13 @@ export default function RegisterProject() {
   // Cargar grupos cuando cambia la materia
   useEffect(() => {
     if (form.id_materia) {
-      fetch(`/api/materias/${form.id_materia}/grupos`)
-        .then(res => res.json())
-        .then(data => setGrupos(data))
-        .catch(err => console.error('Error cargando grupos:', err));
+      // obtener grupos de la materia desde servicio local
+      try {
+        const grupos = materiasService.getGroups(form.id_materia);
+        setGrupos(grupos);
+      } catch (err) {
+        console.error('Error cargando grupos locales:', err);
+      }
     } else {
       setGrupos([]);
     }
@@ -94,10 +101,20 @@ export default function RegisterProject() {
   // Cargar docente cuando cambian materia y grupo
   useEffect(() => {
     if (form.id_materia && form.id_grupo) {
-      fetch(`/api/materias/${form.id_materia}/grupos/${form.id_grupo}/docente`)
-        .then(res => res.json())
-        .then(data => setDocenteAsignado(data.nombre_docente || ''))
-        .catch(err => console.error('Error cargando docente:', err));
+      try {
+        // buscar grupo en gruposService o materias
+        const grupos = gruposService.list();
+        const g = grupos.find(x => x.id === form.id_grupo || x.codigo_grupo.toString() === form.id_grupo.toString());
+        if (g) {
+          // buscar docente en docentesService importado estáticamente
+          const docente = docentesService.getById(g.id_docente);
+          setDocenteAsignado(docente ? (docente.usuario?.nombres || docente.nombre || '') : '');
+        } else {
+          setDocenteAsignado('');
+        }
+      } catch (err) {
+        console.error('Error cargando docente local:', err);
+      }
     } else {
       setDocenteAsignado('');
     }
@@ -106,10 +123,12 @@ export default function RegisterProject() {
   // Cargar sublíneas cuando cambia la línea
   useEffect(() => {
     if (form.codigo_linea) {
-      fetch(`/api/lineas/${form.codigo_linea}/sublineas`)
-        .then(res => res.json())
-        .then(data => setSublineas(data))
-        .catch(err => console.error('Error cargando sublíneas:', err));
+      try {
+        const sub = researchLinesService.listSublineas().filter(s => s.id_linea === form.codigo_linea);
+        setSublineas(sub);
+      } catch (err) {
+        console.error('Error cargando sublíneas locales:', err);
+      }
     } else {
       setSublineas([]);
     }
@@ -118,10 +137,12 @@ export default function RegisterProject() {
   // Cargar áreas cuando cambia la sublínea
   useEffect(() => {
     if (form.codigo_sublinea) {
-      fetch(`/api/sublineas/${form.codigo_sublinea}/areas`)
-        .then(res => res.json())
-        .then(data => setAreas(data))
-        .catch(err => console.error('Error cargando áreas:', err));
+      try {
+        const a = researchLinesService.listAreas().filter(ar => ar.id_sublinea === form.codigo_sublinea);
+        setAreas(a);
+      } catch (err) {
+        console.error('Error cargando áreas locales:', err);
+      }
     } else {
       setAreas([]);
     }
@@ -214,14 +235,27 @@ export default function RegisterProject() {
         body: formData
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al crear el proyecto');
-      }
+      // Convertir archivos a referencias simples: en local guardamos metadatos (no blob)
+      const payload = {
+        titulo_proyecto: form.titulo_proyecto,
+        descripcion: form.descripcion,
+        tipo_actividad: form.tipo_actividad,
+        id_materia: form.id_materia,
+        id_grupo: form.id_grupo,
+        codigo_linea: form.codigo_linea,
+        codigo_sublinea: form.codigo_sublinea,
+        area: form.area,
+        participantes: form.participantes,
+        archivos: {
+          poster: form.poster ? form.poster.name : null,
+          articulo: form.articulo ? form.articulo.name : null,
+          video: form.video ? form.video.name : null,
+          imagen: form.imagen ? form.imagen.name : null,
+        }
+      };
 
-      const result = await response.json();
-      console.log('Proyecto creado exitosamente:', result);
-      
+      const created = proyectosService.create(payload);
+      console.log('Proyecto creado (local):', created);
       alert('Proyecto registrado exitosamente');
       setOpen(false);
       
