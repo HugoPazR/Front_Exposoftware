@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { API_ENDPOINTS } from "../../utils/constants";
+import colombiaData from "../../data/colombia.json";
+import countryList from 'react-select-country-list';
 
 // Opciones de tipo de documento
 export const TIPOS_DOCUMENTO = ["CC", "TI", "CE", "PEP", "Pasaporte"];
@@ -18,6 +20,22 @@ export const IDENTIDADES_SEXUALES = [
 
 // Opciones de categoría docente
 export const CATEGORIAS_DOCENTE = ["Interno", "Invitado", "Externo"];
+
+// Opciones de departamentos de Colombia
+export const DEPARTAMENTOS_COLOMBIA = [
+  "Amazonas", "Antioquia", "Arauca", "Atlántico", "Bolívar", "Boyacá",
+  "Caldas", "Caquetá", "Casanare", "Cauca", "Cesar", "Chocó", "Córdoba",
+  "Cundinamarca", "Guainía", "Guaviare", "Huila", "La Guajira", "Magdalena",
+  "Meta", "Nariño", "Norte de Santander", "Putumayo", "Quindío", "Risaralda",
+  "San Andrés y Providencia", "Santander", "Sucre", "Tolima", "Valle del Cauca",
+  "Vaupés", "Vichada"
+];
+
+// Opciones de países
+export const PAISES = [
+  "Colombia", "Argentina", "Brasil", "Chile", "Ecuador", "México", "Perú",
+  "Venezuela", "Estados Unidos", "España", "Otro"
+];
 
 // Mock data inicial de profesores
 const PROFESORES_INICIAL = [
@@ -59,7 +77,10 @@ const PROFESORES_INICIAL = [
  * Custom Hook para gestionar la lógica de creación y manejo de profesores
  */
 export function useTeacherManagement() {
-  // Estados para el formulario - Datos del Usuario
+  // Opciones de países/nacionalidades
+  const opcionesPaises = useMemo(() => countryList().getData(), []);
+
+  // Estados para el formulario - Datos del Usuario (heredados)
   const [tipoDocumento, setTipoDocumento] = useState("");
   const [identificacion, setIdentificacion] = useState("");
   const [nombres, setNombres] = useState("");
@@ -67,17 +88,57 @@ export function useTeacherManagement() {
   const [genero, setGenero] = useState("");
   const [identidadSexual, setIdentidadSexual] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [pais, setPais] = useState("Colombia");
+  const [direccionResidencia, setDireccionResidencia] = useState("");
+  const [anioIngreso, setAnioIngreso] = useState("");
+  const [periodo, setPeriodo] = useState("");
+  const [ciudadResidencia, setCiudadResidencia] = useState("");
+  const [departamentoResidencia, setDepartamentoResidencia] = useState("");
+  const [departamento, setDepartamento] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [pais, setPais] = useState("CO"); // Código ISO de Colombia
+  const [nacionalidad, setNacionalidad] = useState("CO"); // Código ISO de Colombia
   const [ciudad, setCiudad] = useState("");
   const [telefono, setTelefono] = useState("");
   const [correo, setCorreo] = useState("");
   const [contraseña, setContraseña] = useState("");
 
-  // Estados para el formulario - Datos del Docente
+  // Estados para el formulario - Datos del Docente (propios)
   const [categoriaDocente, setCategoriaDocente] = useState("");
   const [codigoPrograma, setCodigoPrograma] = useState("");
   const [activo, setActivo] = useState(true);
+
+  // Estados para manejar ciudades dinámicas
+  const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
+  // Limpiar código de programa cuando la categoría cambie a Invitado o Externo
+  useEffect(() => {
+    if (categoriaDocente === "Invitado" || categoriaDocente === "Externo") {
+      setCodigoPrograma("");
+    }
+  }, [categoriaDocente]);
+
+  // Actualizar ciudades cuando cambie el departamento de residencia
+  useEffect(() => {
+    if (departamentoResidencia) {
+      const depto = colombiaData.find((d) => d.departamento === departamentoResidencia);
+      setCiudadesResidencia(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
+    } else {
+      setCiudadesResidencia([]);
+      setCiudadResidencia("");
+    }
+  }, [departamentoResidencia]);
+
+  // Actualizar municipios cuando cambie el departamento
+  useEffect(() => {
+    if (departamento) {
+      const depto = colombiaData.find((d) => d.departamento === departamento);
+      setMunicipios(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
+    } else {
+      setMunicipios([]);
+      setMunicipio("");
+    }
+  }, [departamento]);
 
   // Estado para la lista de profesores
   const [profesores, setProfesores] = useState(PROFESORES_INICIAL);
@@ -121,8 +182,15 @@ export function useTeacherManagement() {
     setGenero("");
     setIdentidadSexual("");
     setFechaNacimiento("");
-    setDireccion("");
-    setPais("Colombia");
+    setDireccionResidencia("");
+    setAnioIngreso("");
+    setPeriodo("");
+    setCiudadResidencia("");
+    setDepartamentoResidencia("");
+    setDepartamento("");
+    setMunicipio("");
+    setPais("CO"); // Código ISO de Colombia
+    setNacionalidad("CO"); // Código ISO de Colombia
     setCiudad("");
     setTelefono("");
     setCorreo("");
@@ -130,6 +198,9 @@ export function useTeacherManagement() {
     setCategoriaDocente("");
     setCodigoPrograma("");
     setActivo(true);
+    // Limpiar listas de ciudades
+    setCiudadesResidencia([]);
+    setMunicipios([]);
   };
 
   // Crear nuevo profesor
@@ -154,8 +225,15 @@ export function useTeacherManagement() {
         genero: genero,
         identidad_sexual: identidadSexual,
         fecha_nacimiento: fechaNacimiento,
-        direccion: direccion,
+        direccion_residencia: direccionResidencia,
+        anio_ingreso: anioIngreso,
+        periodo: periodo ? parseInt(periodo) : null,
+        ciudad_residencia: ciudadResidencia,
+        departamento_residencia: departamentoResidencia,
+        departamento: departamento,
+        municipio: municipio,
         pais: pais,
+        nacionalidad: nacionalidad,
         ciudad: ciudad,
         telefono: telefono,
         correo: correo,
@@ -201,8 +279,15 @@ export function useTeacherManagement() {
     setGenero(profesor.usuario.genero);
     setIdentidadSexual(profesor.usuario.identidad_sexual || "");
     setFechaNacimiento(profesor.usuario.fecha_nacimiento || "");
-    setDireccion(profesor.usuario.direccion || "");
+    setDireccionResidencia(profesor.usuario.direccion_residencia || "");
+    setAnioIngreso(profesor.usuario.anio_ingreso || "");
+    setPeriodo(profesor.usuario.periodo || "");
+    setCiudadResidencia(profesor.usuario.ciudad_residencia || "");
+    setDepartamentoResidencia(profesor.usuario.departamento_residencia || "");
+    setDepartamento(profesor.usuario.departamento || "");
+    setMunicipio(profesor.usuario.municipio || "");
     setPais(profesor.usuario.pais || "Colombia");
+    setNacionalidad(profesor.usuario.nacionalidad || "Colombiana");
     setCiudad(profesor.usuario.ciudad || "");
     setTelefono(profesor.usuario.telefono);
     setCorreo(profesor.usuario.correo);
@@ -234,8 +319,15 @@ export function useTeacherManagement() {
         genero: genero,
         identidad_sexual: identidadSexual,
         fecha_nacimiento: fechaNacimiento,
-        direccion: direccion,
+        direccion_residencia: direccionResidencia,
+        anio_ingreso: anioIngreso,
+        periodo: periodo ? parseInt(periodo) : null,
+        ciudad_residencia: ciudadResidencia,
+        departamento_residencia: departamentoResidencia,
+        departamento: departamento,
+        municipio: municipio,
         pais: pais,
+        nacionalidad: nacionalidad,
         ciudad: ciudad,
         telefono: telefono,
         correo: correo,
@@ -327,7 +419,7 @@ export function useTeacherManagement() {
   );
 
   return {
-    // Estados del formulario - Usuario
+    // Estados del formulario - Usuario (heredados)
     tipoDocumento,
     setTipoDocumento,
     identificacion,
@@ -342,10 +434,24 @@ export function useTeacherManagement() {
     setIdentidadSexual,
     fechaNacimiento,
     setFechaNacimiento,
-    direccion,
-    setDireccion,
+    direccionResidencia,
+    setDireccionResidencia,
+    anioIngreso,
+    setAnioIngreso,
+    periodo,
+    setPeriodo,
+    ciudadResidencia,
+    setCiudadResidencia,
+    departamentoResidencia,
+    setDepartamentoResidencia,
+    departamento,
+    setDepartamento,
+    municipio,
+    setMunicipio,
     pais,
     setPais,
+    nacionalidad,
+    setNacionalidad,
     ciudad,
     setCiudad,
     telefono,
@@ -355,7 +461,7 @@ export function useTeacherManagement() {
     contraseña,
     setContraseña,
 
-    // Estados del formulario - Docente
+    // Estados del formulario - Docente (propios)
     categoriaDocente,
     setCategoriaDocente,
     codigoPrograma,
@@ -368,6 +474,13 @@ export function useTeacherManagement() {
     searchTerm,
     setSearchTerm,
     profesoresFiltrados,
+
+    // Estados para ciudades dinámicas
+    ciudadesResidencia,
+    municipios,
+
+    // Opciones de países/nacionalidades
+    opcionesPaises,
 
     // Estados de edición
     isEditing,

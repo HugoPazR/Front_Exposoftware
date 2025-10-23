@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/Logo-unicesar.png";
 
 const MOCK_PROJECTS = [
@@ -40,6 +41,14 @@ const MOCK_PROJECTS = [
 export default function MyProjects() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const { user, getFullName, getInitials, logout, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Handler para cerrar sesión
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleViewDetails = (project) => {
     setSelectedProject(project);
@@ -50,6 +59,18 @@ export default function MyProjects() {
     setShowModal(false);
     setSelectedProject(null);
   };
+
+  // Mostrar loading mientras se cargan los datos del usuario
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,11 +90,21 @@ export default function MyProjects() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">CG</span>
+                  <span className="text-green-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
+                  {user?.codigo_programa && (
+                    <p className="text-xs text-gray-400">Código: {user.codigo_programa}</p>
+                  )}
                 </div>
               </div>
 
-                 <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -105,14 +136,60 @@ export default function MyProjects() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">Cristian Guzman</h3>
-                <p className="text-sm text-gray-500">Estudiante</p>
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-600 font-bold text-2xl">{getInitials()}</span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
+                {user?.codigo_programa && (
+                  <p className="text-xs text-gray-400 mt-1">Código: {user.codigo_programa}</p>
+                )}
+                {user?.semestre && (
+                  <p className="text-xs text-gray-400">Semestre: {user.semestre}</p>
+                )}
+                {user?.correo && (
+                  <p className="text-xs text-gray-400 mt-2 truncate" title={user.correo}>
+                    {user.correo}
+                  </p>
+                )}
               </div>
             </div>
           </aside>
 
           {/* Main content */}
           <main className="lg:col-span-3">
+            {/* Información del estudiante */}
+            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white font-bold text-xl">{getInitials()}</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                    <span className="flex items-center gap-1">
+                      <i className="pi pi-id-card"></i>
+                      {user?.identificacion}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <i className="pi pi-book"></i>
+                      Semestre {user?.semestre}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <i className="pi pi-tag"></i>
+                      {user?.codigo_programa}
+                    </span>
+                  </div>
+                </div>
+                <div className="hidden sm:block">
+                  <span className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
+                    <i className="pi pi-check-circle"></i>
+                    Estudiante Activo
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Mis Proyectos</h2>
             <p className="text-gray-600 mb-6">Aquí puedes gestionar todos los proyectos académicos que has postulado o en los que participas. Revisa su estado, edita los detalles o visualiza la información completa de cada uno.</p>
 

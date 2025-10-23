@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import countryList from 'react-select-country-list';
+import colombiaData from "../../data/colombia.json";
 import logo from "../../assets/Logo-unicesar.png";
+import ProfileForm from "./ProfileForm";
 
 export default function TeacherProfile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -11,15 +14,107 @@ export default function TeacherProfile() {
     confirmPassword: ""
   });
 
+  // Estado del perfil del docente con todos los campos
+  const [profileData, setProfileData] = useState({
+    // Campos propios de Docentes
+    id_docente: "DOC001",
+    id_usuario: "USR001",
+    categoria_docente: "Interno", // "Interno", "Invitado", "Externo"
+    codigo_programa: "12345", // ❌ NO EDITABLE
+    
+    // Campos heredados de Usuarios
+    tipo_documento: "CC",
+    identificacion: "1098765432", // ❌ NO EDITABLE (Cédula)
+    nombres: "Ana María",
+    apellidos: "Gómez Rodríguez",
+    genero: "Femenino",
+    identidad_sexual: "Femenino",
+    fecha_nacimiento: "1985-03-15",
+    telefono: "3001234567",
+    
+    // Ubicación
+    pais: "CO",
+    nacionalidad: "CO",
+    departamento_residencia: "Cesar",
+    ciudad_residencia: "Valledupar",
+    direccion_residencia: "Calle 15 # 20-30",
+    departamento: "Cesar",
+    municipio: "Valledupar",
+    ciudad: "Valledupar",
+    
+    // Institucional
+    correo: "ana.gomez@unicesar.edu.co", // ❌ NO EDITABLE
+    anio_ingreso: "2015",
+    periodo: 1,
+    rol: "Docente"
+  });
+
+  // Estados para los selectores dinámicos
+  const [opcionesPaises, setOpcionesPaises] = useState([]);
+  const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
+  // Inicializar opciones de países
+  useEffect(() => {
+    const paises = countryList().getData();
+    setOpcionesPaises(paises);
+  }, []);
+
+  // Actualizar ciudades de residencia cuando cambia el departamento de residencia
+  useEffect(() => {
+    if (profileData.departamento_residencia) {
+      const dept = colombiaData.find(d => d.departamento === profileData.departamento_residencia);
+      if (dept) {
+        setCiudadesResidencia(dept.ciudades || []);
+      }
+    } else {
+      setCiudadesResidencia([]);
+    }
+  }, [profileData.departamento_residencia]);
+
+  // Actualizar municipios cuando cambia el departamento
+  useEffect(() => {
+    if (profileData.departamento) {
+      const dept = colombiaData.find(d => d.departamento === profileData.departamento);
+      if (dept) {
+        setMunicipios(dept.ciudades || []);
+      }
+    } else {
+      setMunicipios([]);
+    }
+  }, [profileData.departamento]);
+
+  const handleInputChange = (field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleEdit = () => {
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    // Aquí podrías recargar los datos originales si es necesario
   };
 
   const handleSave = () => {
+    // Validaciones básicas
+    if (!profileData.nombres || !profileData.apellidos) {
+      alert("Los nombres y apellidos son obligatorios");
+      return;
+    }
+
+    if (!profileData.telefono) {
+      alert("El teléfono es obligatorio");
+      return;
+    }
+
+    // Aquí enviarías los datos al backend
+    console.log("Datos a guardar:", profileData);
+    
     setIsEditing(false);
     alert("Cambios guardados exitosamente");
   };
@@ -90,7 +185,13 @@ export default function TeacherProfile() {
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">M</span>
+                  <span className="text-green-600 font-bold text-lg">
+                    {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
+                  </span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{profileData.nombres} {profileData.apellidos}</p>
+                  <p className="text-xs text-gray-500">{profileData.rol}</p>
                 </div>
               </div>
                 
@@ -136,8 +237,14 @@ export default function TeacherProfile() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">María</h3>
-                <p className="text-sm text-gray-500">Profesora</p>
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-600 font-bold text-2xl">
+                    {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
+                  </span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{profileData.nombres} {profileData.apellidos}</h3>
+                <p className="text-sm text-gray-500">{profileData.rol}</p>
+                <p className="text-xs text-gray-400 mt-1">Categoría: {profileData.categoria_docente}</p>
               </div>
             </div>
           </aside>
@@ -158,62 +265,21 @@ export default function TeacherProfile() {
                 )}
               </div>
 
-              {/* Información Personal */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                  Información Personal
-                </h3>
-
-                <div className="flex flex-col md:flex-row gap-8">
-                  {/* Avatar y botón de cambiar foto */}
-                  <div className="flex flex-col items-center md:items-start">
-                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-4">
-                      <img 
-                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop" 
-                        alt="Avatar" 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                    {isEditing && (
-                      <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        Cambiar Foto
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Formulario de información */}
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nombre Completo
-                      </label>
-                      <input 
-                        type="text" 
-                        defaultValue="Dr. Ana Gómez" 
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
-                        disabled={!isEditing}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Correo Electrónico
-                      </label>
-                      <input 
-                        type="email" 
-                        defaultValue="ana.gomez@universidad.edu" 
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Formulario de Perfil */}
+              <ProfileForm
+                profileData={profileData}
+                isEditing={isEditing}
+                opcionesPaises={opcionesPaises}
+                ciudadesResidencia={ciudadesResidencia}
+                municipios={municipios}
+                colombiaData={colombiaData}
+                handleInputChange={handleInputChange}
+              />
 
               {/* Seguridad */}
               <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                  Seguridad
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
+                  <span>🔒</span> Seguridad
                 </h3>
 
                 <div className="space-y-4 max-w-2xl">
@@ -223,7 +289,7 @@ export default function TeacherProfile() {
                     </label>
                     <input 
                       type="password" 
-                      defaultValue="********" 
+                      value="********" 
                       disabled
                       className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-500"
                     />
@@ -232,8 +298,9 @@ export default function TeacherProfile() {
                   <div>
                     <button 
                       onClick={handleOpenPasswordModal}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                     >
+                      <i className="pi pi-lock"></i>
                       Cambiar Contraseña
                     </button>
                   </div>
