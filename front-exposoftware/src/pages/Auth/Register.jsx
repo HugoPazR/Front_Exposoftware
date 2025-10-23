@@ -28,7 +28,7 @@ function RegisterPage() {
     nombres: "",
     apellidos: "",
     telefono: "",
-    sexo: "",
+    genero: "",
     orientacionSexual: "",
     fechaNacimiento: "",
     fechaIngreso: "",
@@ -264,17 +264,17 @@ const handleChange = (e) => {
           </div>
 
           <div>
-            <label className="block font-medium text-gray-700">Sexo</label>
+            <label className="block font-medium text-gray-700">genero</label>
             <select
-              name="sexo" value={formData.sexo} onChange={handleChange}
+              name="genero" value={formData.genero} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
-              <option value="">Selecciona Sexo</option>
+              <option value="">Selecciona genero</option>
               <option value="hombre">Hombre</option>
               <option value="mujer">Mujer</option>
               <option value="hermafrodita">Hermafrodita</option>
             </select>
-            {errors.sexo && (<p className="text-red-500 text-sm mt-1">{errors.sexo}</p>)}
+            {errors.genero && (<p className="text-red-500 text-sm mt-1">{errors.genero}</p>)}
           </div>
 
           <div>
