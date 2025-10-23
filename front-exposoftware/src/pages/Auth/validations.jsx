@@ -15,7 +15,7 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     "fechaIngreso",
     "fechaFinalizacion",
     "departamentoNacimiento",
-    "municipioNacimiento",
+    "ciudadNacimiento",
     "nacionalidad",
     "paisResidencia",
     "ciudadResidencia",
@@ -51,12 +51,15 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       }
       break;
 
-    case "telefono":
-      // react-international-phone retorna "+573001234567"
-      if (!/^\+?\d{10,15}$/.test(val)) {
-        error = "Número de teléfono inválido. Debe tener entre 10 y 15 dígitos.";
-      }
-      break;
+case "telefono":
+  // Validar formato general +57XXXXXXXXXX
+  if (!/^\+57\d{10}$/.test(val)) {
+    error = "El número debe tener el formato +573XXXXXXXX y 10 dígitos.";
+  } else if (!val.startsWith("+573")) {
+    error = "Los números colombianos deben comenzar con +573.";
+  }
+  break;
+
 
     case "numeroDocumento":
       if (!/^\d{0,10}$/.test(val)) {
@@ -73,11 +76,8 @@ export const validateField = (name, value, formData = {}, rol = "") => {
           error = "Debe ser correo institucional (@unicesar.edu.co)";
         }
       } else if (rol === "invitado") {
-        if (
-          !/^[a-zA-Z0-9._%+-]+@(gmail|hotmail|yahoo|outlook)\.com$/.test(val)
-        ) {
-          error =
-            "Correo personal inválido. Usa Gmail, Hotmail, Yahoo u Outlook.";
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
+          error = "Correo inválido. Asegúrate de ingresar un correo válido.";
         }
       }
       break;
@@ -122,7 +122,7 @@ export const validateAllFields = (formData, rol) => {
     "orientacionSexual",
     "fechaNacimiento",
     "departamentoNacimiento",
-    "municipioNacimiento",
+    "ciudadNacimiento",
     "nacionalidad",
     "ciudadResidencia",
     "direccionResidencia",

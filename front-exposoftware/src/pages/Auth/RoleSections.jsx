@@ -120,6 +120,10 @@ function RoleSections({ rol, formData, errors, handleChange }) {
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
               <option value="">Selecciona Sector</option>
+              <option value="educativo">Educativo</option>
+              <option value="empresarial">Empresarial</option>
+              <option value="social">Social</option>
+              <option value="gubernamental">Gubernamental</option>
               <option value="agricola">Agrícola</option>
             </select>
             {errors.sector && <p className="text-red-500 text-sm mt-1">{errors.sector}</p>}
