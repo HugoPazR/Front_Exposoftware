@@ -81,6 +81,7 @@ function App() {
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/projects" element={<Proyects />} />
 
           {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
@@ -109,6 +110,8 @@ function App() {
           <Route path="/guest/dashboard" element={<GuestDashboard />} />
           <Route path="/guest/proyectos" element={<GuestProjects />} />
           <Route path="/guest/profile" element={<GuestProfile/>}/>
+
+
 
 
           {/* Página no encontrada */}
