@@ -43,32 +43,73 @@ export const validateField = (name, value, formData = {}, rol = "") => {
   switch (name) {
     case "nombres":
     case "apellidos":
-      case "ciudadResidencia":
-      if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
+    case "ciudadResidencia":
+      // 🔹 Validar que NO contenga números
+      if (/\d/.test(val)) {
+        error = "No se permiten números en este campo.";
+      } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
         error = "Solo se permiten letras y espacios.";
-      }else if (val.trim().length <= 3) {
-        error = "Debe tener al menos 4 letras.";
+      } else if (val.trim().length > 0 && val.trim().length < 3) {
+        error = "Debe tener al menos 3 letras.";
       }
       break;
 
-case "telefono":
-  // Validar formato general +57XXXXXXXXXX
-  if (!/^\+57\d{10}$/.test(val)) {
-    error = "El número debe tener el formato +573XXXXXXXX y 10 dígitos.";
-  } else if (!val.startsWith("+573")) {
-    error = "Los números colombianos deben comenzar con +573.";
-  }
-  break;
+    case "codigoPrograma":
+      if (!/^[a-zA-Z0-9\s-]*$/.test(val)) {
+        error = "Solo se permiten letras, números, espacios y guiones.";
+      } else if (val.trim().length > 0 && val.trim().length < 3) {
+        error = "Debe tener al menos 3 caracteres.";
+      }
+      break;
 
+    case "nombreEmpresa":
+      if (val.trim().length > 0 && val.trim().length < 3) {
+        error = "Debe tener al menos 3 caracteres.";
+      }
+      break;
+
+    case "telefono":
+      // Debe iniciar con "+" seguido de al menos un dígito (código de país)
+      if (!/^\+\d+/.test(val)) {
+        error = "Debe incluir el prefijo internacional (+XX).";
+        break;
+      }
+
+      // Extraemos código y número
+      const match = val.match(/^\+(\d{1,4})(\d*)$/);
+      if (!match) {
+        error = "Formato inválido de teléfono.";
+        break;
+      }
+
+      const code = match[1];   // Ejemplo: "57"
+      const number = match[2]; // Ejemplo: "3001234567"
+
+      // 🇨🇴 Validación especial para Colombia
+      if (code === "57") {
+        if (number && !number.startsWith("3")) {
+          error = "El número colombiano debe comenzar con 3.";
+        } else if (number.length > 0 && number.length !== 10) {
+          error = "El número colombiano debe tener exactamente 10 dígitos.";
+        }
+      } else {
+        // 🌍 Validación genérica para otros países
+        if (number.length > 0 && (number.length < 6 || number.length > 15)) {
+          error = "El número debe tener entre 6 y 15 dígitos (sin el prefijo).";
+        }
+      }
+      break;
 
     case "numeroDocumento":
-      if (!/^\d{0,10}$/.test(val)) {
-        error = "Solo se permiten números (máximo 10 dígitos).";
-      }else if (val.length !== 10) {
-        error = "Debe tener exactamente 10 dígitos.";
+      // 🔹 Validar que SOLO contenga números
+      if (/[^\d]/.test(val)) {
+        error = "Solo se permiten números.";
+      } else if (val.length > 0 && val.length < 6) {
+        error = "Debe tener al menos 6 dígitos.";
+      } else if (val.length > 10) {
+        error = "Máximo 10 dígitos.";
       }
       break;
-
 
     case "correo":
       if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {
@@ -83,11 +124,8 @@ case "telefono":
       break;
 
     case "contraseña":
-      if (
-        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(val)
-      ) {
-        error =
-          "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(val)) {
+        error = "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
       }
       break;
 
@@ -110,6 +148,57 @@ case "telefono":
   return error;
 };
 
+// 🔹 Función específica para validar teléfono con código de país
+export const validatePhone = (value, countryCode, setErrors) => {
+  const numberWithoutPrefix = value.slice(countryCode.length);
+
+  // 🇨🇴 Validación para Colombia
+  if (countryCode === "57") {
+    if (numberWithoutPrefix && numberWithoutPrefix[0] !== "3") {
+      setErrors((prev) => ({
+        ...prev,
+        telefono: "El número colombiano debe comenzar con 3.",
+      }));
+      return false;
+    } else if (numberWithoutPrefix.length > 0 && numberWithoutPrefix.length < 10) {
+      setErrors((prev) => ({
+        ...prev,
+        telefono: "El número debe tener 10 dígitos.",
+      }));
+      return false;
+    } else if (numberWithoutPrefix.length === 10) {
+      setErrors((prev) => ({ ...prev, telefono: "" }));
+      return true;
+    }
+  } else {
+    // 🌍 Validación genérica para otros países
+    if (numberWithoutPrefix.length > 0 && numberWithoutPrefix.length < 7) {
+      setErrors((prev) => ({
+        ...prev,
+        telefono: "El número debe tener al menos 7 dígitos.",
+      }));
+      return false;
+    } else if (numberWithoutPrefix.length >= 7) {
+      setErrors((prev) => ({ ...prev, telefono: "" }));
+      return true;
+    }
+  }
+
+  return false;
+};
+
+// 🔹 Función para formatear teléfono colombiano (fuerza el 3 inicial)
+export const formatColombianPhone = (phone, countryCode) => {
+  const numberWithoutPrefix = phone.slice(countryCode.length);
+  
+  // Si está vacío o no empieza con 3, forzar el 3
+  if (!numberWithoutPrefix || !numberWithoutPrefix.startsWith("3")) {
+    return countryCode + "3" + numberWithoutPrefix.replace(/^3*/, "");
+  }
+  
+  return phone;
+};
+
 export const validateAllFields = (formData, rol) => {
   const errors = {};
 
@@ -124,6 +213,7 @@ export const validateAllFields = (formData, rol) => {
     "departamentoNacimiento",
     "ciudadNacimiento",
     "nacionalidad",
+    "paisResidencia",
     "ciudadResidencia",
     "direccionResidencia",
     "rol",
@@ -164,7 +254,11 @@ export const validateAllFields = (formData, rol) => {
 };
 
 export const isNumericField = (fieldName) => {
-  return ["numeroDocumento"].includes(fieldName);
+  return ["numeroDocumento", "semestre"].includes(fieldName);
+};
+
+export const isAlphabeticField = (fieldName) => {
+  return ["nombres", "apellidos", "ciudadResidencia"].includes(fieldName);
 };
 
 export const hasErrors = (errors) => {

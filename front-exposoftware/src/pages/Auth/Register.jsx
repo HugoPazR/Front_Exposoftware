@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import {validateField,validateAllFields,isNumericField,hasErrors,}
+import {validateField,validateAllFields,isNumericField,hasErrors,validatePhone,formatColombianPhone}
 from "./validations";
 import RoleSections from "./RoleSections"; // 👈 importa el nuevo componente
 //import 'react-international-phone/style.css';
@@ -28,7 +28,7 @@ function RegisterPage() {
     nombres: "",
     apellidos: "",
     telefono: "",
-    sexo: "",
+    genero: "",
     orientacionSexual: "",
     fechaNacimiento: "",
     fechaIngreso: "",
@@ -84,27 +84,34 @@ function RegisterPage() {
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // Manejo del cambio en los inputs
+// Manejo del cambio en los inputs
 const handleChange = (e) => {
   const { name, value } = e.target;
+  let cleanValue = value;
 
-  if ((name === "nombres" || name === "apellidos" || name === "ciudadResidencia") && /[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
-    return; 
+  // 🔹 Limpiar caracteres no alfabéticos en campos de texto (elimina números automáticamente)
+  if (name === "nombres" || name === "apellidos" || name === "ciudadResidencia") {
+    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
   }
 
-  // 🔹 Evitar caracteres no numéricos en campos numéricos
-  if (isNumericField(name) && value !== "" && /[^\d]/.test(value)) {
-    return;
+  // 🔹 Limpiar caracteres no numéricos en campos numéricos
+  if (isNumericField(name)) {
+    cleanValue = value.replace(/[^\d]/g, "");
+  }
+
+  // 🔹 Permitir alfanumérico en código de programa
+  if (name === "codigoPrograma") {
+    cleanValue = value.replace(/[^a-zA-Z0-9\s-]/g, "");
   }
 
   if (name === "rol") {
-    setrol(value);
+    setrol(cleanValue);
   }
 
   setFormData((prev) => {
-    const updatedForm = { ...prev, [name]: value };
+    const updatedForm = { ...prev, [name]: cleanValue };
 
-    const error = validateField(name, value, updatedForm, name === "rol" ? value : rol);
+    const error = validateField(name, cleanValue, updatedForm, name === "rol" ? cleanValue : rol);
     setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
 
     return updatedForm;
@@ -215,64 +222,59 @@ const handleChange = (e) => {
             )}
           </div>
 
-<div>
-  <label className="block font-medium text-gray-700">Teléfono</label>
-  <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
-    <PhoneInput
-      country={"co"}
-      onlyCountries={["co"]}
-      disableDropdown={true}          // 🔒 Solo permite Colombia
-      disableCountryCode={false}
-      countryCodeEditable={false}     // 🔒 No se puede borrar +57
-      value={formData.telefono}
-      onChange={(value, country, e, formattedValue) => {
-        // 🔹 Mantiene el +57 fijo
-        let phone = value.startsWith("57") ? value : "57" + value.replace(/^(\+?57)?/, "");
+          <div>
+            <label className="block font-medium text-gray-700">Teléfono</label>
+            <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
+              <PhoneInput
+                country={"co"}
+                enableSearch={true}
+                disableDropdown={false}
+                countryCodeEditable={false}
+                value={formData.telefono}
+                onChange={(value, country, e, formattedValue) => {
+                  const countryCode = country.dialCode;
+                  const countryISO = country.countryCode;
+                  
+                  let phone = value;
 
-        // 🔹 Validación: primer número después de +57 debe ser 3
-        const numberWithoutPrefix = phone.slice(2);
-        if (numberWithoutPrefix && numberWithoutPrefix[0] !== "3") {
-          setErrors((prev) => ({
-            ...prev,
-            telefono: "El número colombiano debe comenzar con 3.",
-          }));
-        } else if (numberWithoutPrefix.length < 10) {
-          setErrors((prev) => ({
-            ...prev,
-            telefono: "El número debe tener 10 dígitos.",
-          }));
-        } else {
-          setErrors((prev) => ({ ...prev, telefono: "" }));
-        }
+                  // 🇨🇴 Si es Colombia, forzar el 3 inicial
+                  if (countryISO === "co") {
+                    phone = formatColombianPhone(phone, countryCode);
+                  }
 
-        setFormData((prev) => ({
-          ...prev,
-          telefono: "+" + phone,
-        }));
-      }}
-      inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2"
-      buttonClass="!border-none !bg-transparent"
-      placeholder="3001234567"
-    />
-  </div>
-  {errors.telefono && (
-    <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
-  )}
-</div>
+                  // 🔹 Validar teléfono según el país
+                  validatePhone(phone, countryCode, setErrors);
 
+                  // 🔹 Guardar con formato +XX
+                  setFormData((prev) => ({
+                    ...prev,
+                    telefono: value.startsWith("+") ? value : "+" + value,
+                  }));
+                }}
+                inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2"
+                buttonClass="!border-none !bg-transparent hover:bg-gray-100 !rounded-l-lg"
+                dropdownClass="!shadow-lg !border !border-gray-200"
+                searchClass="!px-3 !py-2"
+                placeholder="3001234567"
+              />
+            </div>
+            {errors.telefono && (
+              <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
+            )}
+          </div>
 
           <div>
-            <label className="block font-medium text-gray-700">Sexo</label>
+            <label className="block font-medium text-gray-700">genero</label>
             <select
-              name="sexo" value={formData.sexo} onChange={handleChange}
+              name="genero" value={formData.genero} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
             >
-              <option value="">Selecciona Sexo</option>
+              <option value="">Selecciona genero</option>
               <option value="hombre">Hombre</option>
               <option value="mujer">Mujer</option>
               <option value="hermafrodita">Hermafrodita</option>
             </select>
-            {errors.sexo && (<p className="text-red-500 text-sm mt-1">{errors.sexo}</p>)}
+            {errors.genero && (<p className="text-red-500 text-sm mt-1">{errors.genero}</p>)}
           </div>
 
           <div>
