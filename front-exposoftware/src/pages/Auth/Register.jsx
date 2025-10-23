@@ -16,13 +16,14 @@ import Select from 'react-select';
 import { useMemo } from 'react';
 
 function RegisterPage() {
-  const [rol, setrol] = useState("");
   const [errors, setErrors] = useState({});
   const options = useMemo(() => countryList().getData(), []);
 
-  const [municipios, setMunicipios] = useState([]);
+  const [ciudades, setciudades] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [rol, setrol] = useState("");
   const [formData, setFormData] = useState({
     nombres: "",
     apellidos: "",
@@ -33,7 +34,7 @@ function RegisterPage() {
     fechaIngreso: "",
     fechaFinalizacion: "",
     departamentoNacimiento: "",
-    municipioNacimiento: "",
+    ciudadNacimiento: "",
     nacionalidad: "",
     paisResidencia: "",
     ciudadResidencia: "",
@@ -51,6 +52,18 @@ function RegisterPage() {
     contraseña: "",
     confirmarcontraseña: "",
   });
+
+  useEffect(() => {
+  setFormData({
+    correo: "",
+    codigoPrograma: "",
+    semestre: "",
+    sector: "",
+    nombreEmpresa: "",
+    periodo: "",
+    titulado: "",
+  });
+}, [rol]);
 
   // Imágenes del fondo
   const images = [
@@ -115,15 +128,15 @@ const handleChange = (e) => {
 
   // 🔹 Desactivar Departamento y Municipio si el país no es Colombia
   useEffect(() => {
-    if (formData.paisResidencia !== "CO") { // "CO" es el código ISO de Colombia en react-select-country-list
+    if (formData.nacionalidad !== "CO") { // "CO" es el código ISO de Colombia en react-select-country-list
       setFormData((prev) => ({
         ...prev,
         departamentoNacimiento: "",
-        municipioNacimiento: "",
+        ciudadNacimiento: "",
       }));
-      setMunicipios([]); // limpia lista de municipios
+      setciudades([]); // limpia lista de ciudades
     }
-  }, [formData.paisResidencia]);
+  }, [formData.nacionalidad]);
 
   // Manejo del envío del formulario
   const handleSubmit = (e) => {
@@ -202,25 +215,51 @@ const handleChange = (e) => {
             )}
           </div>
 
-          <div>
-            <label className="block font-medium text-gray-700">Teléfono</label>
-            <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
-              <PhoneInput
-                country={"co"}
-                value={formData.telefono}
-                onChange={(phone) => {
-                  const parsed = parsePhoneNumberFromString("+" + phone);
-                  setFormData((prev) => ({
-                    ...prev,
-                    telefono: parsed?.number ?? phone,
-                  }));
-                }}
-                inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2" buttonClass="!border-none !bg-transparent" dropdownClass="!border-gray-300"
-                placeholder="Número de teléfono"
-              />
-            </div>
-            {errors.telefono && (<p className="text-red-500 text-sm mt-1">{errors.telefono}</p>)}
-          </div>
+<div>
+  <label className="block font-medium text-gray-700">Teléfono</label>
+  <div className="w-full border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-green-400 focus-within:border-green-400 transition duration-200">
+    <PhoneInput
+      country={"co"}
+      onlyCountries={["co"]}
+      disableDropdown={true}          // 🔒 Solo permite Colombia
+      disableCountryCode={false}
+      countryCodeEditable={false}     // 🔒 No se puede borrar +57
+      value={formData.telefono}
+      onChange={(value, country, e, formattedValue) => {
+        // 🔹 Mantiene el +57 fijo
+        let phone = value.startsWith("57") ? value : "57" + value.replace(/^(\+?57)?/, "");
+
+        // 🔹 Validación: primer número después de +57 debe ser 3
+        const numberWithoutPrefix = phone.slice(2);
+        if (numberWithoutPrefix && numberWithoutPrefix[0] !== "3") {
+          setErrors((prev) => ({
+            ...prev,
+            telefono: "El número colombiano debe comenzar con 3.",
+          }));
+        } else if (numberWithoutPrefix.length < 10) {
+          setErrors((prev) => ({
+            ...prev,
+            telefono: "El número debe tener 10 dígitos.",
+          }));
+        } else {
+          setErrors((prev) => ({ ...prev, telefono: "" }));
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          telefono: "+" + phone,
+        }));
+      }}
+      inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2"
+      buttonClass="!border-none !bg-transparent"
+      placeholder="3001234567"
+    />
+  </div>
+  {errors.telefono && (
+    <p className="text-red-500 text-sm mt-1">{errors.telefono}</p>
+  )}
+</div>
+
 
           <div>
             <label className="block font-medium text-gray-700">Sexo</label>
@@ -288,7 +327,7 @@ const handleChange = (e) => {
             )}
           </div>
 
-          <div>
+          <div className="col-span-2">
             <label className="block font-medium text-gray-700">
               Nacionalidad
             </label>
@@ -312,6 +351,57 @@ const handleChange = (e) => {
 
           <div>
             <label className="block font-medium text-gray-700">
+              Departamento de Nacimiento
+            </label>
+            <select
+              name="departamentoNacimiento" value={formData.departamentoNacimiento}
+              onChange={(e) => {
+                const selectedDepartamento = e.target.value;
+                setFormData((prev) => ({
+                  ...prev,
+                  departamentoNacimiento: selectedDepartamento,
+                  ciudadNacimiento: "",
+                }));
+
+                const depto = colombia.find((d) => d.departamento === selectedDepartamento);
+                setciudades(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
+
+                const error = validateField("departamentoNacimiento",selectedDepartamento,formData,rol);
+                setErrors((prev) => ({...prev,departamentoNacimiento: error,}));
+              }}
+              disabled={formData.nacionalidad !== "CO"}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
+            >
+              <option value="">Selecciona Departamento</option>
+              {colombia.map((d) => (
+                <option key={d.departamento} value={d.departamento}>
+                  {d.departamento}
+                </option>
+              ))}
+            </select>
+            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>)}
+          </div>
+
+          <div>
+            <label className="block font-medium text-gray-700">
+              Ciudad de Nacimiento
+            </label>
+            <select
+              name="ciudadNacimiento" value={formData.ciudadNacimiento} onChange={handleChange} disabled={!formData.departamentoNacimiento || formData.nacionalidad !== "CO"}
+              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
+            >
+              <option value="">Selecciona Municipio</option>
+              {ciudades.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            {errors.ciudadNacimiento && (<p className="text-red-500 text-sm mt-1"> {errors.ciudadNacimiento} </p>)}
+          </div>
+
+          <div className="col-span-2">
+            <label className="block font-medium text-gray-700">
               Pais de Recidencia
             </label>
             <Select
@@ -332,57 +422,7 @@ const handleChange = (e) => {
             {errors.paisResidencia && (<p className="text-red-500 text-sm mt-1">{errors.paisResidencia}</p>)}
           </div>
 
-          <div>
-            <label className="block font-medium text-gray-700">
-              Departamento de Nacimiento
-            </label>
-            <select
-              name="departamentoNacimiento" value={formData.departamentoNacimiento}
-              onChange={(e) => {
-                const selectedDepartamento = e.target.value;
-                setFormData((prev) => ({
-                  ...prev,
-                  departamentoNacimiento: selectedDepartamento,
-                  municipioNacimiento: "",
-                }));
-
-                const depto = colombia.find((d) => d.departamento === selectedDepartamento);
-                setMunicipios(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
-
-                const error = validateField("departamentoNacimiento",selectedDepartamento,formData,rol);
-                setErrors((prev) => ({...prev,departamentoNacimiento: error,}));
-              }}
-              disabled={formData.paisResidencia !== "CO"}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Departamento</option>
-              {colombia.map((d) => (
-                <option key={d.departamento} value={d.departamento}>
-                  {d.departamento}
-                </option>
-              ))}
-            </select>
-            {errors.departamentoNacimiento && (<p className="text-red-500 text-sm mt-1">{errors.departamentoNacimiento}</p>)}
-          </div>
-
-          <div>
-            <label className="block font-medium text-gray-700">
-              Municipio de Nacimiento
-            </label>
-            <select
-              name="municipioNacimiento" value={formData.municipioNacimiento} onChange={handleChange} disabled={!formData.departamentoNacimiento || formData.paisResidencia !== "CO"}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            >
-              <option value="">Selecciona Municipio</option>
-              {municipios.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            {errors.municipioNacimiento && (<p className="text-red-500 text-sm mt-1"> {errors.municipioNacimiento} </p>)}
-          </div>
-
+          
 
           <div>
             <label className="block font-medium text-gray-700">
@@ -468,7 +508,6 @@ const handleChange = (e) => {
             handleChange={handleChange}
           />
 
-
           {/* ==== CREDENCIALES ==== */}
           <div className="col-span-2 border-l-4 border-green-600 pl-2 mt-4 mb-2">
             <h2 className="text-lg font-semibold text-gray-700">
@@ -499,14 +538,24 @@ const handleChange = (e) => {
             )}
           </div>
 
-          <div>
-            <label className="block font-medium text-gray-700">
-              Confirmar Contraseña
-            </label>
-            <input
-              name="confirmarcontraseña" type="password" placeholder="Confirmar Contraseña" value={formData.confirmarcontraseña} onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-400 outline-none"
-            />
+          <div className="relative">
+            <label className="block font-medium text-gray-700">Confirmar Contraseña</label>
+            <div className="relative">
+              <input
+                name="confirmarcontraseña" type={showConfirmPassword ? "text" : "password"} placeholder="Confirmar Contraseña" value={formData.confirmarcontraseña} onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg p-2 pr-10 focus:ring-2 focus:ring-green-400 outline-none"
+              />
+              <button
+                type="button" onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-2 flex items-center text-gray-500 hover:text-green-600"
+              >
+                <img
+                  src={showConfirmPassword ? esconder : vista}
+                  alt={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+                />
+              </button>
+            </div>
             {errors.confirmarcontraseña && (<p className="text-red-500 text-sm mt-1">{errors.confirmarcontraseña}</p>)}
           </div>
 
