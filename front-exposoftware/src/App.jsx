@@ -15,6 +15,7 @@ import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
 import About from "./pages/Home/About";
 import AdminDashboard from "./pages/Admin/Dashboard";
+import AsistenciaAdmin from "./pages/Admin/Asistencia";
 import AdminProfile from "./pages/Admin/Profile";
 import CreateGroup from "./pages/Admin/CreateGroup";
 import CreateSubject from "./pages/Admin/CreateSubject";
@@ -53,6 +54,7 @@ function App() {
     "/teacher/profile",
     "/teacher/proyectos",
     "/admin/dash",
+    "/admin/asistencia",
     "/admin/profile",
     "/admin/crear-grupo",
     "/admin/crear-materia",
@@ -95,6 +97,7 @@ function App() {
           <Route path="/admin/crear-grupo" element={<CreateGroup />} />
           <Route path="/admin/crear-materia" element={<CreateSubject />} />
           <Route path="/admin/crear-profesor" element={<CreateTeacher />} />
+          <Route path="/admin/asistencia" element={<AsistenciaAdmin />} />
           <Route path="/admin/lineas-investigacion" element={<AdminCreatelines />} />
 
           {/* ✅ Egresados */}
