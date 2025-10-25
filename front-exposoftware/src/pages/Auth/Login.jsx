@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
+import { Mail, Lock, Leaf, Users, Trophy, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function LoginPage() {
@@ -12,6 +12,8 @@ function LoginPage() {
   const [correo, setCorreo] = useState("");
   const [contraseña, setContraseña] = useState("");
   const [errores, setErrores] = useState({});
+  const [mostrarContraseña, setMostrarContraseña] = useState(false);
+  const [recordarme, setRecordarme] = useState(false);
 
   // Carrusel automático
   useEffect(() => {
@@ -23,7 +25,16 @@ function LoginPage() {
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // Validar campos individualmente
+  // Cargar correo guardado
+  useEffect(() => {
+    const correoGuardado = localStorage.getItem("correoRecordado");
+    if (correoGuardado) {
+      setCorreo(correoGuardado);
+      setRecordarme(true);
+    }
+  }, []);
+
+  // Validar campos
   const validarCampo = (nombre, valor) => {
     let error = "";
     const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
@@ -40,46 +51,42 @@ function LoginPage() {
       if (!valor.trim()) {
         error = "La contraseña es obligatoria.";
       } else if (valor.length < 8) {
-        error = "La contraseña debe tener al menos 8 caracteres.";
+        error = "Debe tener al menos 8 caracteres.";
       }
     }
 
     setErrores((prev) => ({ ...prev, [nombre]: error }));
+    return error === "";
   };
 
-  // Validar todos antes de enviar
   const validarCampos = () => {
-    const nuevosErrores = {};
-    const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-
-    if (!correo.trim()) {
-      nuevosErrores.correo = "El correo electrónico es obligatorio.";
-    } else if (!correoValido.test(correo)) {
-      nuevosErrores.correo = "Por favor ingresa un correo electrónico válido.";
-    }
-
-    if (!contraseña.trim()) {
-      nuevosErrores.contraseña = "La contraseña es obligatoria.";
-    } else if (contraseña.length < 8) {
-      nuevosErrores.contraseña = "La contraseña debe tener al menos 8 caracteres.";
-    }
-
-    setErrores(nuevosErrores);
-    return Object.keys(nuevosErrores).length === 0;
+    const correoValido = validarCampo("correo", correo);
+    const contraseñaValida = validarCampo("contraseña", contraseña);
+    return correoValido && contraseñaValida;
   };
 
-  // Manejar envío
+  // Guardar o eliminar "Recordarme"
+  const manejarRecordarme = (checked) => {
+    setRecordarme(checked);
+    if (checked) {
+      localStorage.setItem("correoRecordado", correo);
+    } else {
+      localStorage.removeItem("correoRecordado");
+    }
+  };
+
+  // Envío del formulario
   const manejarSubmit = (e) => {
     e.preventDefault();
-    if (validarCampos()) {
-      console.log("✅ Inicio de sesión exitoso con:", { correo, contraseña });
-      // Aquí iría la lógica real del login (fetch o axios)
-    }
+
+    if (!validarCampos()) return;
+
+    alert(`✅ Inicio de sesión exitoso para: ${correo}`);
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Fondo con transición */}
+      {/* Fondo */}
       {images.map((img, index) => (
         <div
           key={index}
@@ -92,64 +99,72 @@ function LoginPage() {
         ></div>
       ))}
 
-      {/* Capa translúcida */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-green-50/85"></div>
 
       {/* Contenido */}
-      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden relative z-10">
+      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden relative z-10">
         {/* Panel informativo */}
-        <aside className="w-1/2 bg-gradient-to-r from-green-500 to-green-700 text-white p-10 flex flex-col justify-center">
-          <header className="mb-6">
-            <h1 className="text-3xl font-bold">&lt;/&gt; Expo-Software 2025</h1>
+        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center relative overflow-hidden">
+          <header className="mb-6 relative z-10">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold">&lt;/&gt;</span>
+              </div>
+              <h1 className="text-3xl font-bold">Expo-Software 2025</h1>
+            </div>
+            <div className="h-1 w-20 bg-white rounded-full"></div>
           </header>
 
-          <article>
-            <p className="text-lg mb-3">
+          <article className="relative z-10">
+            <p className="text-lg mb-3 leading-relaxed">
               Descubre los proyectos más innovadores desarrollados por
               estudiantes y profesores.
             </p>
-            <p className="text-sm mb-10">
-              Una vitrina digital de talento tecnológico y creatividad
-              académica.
+            <p className="text-sm mb-10 text-green-100">
+              Una vitrina digital de talento tecnológico y creatividad académica.
             </p>
           </article>
 
-          <footer className="flex gap-6 mt-auto">
-            <div className="flex flex-col items-center">
-              <Leaf className="mb-1" size={28} />
-              <p className="text-xl font-semibold">150+</p>
-              <p className="text-sm">Proyectos</p>
+          <footer className="flex gap-8 mt-auto relative z-10">
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Leaf size={28} />
+              </div>
+              <p className="text-2xl font-bold">150+</p>
+              <p className="text-sm text-green-100">Proyectos</p>
             </div>
-            <div className="flex flex-col items-center">
-              <Users className="mb-1" size={28} />
-              <p className="text-xl font-semibold">500+</p>
-              <p className="text-sm">Participantes</p>
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Users size={28} />
+              </div>
+              <p className="text-2xl font-bold">500+</p>
+              <p className="text-sm text-green-100">Participantes</p>
             </div>
-            <div className="flex flex-col items-center">
-              <Trophy className="mb-1" size={28} />
-              <p className="text-xl font-semibold">15</p>
-              <p className="text-sm">Premios</p>
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Trophy size={28} />
+              </div>
+              <p className="text-2xl font-bold">15</p>
+              <p className="text-sm text-green-100">Premios</p>
             </div>
           </footer>
         </aside>
 
         {/* Panel de login */}
         <section className="w-1/2 p-10 flex flex-col justify-center">
-          <header className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Iniciar Sesión
-            </h2>
-            <p className="text-gray-500">Bienvenido de nuevo a Exposoftware</p>
+          <header className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Bienvenido!</h2>
+            <p className="text-gray-500">Inicia sesión para continuar</p>
           </header>
 
           <form className="space-y-5" onSubmit={manejarSubmit}>
             {/* CORREO */}
-            <fieldset>
-              <label className="block text-sm font-medium mb-1 text-gray-600">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
                 Correo Electrónico
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
                   type="email"
                   value={correo}
@@ -160,68 +175,87 @@ function LoginPage() {
                   placeholder="tu@email.com"
                   className={`w-full border ${
                     errores.correo ? "border-red-500" : "border-gray-300"
-                  } rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 ${
+                  } rounded-lg pl-11 pr-4 py-3 focus:outline-none focus:ring-2 ${
                     errores.correo ? "focus:ring-red-500" : "focus:ring-green-500"
-                  }`}
+                  } transition-all`}
                 />
               </div>
               {errores.correo && (
-                <p className="text-red-500 text-sm mt-1">{errores.correo}</p>
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle size={14} />
+                  {errores.correo}
+                </p>
               )}
-            </fieldset>
+            </div>
 
             {/* CONTRASEÑA */}
-            <fieldset>
-              <label className="block text-sm font-medium mb-1 text-gray-600">
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
                 Contraseña
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
-                  type="password"
+                  type={mostrarContraseña ? "text" : "password"}
                   value={contraseña}
                   onChange={(e) => {
                     setContraseña(e.target.value);
                     validarCampo("contraseña", e.target.value);
                   }}
-                  placeholder="********"
+                  placeholder="••••••••"
                   className={`w-full border ${
                     errores.contraseña ? "border-red-500" : "border-gray-300"
-                  } rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 ${
-                    errores.contraseña
-                      ? "focus:ring-red-500"
-                      : "focus:ring-green-500"
-                  }`}
+                  } rounded-lg pl-11 pr-11 py-3 focus:outline-none focus:ring-2 ${
+                    errores.contraseña ? "focus:ring-red-500" : "focus:ring-green-500"
+                  } transition-all`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setMostrarContraseña(!mostrarContraseña)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {mostrarContraseña ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
               {errores.contraseña && (
-                <p className="text-red-500 text-sm mt-1">{errores.contraseña}</p>
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle size={14} />
+                  {errores.contraseña}
+                </p>
               )}
-            </fieldset>
+            </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" className="accent-green-600" />
-                Recordarme
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={recordarme}
+                  onChange={(e) => manejarRecordarme(e.target.checked)}
+                  className="w-4 h-4 accent-green-600"
+                />
+                <span className="text-gray-600">Recordarme</span>
               </label>
-              <a href="#" className="text-green-700 hover:underline">
+              <a
+                href="#"
+                className="text-green-700 hover:text-green-800 font-medium hover:underline"
+              >
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
             >
               Iniciar Sesión
             </button>
           </form>
 
-          <footer className="text-sm text-center mt-5 text-gray-600">
+          <footer className="text-sm text-center mt-6 text-gray-600">
             ¿No tienes una cuenta?{" "}
             <Link
               to="/register"
-              className="text-green-700 font-semibold hover:underline"
+              className="text-green-700 font-semibold hover:text-green-800 hover:underline"
             >
               Regístrate aquí
             </Link>

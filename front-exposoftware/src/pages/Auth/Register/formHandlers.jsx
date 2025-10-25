@@ -1,0 +1,227 @@
+import { validateField, isNumericField } from "./validations";
+
+/**
+ * Maneja cambios en inputs de texto
+ */
+export const handleChange = (
+  e,
+  formData,
+  setFormData,
+  setErrors,
+  setSuccessFields,
+  rol,
+  setrol
+) => {
+  const { name, value } = e.target;
+  let cleanValue = value;
+
+  // Limpiar caracteres no alfabéticos
+  if (name === "nombres" || name === "apellidos") {
+    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+  }
+
+  // Limpiar caracteres no numéricos
+  if (isNumericField(name)) {
+    cleanValue = value.replace(/[^\d]/g, "");
+  }
+
+  // Alfanumérico en código de programa
+  if (name === "codigoPrograma") {
+    cleanValue = value.replace(/[^a-zA-Z0-9\s-]/g, "");
+  }
+
+  if (name === "rol") {
+    setrol(cleanValue);
+  }
+
+  setFormData((prev) => {
+    const updatedForm = { ...prev, [name]: cleanValue };
+    const error = validateField(
+      name,
+      cleanValue,
+      updatedForm,
+      name === "rol" ? cleanValue : rol
+    );
+
+    // Actualizar errores
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+
+    // Marcar campo como exitoso si no hay error y tiene valor
+    if (!error && cleanValue.trim() !== "") {
+      setSuccessFields((prev) => ({ ...prev, [name]: true }));
+    } else {
+      setSuccessFields((prev) => ({ ...prev, [name]: false }));
+    }
+
+    return updatedForm;
+  });
+};
+
+/**
+ * Maneja cambios en react-select
+ */
+export const handleSelectChange = (
+  name,
+  option,
+  formData,
+  setFormData,
+  setErrors,
+  setSuccessFields,
+  rol
+) => {
+  const value = option ? option.value : "";
+
+  setFormData((prev) => ({ ...prev, [name]: value }));
+
+  const error = validateField(name, value, formData, rol);
+  setErrors((prev) => ({ ...prev, [name]: error }));
+
+  if (!error && value !== "") {
+    setSuccessFields((prev) => ({ ...prev, [name]: true }));
+  } else {
+    setSuccessFields((prev) => ({ ...prev, [name]: false }));
+  }
+};
+
+/**
+ * Maneja cambios en el departamento de residencia
+ */
+export const handleDepartamentoChange = (
+  e,
+  formData,
+  setFormData,
+  setciudades,
+  setErrors,
+  setSuccessFields,
+  rol,
+  colombia
+) => {
+  const selectedDepartamento = e.target.value;
+  
+  setFormData((prev) => ({
+    ...prev,
+    departamentoResidencia: selectedDepartamento,
+    ciudadResidencia: "",
+  }));
+
+  const depto = colombia.find((d) => d.departamento === selectedDepartamento);
+  setciudades(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
+
+  const error = validateField(
+    "departamentoResidencia",
+    selectedDepartamento,
+    formData,
+    rol
+  );
+  setErrors((prev) => ({ ...prev, departamentoResidencia: error }));
+
+  if (!error && selectedDepartamento) {
+    setSuccessFields((prev) => ({ ...prev, departamentoResidencia: true }));
+  }
+};
+
+/**
+ * Maneja cambios en el teléfono
+ */
+export const handlePhoneChange = (
+  value,
+  country,
+  setFormData,
+  setErrors,
+  setSuccessFields,
+  formatColombianPhone,
+  validatePhone
+) => {
+  const countryCode = country.dialCode;
+  const countryISO = country.countryCode;
+  let phone = value;
+
+  if (countryISO === "co") {
+    phone = formatColombianPhone(phone, countryCode);
+  }
+
+  validatePhone(phone, countryCode, setErrors);
+
+  setFormData((prev) => ({
+    ...prev,
+    telefono: value.startsWith("+") ? value : "+" + value,
+  }));
+
+  // Marcar como exitoso si la validación pasa
+  const isValid = validatePhone(phone, countryCode, () => {});
+  setSuccessFields((prev) => ({ ...prev, telefono: isValid }));
+};
+
+/**
+ * Maneja el envío del formulario
+ */
+/**
+ * Maneja el envío del formulario sin backend
+ */
+export const handleSubmit = (
+  e,
+  formData,
+  rol,
+  setCargando,
+  setMensajeExito,
+  setMensajeError,
+  setErrors,
+  validateAllFields,
+  hasErrors
+) => {
+  e.preventDefault();
+
+  setCargando(true);
+  setMensajeExito("");
+  setMensajeError("");
+
+  // Validar todos los campos
+  const allErrors = validateAllFields(formData, rol);
+  setErrors(allErrors);
+
+  // Si no hay errores, mostrar alerta de éxito inmediatamente
+  if (!hasErrors(allErrors)) {
+    setMensajeExito("✅ ¡Registro exitoso!");
+    alert("✅ Registro exitoso. Tus datos han sido validados correctamente.");
+
+    console.log("Formulario válido, datos registrados localmente:", formData);
+  } else {
+    // Mostrar mensaje de error si hay errores
+    setMensajeError("❌ Por favor corrige los errores en el formulario.");
+    alert("❌ Corrige los errores en el formulario antes de continuar.");
+
+    console.warn("Errores en el formulario:", allErrors);
+
+    // Hacer scroll al primer error
+    const firstErrorField = Object.keys(allErrors)[0];
+    const element = document.querySelector(`[name='${firstErrorField}']`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.focus();
+    }
+  }
+
+  setCargando(false);
+};
+
+/**
+ * Obtiene las clases CSS para un input según su estado
+ */
+export const getInputClassName = (fieldName, errors, successFields, cargando) => {
+  const baseClass =
+    "w-full border rounded-lg p-2 focus:ring-2 outline-none transition-all";
+
+  if (cargando) {
+    return `${baseClass} bg-gray-100 cursor-not-allowed border-gray-300`;
+  }
+
+  if (errors[fieldName]) {
+    return `${baseClass} border-red-500 focus:ring-red-400`;
+  }
+
+  if (successFields[fieldName]) {
+    return `${baseClass} border-green-500 focus:ring-green-400`;
+  }
+
+  return `${baseClass} border-gray-300 focus:ring-green-400`;
+};
