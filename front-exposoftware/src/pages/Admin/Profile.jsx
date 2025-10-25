@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Select from 'react-select';
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+import colombiaData from "../../data/colombia.json";
+import countryList from 'react-select-country-list';
 
 export default function AdminProfile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -12,6 +15,72 @@ export default function AdminProfile() {
     confirmPassword: ""
   });
 
+  // Datos del perfil - Campos editables
+  const [profileData, setProfileData] = useState({
+    // Información personal
+    tipoDocumento: "CC",
+    identificacion: "1065874321", // ❌ NO EDITABLE
+    nombres: "Carlos Andrés",
+    apellidos: "Mendoza Pérez",
+    genero: "Masculino",
+    identidadSexual: "Masculino",
+    fechaNacimiento: "1985-06-15",
+    telefono: "3001234567",
+    
+    // Ubicación y residencia
+    pais: "CO",
+    nacionalidad: "CO",
+    departamentoResidencia: "Cesar",
+    ciudadResidencia: "Valledupar",
+    direccionResidencia: "Calle 15 # 10-45",
+    departamento: "Cesar",
+    municipio: "Valledupar",
+    ciudad: "Valledupar",
+    
+    // Información institucional
+    correo: "admin@exposoftware.edu", // ❌ NO EDITABLE
+    programa: "N/A", // ❌ NO EDITABLE - Administrador no tiene programa
+    semestre: "N/A", // ❌ NO EDITABLE - Administrador no tiene semestre
+    fechaIngreso: "2020-01-15", // ❌ NO EDITABLE
+    anioIngreso: "2020",
+    periodo: "2020-1",
+    
+    // Estado
+    activo: true,
+    rol: "Administrador"
+  });
+
+  // Estados para selectores dinámicos
+  const [opcionesPaises, setOpcionesPaises] = useState([]);
+  const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
+  // Inicializar opciones de países
+  useEffect(() => {
+    const paises = countryList().getData();
+    setOpcionesPaises(paises);
+  }, []);
+
+  // Actualizar ciudades cuando cambia departamento de residencia
+  useEffect(() => {
+    if (profileData.departamentoResidencia) {
+      const deptData = colombiaData.find(d => d.departamento === profileData.departamentoResidencia);
+      setCiudadesResidencia(deptData ? deptData.ciudades : []);
+    } else {
+      setCiudadesResidencia([]);
+    }
+  }, [profileData.departamentoResidencia]);
+
+  // Actualizar municipios cuando cambia departamento
+  useEffect(() => {
+    if (profileData.departamento) {
+      const deptData = colombiaData.find(d => d.departamento === profileData.departamento);
+      setMunicipios(deptData ? deptData.ciudades : []);
+    } else {
+      setMunicipios([]);
+    }
+  }, [profileData.departamento]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
@@ -21,8 +90,22 @@ export default function AdminProfile() {
   };
 
   const handleSave = () => {
+    // Validaciones básicas
+    if (!profileData.nombres || !profileData.apellidos || !profileData.telefono) {
+      alert("Por favor completa los campos obligatorios");
+      return;
+    }
+
+    console.log("📤 Datos a guardar:", profileData);
     setIsEditing(false);
-    alert("Cambios guardados exitosamente");
+    alert("✅ Cambios guardados exitosamente");
+  };
+
+  const handleInputChange = (field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleOpenPasswordModal = () => {
@@ -129,13 +212,13 @@ export default function AdminProfile() {
               {/* Información Personal */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                  Información Personal
+                  📋 Información Personal
                 </h3>
 
                 <div className="flex flex-col md:flex-row gap-8">
                   {/* Avatar y botón de cambiar foto */}
                   <div className="flex flex-col items-center md:items-start">
-                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-4">
+                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-4 border-4 border-green-200">
                       <img 
                         src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop" 
                         alt="Avatar" 
@@ -144,47 +227,446 @@ export default function AdminProfile() {
                     </div>
                     {isEditing && (
                       <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
+                        <i className="pi pi-camera mr-2"></i>
                         Cambiar Foto
                       </button>
                     )}
                   </div>
 
                   {/* Formulario de información */}
-                  <div className="flex-1 space-y-4">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Tipo de Documento */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nombre Completo
+                        Tipo de Documento
+                      </label>
+                      <select
+                        value={profileData.tipoDocumento}
+                        onChange={(e) => handleInputChange('tipoDocumento', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                      >
+                        <option value="CC">Cédula de Ciudadanía</option>
+                        <option value="CE">Cédula de Extranjería</option>
+                        <option value="TI">Tarjeta de Identidad</option>
+                        <option value="PA">Pasaporte</option>
+                      </select>
+                    </div>
+
+                    {/* Identificación - NO EDITABLE */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Identificación <span className="text-red-500 text-xs">(No editable)</span>
                       </label>
                       <input 
                         type="text" 
-                        defaultValue="Carlos Mendoza" 
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
-                        disabled={!isEditing}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Correo Electrónico
-                      </label>
-                      <input 
-                        type="email" 
-                        defaultValue="admin@exposoftware.edu" 
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
-                        disabled={!isEditing}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Rol
-                      </label>
-                      <input 
-                        type="text" 
-                        defaultValue="Administrador del Sistema" 
+                        value={profileData.identificacion}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
                         disabled
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-500"
                       />
+                    </div>
+
+                    {/* Nombres */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nombres <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        value={profileData.nombres}
+                        onChange={(e) => handleInputChange('nombres', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                        placeholder="Ej: Carlos Andrés"
+                      />
+                    </div>
+
+                    {/* Apellidos */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Apellidos <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        value={profileData.apellidos}
+                        onChange={(e) => handleInputChange('apellidos', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                        placeholder="Ej: Mendoza Pérez"
+                      />
+                    </div>
+
+                    {/* Género */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Género
+                      </label>
+                      <select
+                        value={profileData.genero}
+                        onChange={(e) => handleInputChange('genero', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                      >
+                        <option value="">Seleccionar</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                        <option value="Prefiero no decir">Prefiero no decir</option>
+                      </select>
+                    </div>
+
+                    {/* Identidad Sexual */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Identidad Sexual
+                      </label>
+                      <select
+                        value={profileData.identidadSexual}
+                        onChange={(e) => handleInputChange('identidadSexual', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                      >
+                        <option value="">Seleccionar</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="No binario">No binario</option>
+                        <option value="Otro">Otro</option>
+                        <option value="Prefiero no decir">Prefiero no decir</option>
+                      </select>
+                    </div>
+
+                    {/* Fecha de Nacimiento */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha de Nacimiento
+                      </label>
+                      <input 
+                        type="date" 
+                        value={profileData.fechaNacimiento}
+                        onChange={(e) => handleInputChange('fechaNacimiento', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                      />
+                    </div>
+
+                    {/* Teléfono */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Teléfono <span className="text-red-500">*</span>
+                      </label>
+                      <input 
+                        type="tel" 
+                        value={profileData.telefono}
+                        onChange={(e) => handleInputChange('telefono', e.target.value)}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        disabled={!isEditing}
+                        placeholder="3001234567"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ubicación y Residencia */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                  🌍 Ubicación y Residencia
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* País */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      País
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        options={opcionesPaises}
+                        value={opcionesPaises.find(opt => opt.value === profileData.pais)}
+                        onChange={(option) => handleInputChange('pais', option ? option.value : '')}
+                        placeholder="Selecciona un país"
+                        className="text-sm"
+                        isSearchable
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            borderColor: '#d1d5db',
+                            '&:hover': { borderColor: '#9ca3af' }
+                          })
+                        }}
+                      />
+                    ) : (
+                      <input 
+                        type="text" 
+                        value={opcionesPaises.find(opt => opt.value === profileData.pais)?.label || profileData.pais}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-900"
+                        disabled
+                      />
+                    )}
+                  </div>
+
+                  {/* Nacionalidad */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nacionalidad
+                    </label>
+                    {isEditing ? (
+                      <Select
+                        options={opcionesPaises}
+                        value={opcionesPaises.find(opt => opt.value === profileData.nacionalidad)}
+                        onChange={(option) => handleInputChange('nacionalidad', option ? option.value : '')}
+                        placeholder="Selecciona nacionalidad"
+                        className="text-sm"
+                        isSearchable
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            borderColor: '#d1d5db',
+                            '&:hover': { borderColor: '#9ca3af' }
+                          })
+                        }}
+                      />
+                    ) : (
+                      <input 
+                        type="text" 
+                        value={opcionesPaises.find(opt => opt.value === profileData.nacionalidad)?.label || profileData.nacionalidad}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-900"
+                        disabled
+                      />
+                    )}
+                  </div>
+
+                  {/* Departamento de Residencia */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Departamento de Residencia
+                    </label>
+                    <select
+                      value={profileData.departamentoResidencia}
+                      onChange={(e) => {
+                        handleInputChange('departamentoResidencia', e.target.value);
+                        handleInputChange('ciudadResidencia', ''); // Reset ciudad
+                      }}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing}
+                    >
+                      <option value="">Seleccionar departamento</option>
+                      {colombiaData.map((dept) => (
+                        <option key={dept.departamento} value={dept.departamento}>
+                          {dept.departamento}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Ciudad de Residencia */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ciudad de Residencia
+                    </label>
+                    <select
+                      value={profileData.ciudadResidencia}
+                      onChange={(e) => handleInputChange('ciudadResidencia', e.target.value)}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing || !profileData.departamentoResidencia}
+                    >
+                      <option value="">Seleccionar ciudad</option>
+                      {ciudadesResidencia.map((ciudad) => (
+                        <option key={ciudad} value={ciudad}>
+                          {ciudad}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Dirección de Residencia */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dirección de Residencia
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.direccionResidencia}
+                      onChange={(e) => handleInputChange('direccionResidencia', e.target.value)}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing}
+                      placeholder="Ej: Calle 15 # 10-45"
+                    />
+                  </div>
+
+                  {/* Departamento */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Departamento (Trabajo)
+                    </label>
+                    <select
+                      value={profileData.departamento}
+                      onChange={(e) => {
+                        handleInputChange('departamento', e.target.value);
+                        handleInputChange('municipio', ''); // Reset municipio
+                      }}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing}
+                    >
+                      <option value="">Seleccionar departamento</option>
+                      {colombiaData.map((dept) => (
+                        <option key={dept.departamento} value={dept.departamento}>
+                          {dept.departamento}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Municipio */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Municipio
+                    </label>
+                    <select
+                      value={profileData.municipio}
+                      onChange={(e) => handleInputChange('municipio', e.target.value)}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing || !profileData.departamento}
+                    >
+                      <option value="">Seleccionar municipio</option>
+                      {municipios.map((mun) => (
+                        <option key={mun} value={mun}>
+                          {mun}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Ciudad */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ciudad (Trabajo)
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.ciudad}
+                      onChange={(e) => handleInputChange('ciudad', e.target.value)}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing}
+                      placeholder="Ej: Valledupar"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Información Institucional */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                  🏛️ Información Institucional
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Correo - NO EDITABLE */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Correo Institucional <span className="text-red-500 text-xs">(No editable)</span>
+                    </label>
+                    <input 
+                      type="email" 
+                      value={profileData.correo}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                      disabled
+                    />
+                  </div>
+
+                  {/* Rol */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Rol en el Sistema
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.rol}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-700"
+                      disabled
+                    />
+                  </div>
+
+                  {/* Programa - NO EDITABLE */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Programa <span className="text-red-500 text-xs">(No aplica)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.programa}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                      disabled
+                    />
+                  </div>
+
+                  {/* Semestre - NO EDITABLE */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Semestre <span className="text-red-500 text-xs">(No aplica)</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.semestre}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                      disabled
+                    />
+                  </div>
+
+                  {/* Fecha de Ingreso - NO EDITABLE */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fecha de Ingreso <span className="text-red-500 text-xs">(No editable)</span>
+                    </label>
+                    <input 
+                      type="date" 
+                      value={profileData.fechaIngreso}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                      disabled
+                    />
+                  </div>
+
+                  {/* Año de Ingreso */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Año de Ingreso
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.anioIngreso}
+                      onChange={(e) => handleInputChange('anioIngreso', e.target.value)}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing}
+                      placeholder="2020"
+                    />
+                  </div>
+
+                  {/* Periodo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Periodo
+                    </label>
+                    <input 
+                      type="text" 
+                      value={profileData.periodo}
+                      onChange={(e) => handleInputChange('periodo', e.target.value)}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      disabled={!isEditing}
+                      placeholder="2020-1"
+                    />
+                  </div>
+
+                  {/* Estado */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Estado
+                    </label>
+                    <div className="flex items-center h-[42px]">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        profileData.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {profileData.activo ? '✓ Activo' : '✗ Inactivo'}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -193,7 +675,7 @@ export default function AdminProfile() {
               {/* Seguridad */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                  Seguridad
+                  🔒 Seguridad
                 </h3>
 
                 <div className="space-y-4 max-w-2xl">

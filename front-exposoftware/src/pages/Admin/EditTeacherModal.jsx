@@ -1,7 +1,11 @@
+import Select from 'react-select';
 import { 
   TIPOS_DOCUMENTO,
   GENEROS,
-  CATEGORIAS_DOCENTE
+  IDENTIDADES_SEXUALES,
+  CATEGORIAS_DOCENTE,
+  DEPARTAMENTOS_COLOMBIA,
+  PAISES
 } from "./useTeacherManagement";
 
 /**
@@ -10,6 +14,8 @@ import {
  * @param {boolean} props.show - Controla la visibilidad del modal
  * @param {Function} props.onSave - Función que se ejecuta al guardar (recibe el evento del formulario)
  * @param {Function} props.onCancel - Función que se ejecuta al cancelar
+ * @param {Array} props.ciudadesResidencia - Lista de ciudades dinámicas según departamento
+ * @param {Array} props.municipios - Lista de municipios dinámicos según departamento
  * @param {Object} props.formData - Datos del formulario
  * @param {Function} props.setFormData - Funciones para actualizar los campos del formulario
  */
@@ -17,7 +23,11 @@ export default function EditTeacherModal({
   show,
   onSave,
   onCancel,
-  // Estados del formulario
+  // Listas dinámicas
+  ciudadesResidencia,
+  municipios,
+  opcionesPaises,
+  // Estados del formulario - Usuario
   tipoDocumento,
   setTipoDocumento,
   identificacion,
@@ -28,12 +38,37 @@ export default function EditTeacherModal({
   setApellidos,
   genero,
   setGenero,
+  identidadSexual,
+  setIdentidadSexual,
+  fechaNacimiento,
+  setFechaNacimiento,
+  direccionResidencia,
+  setDireccionResidencia,
+  anioIngreso,
+  setAnioIngreso,
+  periodo,
+  setPeriodo,
+  ciudadResidencia,
+  setCiudadResidencia,
+  departamentoResidencia,
+  setDepartamentoResidencia,
+  departamento,
+  setDepartamento,
+  municipio,
+  setMunicipio,
+  pais,
+  setPais,
+  nacionalidad,
+  setNacionalidad,
+  ciudad,
+  setCiudad,
   telefono,
   setTelefono,
   correo,
   setCorreo,
   contraseña,
   setContraseña,
+  // Estados del formulario - Docente
   categoriaDocente,
   setCategoriaDocente,
   codigoPrograma,
@@ -133,6 +168,36 @@ export default function EditTeacherModal({
                 </select>
               </div>
 
+              {/* Identidad Sexual */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Identidad Sexual
+                </label>
+                <select
+                  value={identidadSexual}
+                  onChange={(e) => setIdentidadSexual(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                >
+                  <option value="">Seleccionar</option>
+                  {IDENTIDADES_SEXUALES.map((id) => (
+                    <option key={id} value={id}>{id}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Fecha de Nacimiento */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fecha de Nacimiento
+                </label>
+                <input
+                  type="date"
+                  value={fechaNacimiento}
+                  onChange={(e) => setFechaNacimiento(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
               {/* Teléfono */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -144,6 +209,195 @@ export default function EditTeacherModal({
                   onChange={(e) => setTelefono(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
                   required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Información de Ubicación y Residencia */}
+          <div className="border-t pt-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Información de Ubicación y Residencia</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* País - Select dinámico */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  País
+                </label>
+                <Select
+                  name="pais"
+                  options={opcionesPaises}
+                  placeholder="Selecciona País"
+                  value={
+                    pais
+                      ? opcionesPaises.find(
+                          (option) => option.value === pais
+                        )
+                      : null
+                  }
+                  onChange={(option) => setPais(option ? option.value : "")}
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      borderColor: "#d1d5db",
+                      borderRadius: "0.5rem",
+                      padding: "2px",
+                      "&:hover": { borderColor: "#16a34a" },
+                      boxShadow: "0 0 0 1px #d1d5db",
+                    }),
+                  }}
+                />
+              </div>
+
+              {/* Nacionalidad - Select dinámico */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nacionalidad
+                </label>
+                <Select
+                  name="nacionalidad"
+                  options={opcionesPaises}
+                  placeholder="Selecciona Nacionalidad"
+                  value={
+                    nacionalidad
+                      ? opcionesPaises.find(
+                          (option) => option.value === nacionalidad
+                        )
+                      : null
+                  }
+                  onChange={(option) => setNacionalidad(option ? option.value : "")}
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      borderColor: "#d1d5db",
+                      borderRadius: "0.5rem",
+                      padding: "2px",
+                      "&:hover": { borderColor: "#16a34a" },
+                      boxShadow: "0 0 0 1px #d1d5db",
+                    }),
+                  }}
+                />
+              </div>
+
+              {/* Departamento de Residencia */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Departamento de Residencia
+                </label>
+                <select
+                  value={departamentoResidencia}
+                  onChange={(e) => setDepartamentoResidencia(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                >
+                  <option value="">Seleccionar</option>
+                  {DEPARTAMENTOS_COLOMBIA.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Ciudad de Residencia - Select dinámico */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ciudad de Residencia
+                </label>
+                <select
+                  value={ciudadResidencia}
+                  onChange={(e) => setCiudadResidencia(e.target.value)}
+                  disabled={!departamentoResidencia}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100"
+                >
+                  <option value="">Seleccionar ciudad</option>
+                  {ciudadesResidencia.map((ciudad) => (
+                    <option key={ciudad} value={ciudad}>{ciudad}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dirección de Residencia */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dirección de Residencia
+                </label>
+                <input
+                  type="text"
+                  value={direccionResidencia}
+                  onChange={(e) => setDireccionResidencia(e.target.value)}
+                  maxLength={50}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              {/* Departamento */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Departamento
+                </label>
+                <select
+                  value={departamento}
+                  onChange={(e) => setDepartamento(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                >
+                  <option value="">Seleccionar</option>
+                  {DEPARTAMENTOS_COLOMBIA.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Municipio - Select dinámico */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ciudad
+                </label>
+                <select
+                  value={municipio}
+                  onChange={(e) => setMunicipio(e.target.value)}
+                  disabled={!departamento}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100"
+                >
+                  <option value="">Seleccionar municipio</option>
+                  {municipios.map((mun) => (
+                    <option key={mun} value={mun}>{mun}</option>
+                  ))}
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Información Académica */}
+          <div className="border-t pt-4">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Información Académica</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Año de Ingreso */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Año de Ingreso
+                </label>
+                <input
+                  type="text"
+                  value={anioIngreso}
+                  onChange={(e) => setAnioIngreso(e.target.value)}
+                  maxLength={4}
+                  pattern="[0-9]{4}"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              {/* Periodo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Periodo
+                </label>
+                <input
+                  type="number"
+                  value={periodo}
+                  onChange={(e) => setPeriodo(e.target.value)}
+                  min="1"
+                  max="10"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
@@ -199,19 +453,21 @@ export default function EditTeacherModal({
                 </select>
               </div>
 
-              {/* Código Programa */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Código Programa
-                </label>
-                <input
-                  type="text"
-                  value={codigoPrograma}
-                  onChange={(e) => setCodigoPrograma(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
-                  required
-                />
-              </div>
+              {/* Código Programa - Solo para docentes Internos */}
+              {categoriaDocente === "Interno" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Código Programa
+                  </label>
+                  <input
+                    type="text"
+                    value={codigoPrograma}
+                    onChange={(e) => setCodigoPrograma(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+              )}
 
               {/* Estado Activo */}
               <div className="flex items-center">

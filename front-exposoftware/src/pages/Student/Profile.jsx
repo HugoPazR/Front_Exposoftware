@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import countryList from 'react-select-country-list';
 import logo from "../../assets/Logo-unicesar.png";
+import colombiaData from "../../data/colombia.json";
+import StudentProfileForm from "./StudentProfileForm";
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -11,19 +14,96 @@ export default function Profile() {
     confirmPassword: ""
   });
 
+  // Datos del perfil del estudiante - Campos editables
+  const [profileData, setProfileData] = useState({
+    // Información personal (heredada de Usuarios)
+    tipoDocumento: "CC",
+    identificacion: "1098765432", // ❌ NO EDITABLE
+    nombres: "Cristian David",
+    apellidos: "Guzmán Torres",
+    genero: "Masculino",
+    identidadSexual: "Masculino",
+    fechaNacimiento: "2003-03-22",
+    telefono: "3201234567",
+    
+    // Ubicación y residencia
+    pais: "CO",
+    nacionalidad: "CO",
+    departamentoResidencia: "Cesar",
+    ciudadResidencia: "Valledupar",
+    direccionResidencia: "Calle 20 # 15-30 Barrio Centro",
+    departamento: "Cesar",
+    municipio: "Valledupar",
+    ciudad: "Valledupar",
+    
+    // Información académica
+    correo: "crguzman@unicesar.edu.co", // ❌ NO EDITABLE
+    codigoPrograma: "12345", // ❌ NO EDITABLE - Programa del estudiante
+    semestre: 5, // ❌ NO EDITABLE - Semestre actual
+    fechaIngreso: "2022-02-01", // ❌ NO EDITABLE
+    anioIngreso: "2022",
+    periodo: "2022-1",
+    
+    // Estado
+    rol: "Estudiante"
+  });
+
+  // Estados para selectores dinámicos
+  const [opcionesPaises, setOpcionesPaises] = useState([]);
+  const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
+  // Inicializar opciones de países
+  useEffect(() => {
+    const paises = countryList().getData();
+    setOpcionesPaises(paises);
+  }, []);
+
+  // Actualizar ciudades cuando cambia departamento de residencia
+  useEffect(() => {
+    if (profileData.departamentoResidencia) {
+      const deptData = colombiaData.find(d => d.departamento === profileData.departamentoResidencia);
+      setCiudadesResidencia(deptData ? deptData.ciudades : []);
+    } else {
+      setCiudadesResidencia([]);
+    }
+  }, [profileData.departamentoResidencia]);
+
+  // Actualizar municipios cuando cambia departamento
+  useEffect(() => {
+    if (profileData.departamento) {
+      const deptData = colombiaData.find(d => d.departamento === profileData.departamento);
+      setMunicipios(deptData ? deptData.ciudades : []);
+    } else {
+      setMunicipios([]);
+    }
+  }, [profileData.departamento]);
+
   const handleEdit = () => {
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-   
   };
 
   const handleSave = () => {
-  
+    // Validaciones básicas
+    if (!profileData.nombres || !profileData.apellidos || !profileData.telefono) {
+      alert("Por favor completa los campos obligatorios");
+      return;
+    }
+
+    console.log("📤 Datos del estudiante a guardar:", profileData);
     setIsEditing(false);
-    alert("Cambios guardados exitosamente");
+    alert("✅ Cambios guardados exitosamente");
+  };
+
+  const handleInputChange = (field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const handleOpenPasswordModal = () => {
@@ -137,12 +217,9 @@ export default function Profile() {
 
           {/* Main content: Form de configuración de perfil */}
           <main className="lg:col-span-3">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-8">
               <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Configuración de Perfil</h2>
-                  <p className="text-sm text-gray-500">Actualiza tu información personal y preferencias de cuenta.</p>
-                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
                 {!isEditing && (
                   <button 
                     onClick={handleEdit}
@@ -154,80 +231,64 @@ export default function Profile() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <div className="md:col-span-1 flex flex-col items-center">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                    {/* Placeholder image; replace with real upload preview */}
-                    <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder" alt="Avatar" className="w-full h-full object-cover" />
+              {/* Formulario de Perfil */}
+              <StudentProfileForm
+                profileData={profileData}
+                isEditing={isEditing}
+                opcionesPaises={opcionesPaises}
+                ciudadesResidencia={ciudadesResidencia}
+                municipios={municipios}
+                colombiaData={colombiaData}
+                handleInputChange={handleInputChange}
+              />
+
+              {/* Seguridad */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+                  🔒 Seguridad
+                </h3>
+
+                <div className="space-y-4 max-w-2xl">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Contraseña
+                    </label>
+                    <input 
+                      type="password" 
+                      defaultValue="********" 
+                      disabled
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-500"
+                    />
                   </div>
-                  {isEditing && (
-                    <button className="mt-4 inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg text-sm hover:bg-green-50 transition-colors">
-                      Cambiar Foto
+
+                  <div>
+                    <button 
+                      onClick={handleOpenPasswordModal}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      Cambiar Contraseña
                     </button>
-                  )}
-                </div>
-
-                <div className="md:col-span-2">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                      <input 
-                        type="text" 
-                        defaultValue="Cristian Guzman" 
-                        className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                        disabled={!isEditing}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-                      <input 
-                        type="email" 
-                        defaultValue="crguzman@example.com" 
-                        className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                        disabled={!isEditing}
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                        <input 
-                          type="password" 
-                          defaultValue="********" 
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100" 
-                          disabled
-                        />
-                      </div>
-                      <div className="shrink-0">
-                        <button 
-                          onClick={handleOpenPasswordModal}
-                          className="mt-6 inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg text-sm hover:bg-green-50 transition-colors"
-                        >
-                          Cambiar Contraseña
-                        </button>
-                      </div>
-                    </div>
-
-                    {isEditing && (
-                      <div className="pt-4 flex gap-3">
-                        <button 
-                          onClick={handleSave}
-                          className="flex-1 bg-green-700 text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition-colors"
-                        >
-                          Guardar Cambios
-                        </button>
-                        <button 
-                          onClick={handleCancel}
-                          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Botones de acción */}
+              {isEditing && (
+                <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                  <button 
+                    onClick={handleCancel}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={handleSave}
+                    className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    Guardar Cambios
+                  </button>
+                </div>
+              )}
             </div>
           </main>
         </div>

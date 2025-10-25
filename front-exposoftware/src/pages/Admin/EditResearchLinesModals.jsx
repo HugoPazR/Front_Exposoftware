@@ -5,6 +5,8 @@ export function EditLineaModal({
   show, 
   onSave, 
   onCancel,
+  codigoLinea,
+  setCodigoLinea,
   nombreLinea,
   setNombreLinea
 }) {
@@ -18,17 +20,33 @@ export function EditLineaModal({
         </div>
         
         <form onSubmit={onSave} className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre de la Línea <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={nombreLinea}
-              onChange={(e) => setNombreLinea(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Código de Línea <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={codigoLinea}
+                onChange={(e) => setCodigoLinea(e.target.value)}
+                placeholder="Ej: LI-001"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de la Línea <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={nombreLinea}
+                onChange={(e) => setNombreLinea(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                required
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -59,6 +77,8 @@ export function EditSublineaModal({
   show, 
   onSave, 
   onCancel,
+  codigoSublinea,
+  setCodigoSublinea,
   nombreSublinea,
   setNombreSublinea,
   idLineaParaSublinea,
@@ -88,23 +108,39 @@ export function EditSublineaModal({
               <option value="">Selecciona una línea</option>
               {lineas.map((linea) => (
                 <option key={linea.id} value={linea.id}>
-                  {linea.nombre_linea}
+                  {linea.codigo_linea} - {linea.nombre_linea}
                 </option>
               ))}
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre de la Sublínea <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={nombreSublinea}
-              onChange={(e) => setNombreSublinea(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Código de Sublínea <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={codigoSublinea}
+                onChange={(e) => setCodigoSublinea(e.target.value)}
+                placeholder="Ej: SL-001"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de la Sublínea <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={nombreSublinea}
+                onChange={(e) => setNombreSublinea(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                required
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
@@ -135,6 +171,8 @@ export function EditAreaModal({
   show, 
   onSave, 
   onCancel,
+  codigoArea,
+  setCodigoArea,
   nombreArea,
   setNombreArea,
   idSublineaParaArea,
@@ -165,23 +203,39 @@ export function EditAreaModal({
               <option value="">Selecciona una sublínea</option>
               {sublineas.map((sublinea) => (
                 <option key={sublinea.id} value={sublinea.id}>
-                  {sublinea.nombre_sublinea} ({getLineaNombre(sublinea.id_linea)})
+                  {sublinea.codigo_sublinea} - {sublinea.nombre_sublinea} ({getLineaNombre(sublinea.id_linea)})
                 </option>
               ))}
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre del Área Temática <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={nombreArea}
-              onChange={(e) => setNombreArea(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-              required
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Código de Área <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={codigoArea}
+                onChange={(e) => setCodigoArea(e.target.value)}
+                placeholder="Ej: AT-001"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre del Área Temática <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={nombreArea}
+                onChange={(e) => setNombreArea(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                required
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

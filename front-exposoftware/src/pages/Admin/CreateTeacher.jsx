@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import Select from 'react-select';
+import { useState } from 'react';
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import { 
@@ -6,14 +8,24 @@ import {
   TIPOS_DOCUMENTO,
   GENEROS,
   IDENTIDADES_SEXUALES,
-  CATEGORIAS_DOCENTE
+  CATEGORIAS_DOCENTE,
+  DEPARTAMENTOS_COLOMBIA,
+  PAISES
 } from "./useTeacherManagement";
 import EditTeacherModal from "./EditTeacherModal";
+import { 
+  validateField, 
+  filterInput, 
+  hasErrors 
+} from "../../utils/teacherValidations";
 
 export default function CreateTeacher() {
 
+  // Estado para errores de validación
+  const [errors, setErrors] = useState({});
+
   const {
- 
+    // Estados del formulario - Usuario (heredados)
     tipoDocumento,
     setTipoDocumento,
     identificacion,
@@ -28,10 +40,24 @@ export default function CreateTeacher() {
     setIdentidadSexual,
     fechaNacimiento,
     setFechaNacimiento,
-    direccion,
-    setDireccion,
+    direccionResidencia,
+    setDireccionResidencia,
+    anioIngreso,
+    setAnioIngreso,
+    periodo,
+    setPeriodo,
+    ciudadResidencia,
+    setCiudadResidencia,
+    departamentoResidencia,
+    setDepartamentoResidencia,
+    departamento,
+    setDepartamento,
+    municipio,
+    setMunicipio,
     pais,
     setPais,
+    nacionalidad,
+    setNacionalidad,
     ciudad,
     setCiudad,
     telefono,
@@ -40,7 +66,7 @@ export default function CreateTeacher() {
     setCorreo,
     contraseña,
     setContraseña,
-    // Estados del formulario - Docente
+    // Estados del formulario - Docente (propios)
     categoriaDocente,
     setCategoriaDocente,
     codigoPrograma,
@@ -52,6 +78,11 @@ export default function CreateTeacher() {
     searchTerm,
     setSearchTerm,
     profesoresFiltrados,
+    // Estados para ciudades dinámicas
+    ciudadesResidencia,
+    municipios,
+    // Opciones de países/nacionalidades
+    opcionesPaises,
     // Estados de edición
     isEditing,
     showEditModal,
@@ -63,6 +94,89 @@ export default function CreateTeacher() {
     handleDelete,
     handleCancel,
   } = useTeacherManagement();
+
+  // Función para manejar cambios con validación
+  const handleInputChange = (fieldName, value, setter) => {
+    // Filtrar entrada según el tipo de campo
+    const filteredValue = filterInput(fieldName, value);
+    setter(filteredValue);
+
+    // Validar el campo
+    const formData = {
+      nombres,
+      apellidos,
+      identificacion,
+      telefono,
+      correo,
+      fechaNacimiento,
+      ciudadResidencia,
+      ciudad,
+      municipio,
+      codigoPrograma,
+    };
+    
+    const error = validateField(fieldName, filteredValue, formData);
+    setErrors(prev => ({
+      ...prev,
+      [fieldName]: error
+    }));
+  };
+
+  // Validar antes de enviar el formulario
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+
+    // Crear objeto con todos los datos del formulario
+    const formData = {
+      nombres,
+      apellidos,
+      identificacion,
+      telefono,
+      correo,
+      fechaNacimiento,
+      ciudadResidencia,
+      ciudad,
+      municipio,
+      codigoPrograma,
+      tipoDocumento,
+      genero,
+      identidadSexual,
+      pais,
+      nacionalidad,
+      departamentoResidencia,
+      direccionResidencia,
+      departamento,
+      categoriaDocente,
+      activo,
+    };
+
+    // Validar todos los campos requeridos
+    const newErrors = {};
+    Object.keys(formData).forEach(key => {
+      const error = validateField(key, formData[key], formData);
+      if (error) {
+        newErrors[key] = error;
+      }
+    });
+
+    setErrors(newErrors);
+
+    // Si hay errores, no enviar el formulario
+    if (hasErrors(newErrors)) {
+      // Scroll al primer error
+      const firstErrorField = Object.keys(newErrors)[0];
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+      return;
+    }
+
+    // Si no hay errores, proceder con el envío
+    handleSubmit(e);
+    setErrors({});
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -116,7 +230,7 @@ export default function CreateTeacher() {
               </div>
 
               {/* Formulario */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleFormSubmit} className="space-y-6">
                 {/* Información Personal */}
                 <div className="border-b pb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Información Personal</h3>
@@ -147,12 +261,24 @@ export default function CreateTeacher() {
                       </label>
                       <input
                         type="text"
+                        name="identificacion"
                         value={identificacion}
-                        onChange={(e) => setIdentificacion(e.target.value)}
+                        onChange={(e) => handleInputChange('identificacion', e.target.value, setIdentificacion)}
                         placeholder="Ej: 1023456789"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                          errors.identificacion 
+                            ? 'border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:ring-green-500'
+                        }`}
                         required
+                        maxLength={12}
                       />
+                      {errors.identificacion && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <i className="pi pi-exclamation-circle"></i>
+                          {errors.identificacion}
+                        </p>
+                      )}
                     </div>
 
                     {/* Nombres */}
@@ -162,12 +288,23 @@ export default function CreateTeacher() {
                       </label>
                       <input
                         type="text"
+                        name="nombres"
                         value={nombres}
-                        onChange={(e) => setNombres(e.target.value)}
+                        onChange={(e) => handleInputChange('nombres', e.target.value, setNombres)}
                         placeholder="Ej: María José"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                          errors.nombres 
+                            ? 'border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:ring-green-500'
+                        }`}
                         required
                       />
+                      {errors.nombres && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <i className="pi pi-exclamation-circle"></i>
+                          {errors.nombres}
+                        </p>
+                      )}
                     </div>
 
                     {/* Apellidos */}
@@ -177,12 +314,23 @@ export default function CreateTeacher() {
                       </label>
                       <input
                         type="text"
+                        name="apellidos"
                         value={apellidos}
-                        onChange={(e) => setApellidos(e.target.value)}
+                        onChange={(e) => handleInputChange('apellidos', e.target.value, setApellidos)}
                         placeholder="Ej: Pérez García"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                          errors.apellidos 
+                            ? 'border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:ring-green-500'
+                        }`}
                         required
                       />
+                      {errors.apellidos && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <i className="pi pi-exclamation-circle"></i>
+                          {errors.apellidos}
+                        </p>
+                      )}
                     </div>
 
                     {/* Género */}
@@ -238,61 +386,241 @@ export default function CreateTeacher() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Teléfono <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="tel"
-                        value={telefono}
-                        onChange={(e) => setTelefono(e.target.value)}
-                        placeholder="Ej: +573001234567"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        required
-                      />
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-medium">
+                          +57
+                        </span>
+                        <input
+                          type="tel"
+                          name="telefono"
+                          value={telefono}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, ''); // Solo números
+                            
+                            // Si está vacío o borra todo, forzar que empiece con 3
+                            if (value === '' || value.length === 0) {
+                              value = '3';
+                            }
+                            
+                            // Asegurar que siempre empiece con 3
+                            if (!value.startsWith('3')) {
+                              value = '3' + value.replace(/^3*/, '');
+                            }
+                            
+                            // Limitar a 10 dígitos
+                            if (value.length > 10) {
+                              value = value.slice(0, 10);
+                            }
+                            
+                            handleInputChange('telefono', value, setTelefono);
+                          }}
+                          onFocus={(e) => {
+                            // Si está vacío al hacer foco, iniciar con 3
+                            if (e.target.value === '') {
+                              handleInputChange('telefono', '3', setTelefono);
+                            }
+                          }}
+                          placeholder="3001234567"
+                          className={`w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                            errors.telefono 
+                              ? 'border-red-500 focus:ring-red-500' 
+                              : 'border-gray-300 focus:ring-green-500'
+                          }`}
+                          required
+                          maxLength={10}
+                        />
+                      </div>
+                      {errors.telefono && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <i className="pi pi-exclamation-circle"></i>
+                          {errors.telefono}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-500">
+                        Formato: +57 3XX XXX XXXX (10 dígitos, inicia con 3)
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Información de Ubicación */}
+                {/* Información de Ubicación y Residencia */}
                 <div className="border-b pb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de Ubicación</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de Ubicación y Residencia</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Dirección */}
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Dirección
-                      </label>
-                      <input
-                        type="text"
-                        value={direccion}
-                        onChange={(e) => setDireccion(e.target.value)}
-                        placeholder="Ej: Calle 50 #30-20"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-
-                    {/* País */}
+                    {/* País - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         País
                       </label>
+                      <Select
+                        name="pais"
+                        options={opcionesPaises}
+                        placeholder="Selecciona País"
+                        value={
+                          pais
+                            ? opcionesPaises.find(
+                                (option) => option.value === pais
+                              )
+                            : null
+                        }
+                        onChange={(option) => setPais(option ? option.value : "")}
+                        classNamePrefix="react-select"
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            borderColor: "#d1d5db",
+                            borderRadius: "0.5rem",
+                            padding: "2px",
+                            "&:hover": { borderColor: "#16a34a" },
+                            boxShadow: "0 0 0 1px #d1d5db",
+                          }),
+                        }}
+                      />
+                    </div>
+
+                    {/* Nacionalidad - Select dinámico */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nacionalidad
+                      </label>
+                      <Select
+                        name="nacionalidad"
+                        options={opcionesPaises}
+                        placeholder="Selecciona Nacionalidad"
+                        value={
+                          nacionalidad
+                            ? opcionesPaises.find(
+                                (option) => option.value === nacionalidad
+                              )
+                            : null
+                        }
+                        onChange={(option) => setNacionalidad(option ? option.value : "")}
+                        classNamePrefix="react-select"
+                        styles={{
+                          control: (base) => ({
+                            ...base,
+                            borderColor: "#d1d5db",
+                            borderRadius: "0.5rem",
+                            padding: "2px",
+                            "&:hover": { borderColor: "#16a34a" },
+                            boxShadow: "0 0 0 1px #d1d5db",
+                          }),
+                        }}
+                      />
+                    </div>
+
+
+                    {/* Ciudad de Residencia - Select dinámico */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ciudad de Residencia
+                      </label>
+                      <select
+                        value={ciudadResidencia}
+                        onChange={(e) => setCiudadResidencia(e.target.value)}
+                        disabled={!departamentoResidencia}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Seleccionar ciudad</option>
+                        {ciudadesResidencia.map((ciudad) => (
+                          <option key={ciudad} value={ciudad}>{ciudad}</option>
+                        ))}
+                      </select>
+                      {!departamentoResidencia && (
+                        <p className="text-xs text-gray-500 mt-1">Primero selecciona un departamento</p>
+                      )}
+                    </div>
+
+                    {/* Dirección de Residencia */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Dirección de Residencia
+                      </label>
                       <input
                         type="text"
-                        value={pais}
-                        onChange={(e) => setPais(e.target.value)}
-                        placeholder="Ej: Colombia"
+                        value={direccionResidencia}
+                        onChange={(e) => setDireccionResidencia(e.target.value)}
+                        placeholder="Ej: Calle 50 #30-20"
+                        maxLength={50}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                     </div>
 
-                    {/* Ciudad */}
+                    {/* Departamento */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Departamento
+                      </label>
+                      <select
+                        value={departamento}
+                        onChange={(e) => setDepartamento(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                      >
+                        <option value="">Seleccionar departamento</option>
+                        {DEPARTAMENTOS_COLOMBIA.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Municipio - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Ciudad
                       </label>
+                      <select
+                        value={municipio}
+                        onChange={(e) => setMunicipio(e.target.value)}
+                        disabled={!departamento}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Seleccionar municipio</option>
+                        {municipios.map((mun) => (
+                          <option key={mun} value={mun}>{mun}</option>
+                        ))}
+                      </select>
+                      {!departamento && (
+                        <p className="text-xs text-gray-500 mt-1">Primero selecciona un departamento</p>
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Información Académica */}
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Información Académica</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Año de Ingreso */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Año de Ingreso
+                      </label>
                       <input
                         type="text"
-                        value={ciudad}
-                        onChange={(e) => setCiudad(e.target.value)}
-                        placeholder="Ej: Valledupar"
+                        value={anioIngreso}
+                        onChange={(e) => setAnioIngreso(e.target.value)}
+                        placeholder="Ej: 2024"
+                        maxLength={4}
+                        pattern="[0-9]{4}"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+
+                    {/* Periodo */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Periodo
+                      </label>
+                      <input
+                        type="number"
+                        value={periodo}
+                        onChange={(e) => setPeriodo(e.target.value)}
+                        placeholder="Ej: 1"
+                        min="1"
+                        max="10"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                     </div>
@@ -311,12 +639,24 @@ export default function CreateTeacher() {
                       </label>
                       <input
                         type="email"
+                        name="correo"
                         value={correo}
-                        onChange={(e) => setCorreo(e.target.value)}
+                        onChange={(e) => handleInputChange('correo', e.target.value, setCorreo)}
                         placeholder="usuario@unicesar.edu.co"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                          errors.correo 
+                            ? 'border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:ring-green-500'
+                        }`}
                         required
                       />
+                      {errors.correo && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <i className="pi pi-exclamation-circle"></i>
+                          {errors.correo}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-500">Debe ser correo institucional (@unicesar.edu.co)</p>
                     </div>
 
                     {/* Contraseña */}
@@ -352,20 +692,22 @@ export default function CreateTeacher() {
                       </select>
                     </div>
 
-                    {/* Código del Programa */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Código del Programa <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={codigoPrograma}
-                        onChange={(e) => setCodigoPrograma(e.target.value)}
-                        placeholder="Ej: ING01"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                        required
-                      />
-                    </div>
+                    {/* Código del Programa - Solo para docentes Internos */}
+                    {categoriaDocente === "Interno" && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Código del Programa <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={codigoPrograma}
+                          onChange={(e) => setCodigoPrograma(e.target.value)}
+                          placeholder="Ej: ING01"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                          required
+                        />
+                      </div>
+                    )}
 
                     {/* Estado Activo */}
                     <div className="flex items-center">
@@ -534,7 +876,11 @@ export default function CreateTeacher() {
         show={showEditModal}
         onSave={handleSaveEdit}
         onCancel={handleCancelEdit}
-        // Estados del formulario
+        // Listas dinámicas
+        ciudadesResidencia={ciudadesResidencia}
+        municipios={municipios}
+        opcionesPaises={opcionesPaises}
+        // Estados del formulario - Usuario
         tipoDocumento={tipoDocumento}
         setTipoDocumento={setTipoDocumento}
         identificacion={identificacion}
@@ -545,12 +891,37 @@ export default function CreateTeacher() {
         setApellidos={setApellidos}
         genero={genero}
         setGenero={setGenero}
+        identidadSexual={identidadSexual}
+        setIdentidadSexual={setIdentidadSexual}
+        fechaNacimiento={fechaNacimiento}
+        setFechaNacimiento={setFechaNacimiento}
+        direccionResidencia={direccionResidencia}
+        setDireccionResidencia={setDireccionResidencia}
+        anioIngreso={anioIngreso}
+        setAnioIngreso={setAnioIngreso}
+        periodo={periodo}
+        setPeriodo={setPeriodo}
+        ciudadResidencia={ciudadResidencia}
+        setCiudadResidencia={setCiudadResidencia}
+        departamentoResidencia={departamentoResidencia}
+        setDepartamentoResidencia={setDepartamentoResidencia}
+        departamento={departamento}
+        setDepartamento={setDepartamento}
+        municipio={municipio}
+        setMunicipio={setMunicipio}
+        pais={pais}
+        setPais={setPais}
+        nacionalidad={nacionalidad}
+        setNacionalidad={setNacionalidad}
+        ciudad={ciudad}
+        setCiudad={setCiudad}
         telefono={telefono}
         setTelefono={setTelefono}
         correo={correo}
         setCorreo={setCorreo}
         contraseña={contraseña}
         setContraseña={setContraseña}
+        // Estados del formulario - Docente
         categoriaDocente={categoriaDocente}
         setCategoriaDocente={setCategoriaDocente}
         codigoPrograma={codigoPrograma}
