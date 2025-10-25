@@ -9,13 +9,14 @@ import Register from "./pages/Auth/Register";
 import StudentDashboard from "./pages/Student/Dashboard";
 import TeacherDashboard from "./pages/Teacher/Dashboard";
 import StudentProjects from "./pages/Teacher/StudentProjects";
+import AttenceStudent from "./pages/Student/AttendanceStudent";
 import TeacherProfile from "./pages/Teacher/Profile";
 import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
 import About from "./pages/Home/About";
 import AdminDashboard from "./pages/Admin/Dashboard";
-import AsistenciaAdmin from "./pages/Admin/Asistencia";
+import AttendanceAdmin from "./pages/Admin/AttendanceAdmin";
 import AdminProfile from "./pages/Admin/Profile";
 import CreateGroup from "./pages/Admin/CreateGroup";
 import CreateSubject from "./pages/Admin/CreateSubject";
@@ -50,6 +51,7 @@ function App() {
     "/student/dashboard",
     "/student/profile",
     "/student/proyectos",
+    "/student/asistencia",
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
@@ -85,6 +87,7 @@ function App() {
           <Route path="/student/proyectos" element={<MyProjects />} />
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/register-project" element={<RegisterProject />} />
+          <Route path="/student/asistencia" element={<AttenceStudent />} />
 
           {/* Profesores */}
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
@@ -97,7 +100,7 @@ function App() {
           <Route path="/admin/crear-grupo" element={<CreateGroup />} />
           <Route path="/admin/crear-materia" element={<CreateSubject />} />
           <Route path="/admin/crear-profesor" element={<CreateTeacher />} />
-          <Route path="/admin/asistencia" element={<AsistenciaAdmin />} />
+          <Route path="/admin/asistencia" element={<AttendanceAdmin />} />
           <Route path="/admin/lineas-investigacion" element={<AdminCreatelines />} />
 
           {/* ✅ Egresados */}

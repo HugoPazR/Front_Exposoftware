@@ -1,19 +1,18 @@
-"use client"
 
 import { useState, useEffect } from "react";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar"
 import QRCode from "qrcode"
 
-export default function AsistenciaAdmin() {
-  const [qrCodeUrl, setQrCodeUrl] = useState(null)
+
+export default function AttendanceAdmin(){
+    const [qrCodeUrl, setQrCodeUrl] = useState(null)
   const [qrData, setQrData] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
   // Estadísticas de ejemplo
   const [stats, setStats] = useState({
-    asistenciasHoy: 0,
     totalRegistrados: 0,
     porcentajeAsistencia: 0,
   })
@@ -165,23 +164,11 @@ export default function AsistenciaAdmin() {
 
             {/* Estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="bg-gradient-to-br from-green-50 to-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Asistencias Hoy</p>
-                    <h3 className="text-3xl font-bold text-gray-900">{stats.asistenciasHoy}</h3>
-                    <p className="text-xs text-gray-500 mt-2">Registros del día</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <i className="pi pi-users text-xl text-green-600"></i>
-                  </div>
-                </div>
-              </div>
 
               <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Registrados</p>
+                    <p className="text-sm text-gray-600 mb-1">Total Asistencia</p>
                     <h3 className="text-3xl font-bold text-gray-900">{stats.totalRegistrados}</h3>
                     <p className="text-xs text-gray-500 mt-2">Participantes totales</p>
                   </div>
