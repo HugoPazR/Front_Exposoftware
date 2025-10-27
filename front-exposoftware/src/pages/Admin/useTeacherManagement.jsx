@@ -7,15 +7,23 @@ import countryList from 'react-select-country-list';
 export const TIPOS_DOCUMENTO = ["CC", "TI", "CE", "PEP", "Pasaporte"];
 
 // Opciones de género
-export const GENEROS = ["Hombre", "Mujer", "Otro", "Prefiero no decirlo"];
+export const GENEROS = ["Hombre", "Mujer","Hermafrodita"];
 
 // Opciones de identidad sexual
 export const IDENTIDADES_SEXUALES = [
   "Heterosexual",
   "Homosexual",
   "Bisexual",
-  "Otro",
-  "Prefiero no decirlo"
+  "Pansexual",
+  "Asexual",
+  "Demisexual",
+  "Sapiosexual",
+  "Queer",
+  "Graysexual",
+  "Omnisexual",
+  "Androsexual",
+  "Gynesexual",
+  "Polysexual"
 ];
 
 // Opciones de categoría docente
