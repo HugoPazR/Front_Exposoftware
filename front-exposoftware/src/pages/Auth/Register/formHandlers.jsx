@@ -3,6 +3,11 @@ import { validateField, isNumericField } from "./validations";
 /**
  * Maneja cambios en inputs de texto
  */
+// Capitaliza la primera letra de cada palabra
+const capitalizeWords = (str) => {
+  return str.replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 export const handleChange = (
   e,
   formData,
@@ -15,10 +20,23 @@ export const handleChange = (
   const { name, value } = e.target;
   let cleanValue = value;
 
-  // Limpiar caracteres no alfabéticos
-  if (name === "nombres" || name === "apellidos") {
-    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-  }
+  // ✅ Campos que solo aceptan letras
+const alphabeticFields = [
+  "primerNombre",
+  "segundoNombre",
+  "primerApellido",
+  "segundoApellido",
+];
+
+// Bloquear caracteres inválidos + capitalizar
+if (alphabeticFields.includes(name)) {
+  cleanValue = value
+    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "")
+    .toLowerCase(); // primero pasamos todo a minúscula
+
+  cleanValue = capitalizeWords(cleanValue); // luego capitalizamos
+}
+
 
   // Limpiar caracteres no numéricos
   if (isNumericField(name)) {
@@ -121,35 +139,35 @@ export const handleDepartamentoChange = (
 };
 
 /**
- * Maneja cambios en el teléfono
+ * Maneja cambios en el input de teléfono (PhoneInput)
  */
 export const handlePhoneChange = (
   value,
-  country,
+  formData,
   setFormData,
   setErrors,
   setSuccessFields,
-  formatColombianPhone,
-  validatePhone
+  rol
 ) => {
-  const countryCode = country.dialCode;
-  const countryISO = country.countryCode;
-  let phone = value;
+  // PhoneInput ya incluye el "+" en el value
+  const phoneValue = value.startsWith('+') ? value : `+${value}`;
 
-  if (countryISO === "co") {
-    phone = formatColombianPhone(phone, countryCode);
-  }
+  setFormData((prev) => {
+    const updatedForm = { ...prev, telefono: phoneValue };
+    const error = validateField("telefono", phoneValue, updatedForm, rol);
 
-  validatePhone(phone, countryCode, setErrors);
+    // Actualizar errores
+    setErrors((prevErrors) => ({ ...prevErrors, telefono: error }));
 
-  setFormData((prev) => ({
-    ...prev,
-    telefono: value.startsWith("+") ? value : "+" + value,
-  }));
+    // Marcar campo como exitoso si no hay error y tiene valor
+    if (!error && phoneValue.trim() !== "") {
+      setSuccessFields((prev) => ({ ...prev, telefono: true }));
+    } else {
+      setSuccessFields((prev) => ({ ...prev, telefono: false }));
+    }
 
-  // Marcar como exitoso si la validación pasa
-  const isValid = validatePhone(phone, countryCode, () => {});
-  setSuccessFields((prev) => ({ ...prev, telefono: isValid }));
+    return updatedForm;
+  });
 };
 
 /**

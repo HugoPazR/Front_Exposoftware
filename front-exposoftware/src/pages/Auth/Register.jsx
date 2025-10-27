@@ -3,18 +3,16 @@ import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import {
   validateAllFields,
   hasErrors,
-  validatePhone,
-  formatColombianPhone,
 } from "./Register/validations";
 import {
   handleChange as handleChangeUtil,
   handleSelectChange as handleSelectChangeUtil,
   handleDepartamentoChange as handleDepartamentoChangeUtil,
-  handlePhoneChange as handlePhoneChangeUtil,
+  handlePhoneChange as handlePhoneChangeUtil, // ← NUEVA IMPORTACIÓN
   handleSubmit as handleSubmitUtil,
   getInputClassName as getInputClassNameUtil,
 } from "./Register/formHandlers";
-import RoleSections from "./Register/RoleSections";
+import RoleSections from "./RoleSections/RoleSections";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import countryList from "react-select-country-list";
@@ -36,8 +34,10 @@ function RegisterPage() {
   const [rol, setrol] = useState("");
   
   const [formData, setFormData] = useState({
-    nombres: "",
-    apellidos: "",
+    primerNombre: "",
+    segundoNombre: "",
+    primerApellido: "",
+    segundoApellido: "",
     telefono: "",
     genero: "",
     orientacionSexual: "",
@@ -47,7 +47,7 @@ function RegisterPage() {
     departamentoResidencia: "",
     ciudadResidencia: "",
     nacionalidad: "",
-    paisResidencia: "",
+    paisNacimiento: "",
     direccionResidencia: "",
     rol: "",
     tipoDocumento: "",
@@ -56,6 +56,7 @@ function RegisterPage() {
     codigoPrograma: "",
     semestre: "",
     sector: "",
+    intitucionOrigen: "",
     nombreEmpresa: "",
     periodo: "",
     titulado: "",
@@ -111,7 +112,12 @@ function RegisterPage() {
     handleChangeUtil(
       e,formData,setFormData,setErrors,setSuccessFields,rol,setrol
     );
+
+    if (e.target.name === "rol") {
+    setrol(e.target.value);
+  }
   };
+  
 
   const handleSelectChange = (name, option) => {
     handleSelectChangeUtil(
@@ -119,15 +125,20 @@ function RegisterPage() {
     );
   };
 
-  const handleDepartamentoChange = (e) => {
-    handleDepartamentoChangeUtil(
-      e,formData,setFormData,setciudades,setErrors,setSuccessFields,rol,colombia
+    const handlePhoneChange = (value) => {
+    handlePhoneChangeUtil(
+      value,
+      formData,
+      setFormData,
+      setErrors,
+      setSuccessFields,
+      rol
     );
   };
 
-  const handlePhoneChange = (value, country) => {
-    handlePhoneChangeUtil(
-      value,country,setFormData,setErrors,setSuccessFields,formatColombianPhone,validatePhone
+  const handleDepartamentoChange = (e) => {
+    handleDepartamentoChangeUtil(
+      e,formData,setFormData,setciudades,setErrors,setSuccessFields,rol,colombia
     );
   };
 
@@ -195,31 +206,60 @@ function RegisterPage() {
 
           <div className="relative">
             <label className="block font-medium text-gray-700 mb-1">
-              Nombres *
+              Primer Nombre *
             </label>
             <div className="relative">
               <input
-                name="nombres" type="text" placeholder="Nombres" value={formData.nombres} onChange={handleChange} disabled={cargando} className={getInputClassName("nombres")}
+                name="primerNombre" type="text" placeholder="primer Nombre" value={formData.primerNombre} onChange={handleChange} disabled={cargando} className={getInputClassName("primerNombre")}
               />
-              {successFields.nombres && !errors.nombres && (
+              {successFields.primerNombre && !errors.primerNombre && (
                 <CheckCircle className="absolute right-3 top-3 text-green-500"size={20}/>)}
             </div>
-            {errors.nombres && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14}/>{errors.nombres}</p>
+            {errors.primerNombre && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14}/>{errors.primerNombre}</p>
             )}
           </div>
 
           <div className="relative">
             <label className="block font-medium text-gray-700 mb-1">
-              Apellidos *
+              Segundo Nombre (opcional si usted no tiene)
             </label>
             <div className="relative">
               <input
-                name="apellidos" type="text" placeholder="Apellidos" value={formData.apellidos} onChange={handleChange} disabled={cargando}
-                className={getInputClassName("apellidos")}
+                name="segundoNombre" type="text" placeholder="segundo Nombre" value={formData.segundoNombre} onChange={handleChange} disabled={cargando} className={getInputClassName("segundoNombre")}
               />
-              {successFields.apellidos && !errors.apellidos && (<CheckCircle className="absolute right-3 top-3 text-green-500"size={20}/>)}
+              {successFields.segundoNombre && !errors.segundoNombre && (
+                <CheckCircle className="absolute right-3 top-3 text-green-500"size={20}/>)}
             </div>
-            {errors.apellidos && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"> <AlertCircle size={14} /> {errors.apellidos}</p>)}
+            {errors.segundoNombre && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14}/>{errors.segundoNombre}</p>
+            )}
+          </div>
+
+          <div className="relative">
+            <label className="block font-medium text-gray-700 mb-1">
+              Primer Apellido *
+            </label>
+            <div className="relative">
+              <input
+                name="primerApellido" type="text" placeholder="primer Apellido" value={formData.primerApellido} onChange={handleChange} disabled={cargando}
+                className={getInputClassName("primerApellido")}
+              />
+              {successFields.primerApellido && !errors.primerApellido && (<CheckCircle className="absolute right-3 top-3 text-green-500"size={20}/>)}
+            </div>
+            {errors.primerApellido && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"> <AlertCircle size={14} /> {errors.primerApellido}</p>)}
+          </div>
+
+          <div className="relative">
+            <label className="block font-medium text-gray-700 mb-1">
+              Segundo Apellido *
+            </label>
+            <div className="relative">
+              <input
+                name="segundoApellido" type="text" placeholder="segundo Apellido" value={formData.segundoApellido} onChange={handleChange} disabled={cargando}
+                className={getInputClassName("segundoApellido")}
+              />
+              {successFields.segundoApellido && !errors.segundoApellido && (<CheckCircle className="absolute right-3 top-3 text-green-500"size={20}/>)}
+            </div>
+            {errors.segundoApellido && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"> <AlertCircle size={14} /> {errors.segundoApellido}</p>)}
           </div>
 
           <div>
@@ -239,10 +279,15 @@ function RegisterPage() {
                 country={"co"} 
                 enableSearch={true} 
                 disableDropdown={cargando} 
-                countryCodeEditable={false} value={formData.telefono}
-                disabled={cargando} onChange={handlePhoneChange} 
-                inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2" buttonClass="!border-none !bg-transparent hover:bg-gray-100 !rounded-l-lg" 
-                dropdownClass="!shadow-lg !border !border-gray-200" searchClass="!px-3 !py-2" placeholder="3001234567"
+                countryCodeEditable={false} 
+                value={formData.telefono}
+                onChange={handlePhoneChange} // ← CAMBIA ESTO
+                disabled={cargando}
+                inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2" 
+                buttonClass="!border-none !bg-transparent hover:bg-gray-100 !rounded-l-lg" 
+                dropdownClass="!shadow-lg !border !border-gray-200" 
+                searchClass="!px-3 !py-2" 
+                placeholder="3001234567"
               />
             </div>
             {errors.telefono && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} />{errors.telefono}</p>)}
@@ -332,27 +377,27 @@ function RegisterPage() {
               Nacionalidad *
             </label>
             <Select
-              name="paisResidencia"
+              name="paisNacimiento"
               options={options}
               placeholder="Selecciona Nacionalidad"
               value={
-                formData.paisResidencia
+                formData.paisNacimiento
                   ? options.find(
-                      (option) => option.value === formData.paisResidencia
+                      (option) => option.value === formData.paisNacimiento
                     )
                   : null
               }
               onChange={(option) =>
-                handleSelectChange("paisResidencia", option)
+                handleSelectChange("paisNacimiento", option)
               }
               isDisabled={cargando}
               classNamePrefix="react-select"
               styles={{
                 control: (base) => ({
                   ...base,
-                  borderColor: errors.paisResidencia
+                  borderColor: errors.paisNacimiento
                     ? "#ef4444"
-                    : successFields.paisResidencia
+                    : successFields.paisNacimiento
                     ? "#22c55e"
                     : "#d1d5db",
                   borderRadius: "0.5rem",
@@ -362,7 +407,7 @@ function RegisterPage() {
                 }),
               }}
             />
-            {errors.paisResidencia && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14}/>{errors.paisResidencia}</p>)}
+            {errors.paisNacimiento && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14}/>{errors.paisNacimiento}</p>)}
           </div>
 
           <div className="col-span-2">
@@ -578,7 +623,7 @@ function RegisterPage() {
         </form>
       </section>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeIn {
           from {
             opacity: 0;

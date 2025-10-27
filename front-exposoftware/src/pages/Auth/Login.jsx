@@ -42,16 +42,12 @@ function LoginPage() {
     if (nombre === "correo") {
       if (!valor.trim()) {
         error = "El correo electrónico es obligatorio.";
-      } else if (!correoValido.test(valor)) {
-        error = "Por favor ingresa un correo electrónico válido.";
-      }
+      } 
     }
 
     if (nombre === "contraseña") {
       if (!valor.trim()) {
         error = "La contraseña es obligatoria.";
-      } else if (valor.length < 8) {
-        error = "Debe tener al menos 8 caracteres.";
       }
     }
 
