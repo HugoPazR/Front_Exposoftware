@@ -26,6 +26,7 @@ import GraduateProjects from "./pages/Graduate/Proyects";
 import GuestDashboard from "./pages/Guest/Dashboard.jsx";
 import GuestProjects from "./pages/Guest/Proyects";
 import GuestProfile from "./pages/Guest/Profile";
+import Projects from "./pages/Home/Projects";
 
 
 
@@ -81,7 +82,7 @@ function App() {
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/projects" element={<Proyects />} />
+          <Route path="/projects" element={<Projects />} />
 
           {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
