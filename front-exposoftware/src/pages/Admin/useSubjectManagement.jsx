@@ -50,14 +50,9 @@ const MATERIAS_INICIAL = [
   },
 ];
 
-/**
- * Custom Hook para gestionar la lógica de materias
- * Contiene todos los estados y funciones necesarias para el CRUD de materias
- */
+
 export const useSubjectManagement = () => {
-  // ==================== ESTADOS ====================
-  
-  // Estados para el formulario principal
+
   const [codigoMateria, setCodigoMateria] = useState("");
   const [nombreMateria, setNombreMateria] = useState("");
   const [cicloSemestral, setCicloSemestral] = useState("");
@@ -78,7 +73,7 @@ export const useSubjectManagement = () => {
   // Estado para búsqueda/filtro
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ==================== FUNCIONES AUXILIARES ====================
+ 
 
   /**
    * Obtener nombre del docente por ID
@@ -115,9 +110,6 @@ export const useSubjectManagement = () => {
     setGruposSeleccionados(gruposSeleccionados.filter(g => g.codigo_grupo !== codigoGrupo));
   };
 
-  /**
-   * Limpiar formulario
-   */
   const limpiarFormulario = () => {
     setCodigoMateria("");
     setNombreMateria("");
@@ -125,7 +117,7 @@ export const useSubjectManagement = () => {
     setGruposSeleccionados([]);
   };
 
-  // ==================== FUNCIONES DE CARGA ====================
+
 
   /**
    * Cargar materias desde el backend
@@ -184,11 +176,6 @@ export const useSubjectManagement = () => {
     }
   };
 
-  // ==================== OPERACIONES CRUD ====================
-
-  /**
-   * Crear nueva materia
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -197,18 +184,11 @@ export const useSubjectManagement = () => {
       return;
     }
 
-    if (gruposSeleccionados.length === 0) {
-      alert("Por favor seleccione al menos un grupo para asignar a la materia");
-      return;
-    }
-
+    // Payload SOLO con información de la materia (sin grupos)
     const payload = {
-      materia: {
-        codigo_materia: codigoMateria.toUpperCase(),
-        nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral
-      },
-      grupos_con_docentes: gruposSeleccionados
+      codigo_materia: codigoMateria.toUpperCase(),
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
     };
 
     console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
@@ -220,33 +200,61 @@ export const useSubjectManagement = () => {
         body: JSON.stringify(payload)
       });
 
-      if (response.ok) {
+      // Manejo específico de códigos de estado HTTP
+      if (response.status === 201) {
+        // 201: Recurso creado exitosamente
         const data = await response.json();
         console.log('✅ Respuesta del backend:', data);
         
         await cargarMaterias();
-        alert("✅ Materia creada exitosamente");
+        alert("✅ Materia creada exitosamente. Ahora puede asignarle grupos desde la lista de materias.");
         limpiarFormulario();
+      } else if (response.status === 400) {
+        // 400: Solicitud incorrecta
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Solicitud incorrecta:', errorData);
+        alert(`❌ Solicitud incorrecta: ${errorData.message || errorData.detail || 'Verifique los datos ingresados'}`);
+      } else if (response.status === 401) {
+        // 401: No autorizado
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ No autorizado:', errorData);
+        alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión para realizar esta acción'}`);
+      } else if (response.status === 403) {
+        // 403: Sin permisos suficientes
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Sin permisos:', errorData);
+        alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para crear materias'}`);
+      } else if (response.status === 409) {
+        // 409: Conflicto - El recurso ya existe
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Conflicto:', errorData);
+        alert(`❌ Conflicto: ${errorData.message || errorData.detail || 'La materia con ese código ya existe'}`);
+      } else if (response.status === 422) {
+        // 422: Error de validación
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error de validación:', errorData);
+        alert(`❌ Error de validación: ${errorData.message || errorData.detail || 'Los datos enviados no son válidos'}`);
       } else {
-        const errorData = await response.json();
+        // Otros errores
+        const errorData = await response.json().catch(() => ({}));
         console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear la materia: ${errorData.message || 'Error desconocido'}`);
+        alert(`❌ Error al crear la materia (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('❌ Error al crear materia:', error);
-      alert("❌ Error de conexión al crear la materia");
+      alert("❌ Error de conexión al crear la materia. Verifique su conexión a internet.");
     }
   };
 
   /**
-   * Iniciar edición de materia
+   * Iniciar edición de materia (para asignar grupos)
    */
   const handleEdit = (materia) => {
     setEditingId(materia.id);
     setCodigoMateria(materia.codigo_materia);
     setNombreMateria(materia.nombre_materia);
     setCicloSemestral(materia.ciclo_semestral);
-    setGruposSeleccionados(materia.grupos_con_docentes.length > 0 
+    setGruposSeleccionados(materia.grupos_con_docentes && materia.grupos_con_docentes.length > 0 
       ? [...materia.grupos_con_docentes] 
       : []
     );
@@ -255,7 +263,7 @@ export const useSubjectManagement = () => {
   };
 
   /**
-   * Guardar edición de materia
+   * Guardar edición de materia (actualizar información básica y grupos)
    */
   const handleSaveEdit = async (e) => {
     e.preventDefault();
@@ -265,18 +273,12 @@ export const useSubjectManagement = () => {
       return;
     }
 
-    if (gruposSeleccionados.length === 0) {
-      alert("Por favor seleccione al menos un grupo para asignar a la materia");
-      return;
-    }
-
+    // Ahora los grupos son opcionales en la edición
     const payload = {
-      materia: {
-        codigo_materia: codigoMateria.toUpperCase(),
-        nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral
-      },
-      grupos_con_docentes: gruposSeleccionados
+      codigo_materia: codigoMateria.toUpperCase(),
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral,
+      grupos_con_docentes: gruposSeleccionados // Puede ser un array vacío
     };
 
     console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
@@ -288,21 +290,54 @@ export const useSubjectManagement = () => {
         body: JSON.stringify(payload)
       });
 
+      // Manejo específico de códigos de estado HTTP
       if (response.ok) {
+        // 200 o 201: Actualización exitosa
         const data = await response.json();
         console.log('✅ Respuesta del backend:', data);
         
         await cargarMaterias();
         alert("✅ Materia actualizada exitosamente");
         handleCancelEdit();
+      } else if (response.status === 400) {
+        // 400: Solicitud incorrecta
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Solicitud incorrecta:', errorData);
+        alert(`❌ Solicitud incorrecta: ${errorData.message || errorData.detail || 'Verifique los datos ingresados'}`);
+      } else if (response.status === 401) {
+        // 401: No autorizado
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ No autorizado:', errorData);
+        alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión para realizar esta acción'}`);
+      } else if (response.status === 403) {
+        // 403: Sin permisos suficientes
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Sin permisos:', errorData);
+        alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para editar materias'}`);
+      } else if (response.status === 404) {
+        // 404: No encontrado
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ No encontrado:', errorData);
+        alert(`❌ No encontrado: ${errorData.message || errorData.detail || 'La materia no existe'}`);
+      } else if (response.status === 409) {
+        // 409: Conflicto
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Conflicto:', errorData);
+        alert(`❌ Conflicto: ${errorData.message || errorData.detail || 'Ya existe una materia con ese código'}`);
+      } else if (response.status === 422) {
+        // 422: Error de validación
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error de validación:', errorData);
+        alert(`❌ Error de validación: ${errorData.message || errorData.detail || 'Los datos enviados no son válidos'}`);
       } else {
-        const errorData = await response.json();
+        // Otros errores
+        const errorData = await response.json().catch(() => ({}));
         console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar la materia: ${errorData.message || 'Error desconocido'}`);
+        alert(`❌ Error al actualizar la materia (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('❌ Error al actualizar materia:', error);
-      alert("❌ Error de conexión al actualizar la materia");
+      alert("❌ Error de conexión al actualizar la materia. Verifique su conexión a internet.");
     }
   };
 
@@ -347,36 +382,22 @@ export const useSubjectManagement = () => {
     }
   };
 
-  /**
-   * Manejar cancelación del formulario
-   */
   const handleCancel = () => {
     limpiarFormulario();
   };
 
-  // ==================== EFECTOS ====================
-
-  /**
-   * Cargar datos iniciales al montar el componente
-   */
   useEffect(() => {
     cargarMaterias();
     cargarGrupos();
     cargarProfesores();
   }, []);
 
-  // ==================== DATOS COMPUTADOS ====================
-
-  /**
-   * Filtrar materias por búsqueda
-   */
   const materiasFiltradas = materias.filter(materia =>
     materia.codigo_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
     materia.nombre_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
     materia.ciclo_semestral.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ==================== RETORNO DEL HOOK ====================
 
   return {
     // Estados del formulario

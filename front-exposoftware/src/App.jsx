@@ -5,9 +5,9 @@ import Home from "./pages/Home/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import StudentDashboard from "./pages/Student/Dashboard";
-import TeacherDashboard from "./pages/Teacher/Dashboard";
 import StudentProjects from "./pages/Teacher/StudentProjects";
-import TeacherProfile from "./pages/Teacher/Profile";
+import TeacherProfile from "./pages/Teacher/Dashboard";
+import TeacherDashboard from "./pages/Teacher/Profile";
 import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
@@ -18,10 +18,12 @@ import CreateGroup from "./pages/Admin/CreateGroup";
 import CreateSubject from "./pages/Admin/CreateSubject";
 import CreateTeacher from "./pages/Admin/CreateTeacher";
 import AdminCreatelines from "./pages/Admin/CreateLines";
+import RegisterEvent from "./pages/Admin/RegisterEvent";
 import GraduateDashboard from "./pages/Graduate/Dashboard";
 import GraduateProfile from "./pages/Graduate/Profile";
 import GraduateProjects from "./pages/Graduate/Proyects";
 import Proyects from "./pages/Home/Projects";
+import Attendance from "./pages/Asistencia/Attendance";
 
 
 
@@ -45,12 +47,10 @@ function App() {
     "/admin/crear-materia",
     "/admin/crear-profesor",
     "/admin/lineas-investigacion",
+    "/admin/registrar-eventos",
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
-    
-
-
   ];
 
   return (
@@ -66,6 +66,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/projects" element={<Proyects />} />
+          
+          {/* Registro de Asistencia Pública */}
+          <Route path="/asistencia" element={<Attendance />} />
 
           {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
@@ -85,6 +88,7 @@ function App() {
           <Route path="/admin/crear-materia" element={<CreateSubject />} />
           <Route path="/admin/crear-profesor" element={<CreateTeacher />} />
           <Route path="/admin/lineas-investigacion" element={<AdminCreatelines />} />
+          <Route path="/admin/registrar-eventos" element={<RegisterEvent />} />
 
           {/* ✅ Egresados */}
           <Route path="/graduate/dashboard" element={<GraduateDashboard />} />
@@ -94,17 +98,26 @@ function App() {
 
 
 
-          {/* Página no encontrada */}
           <Route
             path="*"
             element={
-              <div className="container mx-auto px-8 py-16 text-center">
-                <h1 className="text-3xl font-bold text-gray-800">
-                  404 - Página no encontrada
-                </h1>
+              <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500">
+                <div className="text-center px-8 bg-white rounded-2xl shadow-2xl p-12 max-w-md">
+                  <div className="text-8xl mb-4 animate-bounce">🔍</div>
+                  <h1 className="text-6xl font-bold text-gray-800 mb-4">404</h1>
+                  <p className="text-xl text-gray-600 mb-6">
+                    ¡Ups! Parece que te perdiste
+                  </p>
+                  <a 
+                    href="/" 
+                    className="inline-block px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-semibold hover:scale-105 transition-transform"
+                  >
+                    Ir al inicio
+                  </a>
+                </div>
               </div>
             }
-          />
+          ></Route>
         </Routes>
       </main>
       <Footer />

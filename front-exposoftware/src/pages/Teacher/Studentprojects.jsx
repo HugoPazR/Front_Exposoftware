@@ -150,8 +150,8 @@ export default function StudentProjects() {
             <div className="flex items-center gap-4">
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">M</span>
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-emerald-600 font-bold text-lg">M</span>
                 </div>
               </div>
 
@@ -180,7 +180,7 @@ export default function StudentProjects() {
                 </Link>
                 <Link
                   to="/teacher/proyectos"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-50 text-emerald-700"
                 >
                   <i className="pi pi-book text-base"></i>
                   Proyectos Estudiantiles
@@ -221,7 +221,7 @@ export default function StudentProjects() {
                     placeholder="Buscar por nombre, estudiante, o ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   {searchQuery && (
                     <button
@@ -238,7 +238,7 @@ export default function StudentProjects() {
                   <select 
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Filtrar por grupo">Filtrar por grupo</option>
                     <option value="Grupo A">Grupo A</option>
@@ -249,7 +249,7 @@ export default function StudentProjects() {
                   <select 
                     value={selectedMateria}
                     onChange={(e) => setSelectedMateria(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Filtrar por materia">Filtrar por materia</option>
                     <option value="Programación Avanzada">Programación Avanzada</option>
@@ -265,7 +265,7 @@ export default function StudentProjects() {
                   onClick={() => setViewMode("grid")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     viewMode === "grid"
-                      ? "bg-green-600 text-white"
+                      ? "bg-emerald-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -276,7 +276,7 @@ export default function StudentProjects() {
                   onClick={() => setViewMode("table")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     viewMode === "table"
-                      ? "bg-green-600 text-white"
+                      ? "bg-emerald-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -307,7 +307,7 @@ export default function StudentProjects() {
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         project.status === "Aprobado" 
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-emerald-100 text-emerald-800"
                           : project.status === "Pendiente"
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
@@ -349,8 +349,8 @@ export default function StudentProjects() {
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <span className="text-green-600 font-bold text-xs">
+                              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <span className="text-emerald-600 font-bold text-xs">
                                   {project.student.split(' ').map(n => n[0]).join('')}
                                 </span>
                               </div>
@@ -363,7 +363,7 @@ export default function StudentProjects() {
                           <td className="py-3 px-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               project.status === "Aprobado" 
-                                ? "bg-green-100 text-green-800"
+                                ? "bg-emerald-100 text-emerald-800"
                                 : project.status === "Pendiente"
                                 ? "bg-yellow-100 text-yellow-800"
                                 : "bg-red-100 text-red-800"
@@ -437,7 +437,7 @@ export default function StudentProjects() {
                 </div>
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
                   selectedProject.status === "Aprobado" 
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-emerald-100 text-emerald-800"
                     : selectedProject.status === "Pendiente"
                     ? "bg-yellow-100 text-yellow-800"
                     : "bg-red-100 text-red-800"
@@ -449,7 +449,7 @@ export default function StudentProjects() {
               {/* Descripción */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <i className="pi pi-align-left text-green-600"></i>
+                  <i className="pi pi-align-left text-emerald-600"></i>
                   Descripción del Proyecto
                 </h5>
                 <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
@@ -461,7 +461,7 @@ export default function StudentProjects() {
                 {/* Información del Proyecto */}
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-info-circle text-green-600"></i>
+                    <i className="pi pi-info-circle text-emerald-600"></i>
                     Información del Proyecto
                   </h5>
 
@@ -484,7 +484,7 @@ export default function StudentProjects() {
                 {/* Líneas de Investigación */}
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-sitemap text-green-600"></i>
+                    <i className="pi pi-sitemap text-emerald-600"></i>
                     Líneas de Investigación
                   </h5>
 
@@ -508,20 +508,20 @@ export default function StudentProjects() {
               {/* Participantes */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-users text-green-600"></i>
+                  <i className="pi pi-users text-emerald-600"></i>
                   Participantes
                 </h5>
                 <div className="flex flex-wrap gap-2">
                   {selectedProject.participants.map((participant, idx) => (
                     <span 
                       key={idx}
-                      className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-3 py-2 rounded-full text-sm font-medium"
+                      className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 px-3 py-2 rounded-full text-sm font-medium"
                     >
-                      <div className="w-6 h-6 bg-green-200 rounded-full flex items-center justify-center">
-                        <span className="text-green-800 font-bold text-xs">
-                          {participant.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
+                        <div className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center">
+                          <span className="text-emerald-800 font-bold text-xs">
+                            {participant.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
                       {participant}
                     </span>
                   ))}
@@ -531,7 +531,7 @@ export default function StudentProjects() {
               {/* Archivos Adjuntos */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-paperclip text-green-600"></i>
+                  <i className="pi pi-paperclip text-emerald-600"></i>
                   Archivos Adjuntos
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -543,7 +543,7 @@ export default function StudentProjects() {
                       <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.poster}</p>
                       <p className="text-xs text-gray-500">Poster del proyecto</p>
                     </div>
-                    <button className="text-green-600 hover:text-green-700">
+                    <button className="text-emerald-600 hover:text-emerald-700">
                       <i className="pi pi-download"></i>
                     </button>
                   </div>
@@ -556,7 +556,7 @@ export default function StudentProjects() {
                       <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.slides}</p>
                       <p className="text-xs text-gray-500">Presentación</p>
                     </div>
-                    <button className="text-green-600 hover:text-green-700">
+                    <button className="text-emerald-600 hover:text-emerald-700">
                       <i className="pi pi-download"></i>
                     </button>
                   </div>
@@ -572,7 +572,7 @@ export default function StudentProjects() {
               >
                 Cerrar
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
                 Editar Estado
               </button>
             </div>

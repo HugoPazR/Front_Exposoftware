@@ -34,4 +34,12 @@ export const API_ENDPOINTS = {
   // Áreas Temáticas
   AREAS_TEMATICAS: `${API_BASE_URL}/areas-tematicas`,
   AREA_BY_ID: (id) => `${API_BASE_URL}/areas-tematicas/${id}`,
+  
+  // Asistencias
+  ASISTENCIAS: `${API_BASE_URL}/asistencias`,
+  ASISTENCIA_BY_ID: (id) => `${API_BASE_URL}/asistencias/${id}`,
+  
+  // Eventos
+  EVENTOS: `${API_BASE_URL}/eventos`,
+  EVENTO_BY_ID: (id) => `${API_BASE_URL}/eventos/${id}`,
 };

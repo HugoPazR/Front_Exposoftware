@@ -40,26 +40,18 @@ export default function CreateTeacher() {
     setIdentidadSexual,
     fechaNacimiento,
     setFechaNacimiento,
-    direccionResidencia,
-    setDireccionResidencia,
-    anioIngreso,
-    setAnioIngreso,
-    periodo,
-    setPeriodo,
-    ciudadResidencia,
-    setCiudadResidencia,
-    departamentoResidencia,
-    setDepartamentoResidencia,
+    nacionalidad,
+    setNacionalidad,
+    pais,
+    setPais,
     departamento,
     setDepartamento,
     municipio,
     setMunicipio,
-    pais,
-    setPais,
-    nacionalidad,
-    setNacionalidad,
-    ciudad,
-    setCiudad,
+    ciudadResidencia,
+    setCiudadResidencia,
+    direccionResidencia,
+    setDireccionResidencia,
     telefono,
     setTelefono,
     correo,
@@ -78,8 +70,7 @@ export default function CreateTeacher() {
     searchTerm,
     setSearchTerm,
     profesoresFiltrados,
-    // Estados para ciudades dinámicas
-    ciudadesResidencia,
+    // Estados para municipios dinámicos
     municipios,
     // Opciones de países/nacionalidades
     opcionesPaises,
@@ -110,9 +101,9 @@ export default function CreateTeacher() {
       correo,
       fechaNacimiento,
       ciudadResidencia,
-      ciudad,
       municipio,
       codigoPrograma,
+      categoriaDocente,
     };
     
     const error = validateField(fieldName, filteredValue, formData);
@@ -135,17 +126,15 @@ export default function CreateTeacher() {
       correo,
       fechaNacimiento,
       ciudadResidencia,
-      ciudad,
       municipio,
       codigoPrograma,
       tipoDocumento,
       genero,
       identidadSexual,
-      pais,
       nacionalidad,
-      departamentoResidencia,
-      direccionResidencia,
+      pais,
       departamento,
+      direccionResidencia,
       categoriaDocente,
       activo,
     };
@@ -196,8 +185,8 @@ export default function CreateTeacher() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">C</span>
                 </div>
               </div>
 
@@ -244,7 +233,7 @@ export default function CreateTeacher() {
                       <select
                         value={tipoDocumento}
                         onChange={(e) => setTipoDocumento(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                         required
                       >
                         <option value="">Seleccionar tipo</option>
@@ -268,7 +257,7 @@ export default function CreateTeacher() {
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                           errors.identificacion 
                             ? 'border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:ring-green-500'
+                            : 'border-gray-300 focus:ring-teal-500'
                         }`}
                         required
                         maxLength={12}
@@ -295,7 +284,7 @@ export default function CreateTeacher() {
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                           errors.nombres 
                             ? 'border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:ring-green-500'
+                            : 'border-gray-300 focus:ring-teal-500'
                         }`}
                         required
                       />
@@ -321,7 +310,7 @@ export default function CreateTeacher() {
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                           errors.apellidos 
                             ? 'border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:ring-green-500'
+                            : 'border-gray-300 focus:ring-teal-500'
                         }`}
                         required
                       />
@@ -341,7 +330,7 @@ export default function CreateTeacher() {
                       <select
                         value={genero}
                         onChange={(e) => setGenero(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                         required
                       >
                         <option value="">Seleccionar género</option>
@@ -359,7 +348,7 @@ export default function CreateTeacher() {
                       <select
                         value={identidadSexual}
                         onChange={(e) => setIdentidadSexual(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                       >
                         <option value="">Seleccionar</option>
                         {IDENTIDADES_SEXUALES.map((id) => (
@@ -377,7 +366,7 @@ export default function CreateTeacher() {
                         type="date"
                         value={fechaNacimiento}
                         onChange={(e) => setFechaNacimiento(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                     </div>
 
@@ -424,7 +413,7 @@ export default function CreateTeacher() {
                           className={`w-full pl-14 pr-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                             errors.telefono 
                               ? 'border-red-500 focus:ring-red-500' 
-                              : 'border-gray-300 focus:ring-green-500'
+                              : 'border-gray-300 focus:ring-teal-500'
                           }`}
                           required
                           maxLength={10}
@@ -451,12 +440,12 @@ export default function CreateTeacher() {
                     {/* País - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        País
+                        País de Residencia
                       </label>
                       <Select
                         name="pais"
                         options={opcionesPaises}
-                        placeholder="Selecciona País"
+                        placeholder="Selecciona País de Residencia"
                         value={
                           pais
                             ? opcionesPaises.find(
@@ -479,15 +468,15 @@ export default function CreateTeacher() {
                       />
                     </div>
 
-                    {/* Nacionalidad - Select dinámico */}
+                    {/* País de Nacimiento - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nacionalidad
+                        País de Nacimiento
                       </label>
                       <Select
                         name="nacionalidad"
                         options={opcionesPaises}
-                        placeholder="Selecciona Nacionalidad"
+                        placeholder="Selecciona País de Nacimiento"
                         value={
                           nacionalidad
                             ? opcionesPaises.find(
@@ -510,26 +499,57 @@ export default function CreateTeacher() {
                       />
                     </div>
 
+                    {/* Departamento */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Departamento
+                      </label>
+                      <select
+                        value={departamento}
+                        onChange={(e) => setDepartamento(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                      >
+                        <option value="">Seleccionar departamento</option>
+                        {DEPARTAMENTOS_COLOMBIA.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                    {/* Ciudad de Residencia - Select dinámico */}
+                    {/* Municipio - Select dinámico */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Municipio
+                      </label>
+                      <select
+                        value={municipio}
+                        onChange={(e) => setMunicipio(e.target.value)}
+                        disabled={!departamento}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Seleccionar municipio</option>
+                        {municipios.map((mun) => (
+                          <option key={mun} value={mun}>{mun}</option>
+                        ))}
+                      </select>
+                      {!departamento && (
+                        <p className="text-xs text-gray-500 mt-1">Primero selecciona un departamento</p>
+                      )}
+                    </div>
+
+                    {/* Ciudad de Residencia */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Ciudad de Residencia
                       </label>
-                      <select
+                      <input
+                        type="text"
                         value={ciudadResidencia}
                         onChange={(e) => setCiudadResidencia(e.target.value)}
-                        disabled={!departamentoResidencia}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      >
-                        <option value="">Seleccionar ciudad</option>
-                        {ciudadesResidencia.map((ciudad) => (
-                          <option key={ciudad} value={ciudad}>{ciudad}</option>
-                        ))}
-                      </select>
-                      {!departamentoResidencia && (
-                        <p className="text-xs text-gray-500 mt-1">Primero selecciona un departamento</p>
-                      )}
+                        placeholder="Nombre de la ciudad"
+                        maxLength={50}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      />
                     </div>
 
                     {/* Dirección de Residencia */}
@@ -543,87 +563,10 @@ export default function CreateTeacher() {
                         onChange={(e) => setDireccionResidencia(e.target.value)}
                         placeholder="Ej: Calle 50 #30-20"
                         maxLength={50}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       />
                     </div>
 
-                    {/* Departamento */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Departamento
-                      </label>
-                      <select
-                        value={departamento}
-                        onChange={(e) => setDepartamento(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
-                      >
-                        <option value="">Seleccionar departamento</option>
-                        {DEPARTAMENTOS_COLOMBIA.map((dept) => (
-                          <option key={dept} value={dept}>{dept}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Municipio - Select dinámico */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ciudad
-                      </label>
-                      <select
-                        value={municipio}
-                        onChange={(e) => setMunicipio(e.target.value)}
-                        disabled={!departamento}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      >
-                        <option value="">Seleccionar municipio</option>
-                        {municipios.map((mun) => (
-                          <option key={mun} value={mun}>{mun}</option>
-                        ))}
-                      </select>
-                      {!departamento && (
-                        <p className="text-xs text-gray-500 mt-1">Primero selecciona un departamento</p>
-                      )}
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* Información Académica */}
-                <div className="border-b pb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Información Académica</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Año de Ingreso */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Año de Ingreso
-                      </label>
-                      <input
-                        type="text"
-                        value={anioIngreso}
-                        onChange={(e) => setAnioIngreso(e.target.value)}
-                        placeholder="Ej: 2024"
-                        maxLength={4}
-                        pattern="[0-9]{4}"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-
-                    {/* Periodo */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Periodo
-                      </label>
-                      <input
-                        type="number"
-                        value={periodo}
-                        onChange={(e) => setPeriodo(e.target.value)}
-                        placeholder="Ej: 1"
-                        min="1"
-                        max="10"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -646,7 +589,7 @@ export default function CreateTeacher() {
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                           errors.correo 
                             ? 'border-red-500 focus:ring-red-500' 
-                            : 'border-gray-300 focus:ring-green-500'
+                            : 'border-gray-300 focus:ring-teal-500'
                         }`}
                         required
                       />
@@ -669,7 +612,7 @@ export default function CreateTeacher() {
                         value={contraseña}
                         onChange={(e) => setContraseña(e.target.value)}
                         placeholder={isEditing ? "Dejar vacío para no cambiar" : "Contraseña"}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                         required={!isEditing}
                       />
                     </div>
@@ -682,7 +625,7 @@ export default function CreateTeacher() {
                       <select
                         value={categoriaDocente}
                         onChange={(e) => setCategoriaDocente(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                         required
                       >
                         <option value="">Seleccionar categoría</option>
@@ -703,7 +646,7 @@ export default function CreateTeacher() {
                           value={codigoPrograma}
                           onChange={(e) => setCodigoPrograma(e.target.value)}
                           placeholder="Ej: ING01"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                           required
                         />
                       </div>
@@ -716,7 +659,7 @@ export default function CreateTeacher() {
                         id="activo"
                         checked={activo}
                         onChange={(e) => setActivo(e.target.checked)}
-                        className="w-4 h-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        className="w-4 h-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                       />
                       <label htmlFor="activo" className="ml-2 block text-sm text-gray-700">
                         Docente Activo
@@ -736,7 +679,7 @@ export default function CreateTeacher() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 transition-all shadow-md hover:shadow-lg"
+                    className="flex-1 bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 transition-all shadow-md hover:shadow-lg"
                   >
                     Registrar Profesor
                   </button>
@@ -753,7 +696,7 @@ export default function CreateTeacher() {
                       Profesores Registrados
                     </h2>
                     <p className="text-sm text-gray-600">
-                      Total: <span className="font-semibold text-green-600">{profesores.length}</span> profesores
+                      Total: <span className="font-semibold text-teal-600">{profesores.length}</span> profesores
                     </p>
                   </div>
                 </div>
@@ -765,7 +708,7 @@ export default function CreateTeacher() {
                     placeholder="Buscar por nombre, identificación, correo o programa..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                   <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
@@ -836,7 +779,7 @@ export default function CreateTeacher() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               profesor.activo 
-                                ? 'bg-green-100 text-green-800' 
+                                ? 'bg-teal-100 text-teal-800' 
                                 : 'bg-red-100 text-red-800'
                             }`}>
                               {profesor.activo ? 'Activo' : 'Inactivo'}
@@ -877,7 +820,6 @@ export default function CreateTeacher() {
         onSave={handleSaveEdit}
         onCancel={handleCancelEdit}
         // Listas dinámicas
-        ciudadesResidencia={ciudadesResidencia}
         municipios={municipios}
         opcionesPaises={opcionesPaises}
         // Estados del formulario - Usuario
@@ -895,26 +837,18 @@ export default function CreateTeacher() {
         setIdentidadSexual={setIdentidadSexual}
         fechaNacimiento={fechaNacimiento}
         setFechaNacimiento={setFechaNacimiento}
-        direccionResidencia={direccionResidencia}
-        setDireccionResidencia={setDireccionResidencia}
-        anioIngreso={anioIngreso}
-        setAnioIngreso={setAnioIngreso}
-        periodo={periodo}
-        setPeriodo={setPeriodo}
-        ciudadResidencia={ciudadResidencia}
-        setCiudadResidencia={setCiudadResidencia}
-        departamentoResidencia={departamentoResidencia}
-        setDepartamentoResidencia={setDepartamentoResidencia}
+        nacionalidad={nacionalidad}
+        setNacionalidad={setNacionalidad}
+        pais={pais}
+        setPais={setPais}
         departamento={departamento}
         setDepartamento={setDepartamento}
         municipio={municipio}
         setMunicipio={setMunicipio}
-        pais={pais}
-        setPais={setPais}
-        nacionalidad={nacionalidad}
-        setNacionalidad={setNacionalidad}
-        ciudad={ciudad}
-        setCiudad={setCiudad}
+        ciudadResidencia={ciudadResidencia}
+        setCiudadResidencia={setCiudadResidencia}
+        direccionResidencia={direccionResidencia}
+        setDireccionResidencia={setDireccionResidencia}
         telefono={telefono}
         setTelefono={setTelefono}
         correo={correo}

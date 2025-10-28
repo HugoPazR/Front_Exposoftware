@@ -30,7 +30,7 @@ export function EditLineaModal({
                 value={codigoLinea}
                 onChange={(e) => setCodigoLinea(e.target.value)}
                 placeholder="Ej: LI-001"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 required
               />
             </div>
@@ -43,7 +43,7 @@ export function EditLineaModal({
                 type="text"
                 value={nombreLinea}
                 onChange={(e) => setNombreLinea(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 required
               />
             </div>
@@ -59,7 +59,7 @@ export function EditLineaModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+              className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
             >
               💾 Guardar Cambios
             </button>
@@ -102,7 +102,7 @@ export function EditSublineaModal({
             <select
               value={idLineaParaSublinea}
               onChange={(e) => setIdLineaParaSublinea(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
               required
             >
               <option value="">Selecciona una línea</option>
@@ -124,7 +124,7 @@ export function EditSublineaModal({
                 value={codigoSublinea}
                 onChange={(e) => setCodigoSublinea(e.target.value)}
                 placeholder="Ej: SL-001"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 required
               />
             </div>
@@ -137,7 +137,7 @@ export function EditSublineaModal({
                 type="text"
                 value={nombreSublinea}
                 onChange={(e) => setNombreSublinea(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 required
               />
             </div>
@@ -153,7 +153,7 @@ export function EditSublineaModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+              className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
             >
               💾 Guardar Cambios
             </button>
@@ -197,7 +197,7 @@ export function EditAreaModal({
             <select
               value={idSublineaParaArea}
               onChange={(e) => setIdSublineaParaArea(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
               required
             >
               <option value="">Selecciona una sublínea</option>
@@ -219,7 +219,7 @@ export function EditAreaModal({
                 value={codigoArea}
                 onChange={(e) => setCodigoArea(e.target.value)}
                 placeholder="Ej: AT-001"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 required
               />
             </div>
@@ -232,7 +232,7 @@ export function EditAreaModal({
                 type="text"
                 value={nombreArea}
                 onChange={(e) => setNombreArea(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                 required
               />
             </div>
@@ -248,7 +248,7 @@ export function EditAreaModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+              className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
             >
               💾 Guardar Cambios
             </button>

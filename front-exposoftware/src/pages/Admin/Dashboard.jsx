@@ -15,6 +15,9 @@ import {
   Line,
   Area,
   AreaChart,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 // Main Dashboard Component
@@ -37,12 +40,12 @@ export default function AdminDashboard() {
     { mes: "Jun", visitantes: 1650 },
   ];
 
-  // Datos para "Profesores por Departamento" - Stacked Bar
+  // Datos para "Profesores por Departamento" - Pie Chart
   const profesoresPorDepartamentoData = [
-    { departamento: "Matemáticas", profesores: 25, profesoras: 18 },
-    { departamento: "Ciencias", profesores: 30, profesoras: 25 },
-    { departamento: "Humanidades", profesores: 20, profesoras: 22 },
-    { departamento: "Artes", profesores: 15, profesoras: 20 },
+    { departamento: "Matemáticas", total: 43 },
+    { departamento: "Ciencias", total: 55 },
+    { departamento: "Humanidades", total: 42 },
+    { departamento: "Artes", total: 35 },
   ];
 
   // Datos para "Proyectos Recientes"
@@ -70,8 +73,8 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">C</span>
                 </div>
               </div>
               
@@ -95,18 +98,18 @@ export default function AdminDashboard() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               {/* Card 1 - Total Proyectos Registrados */}
-              <div className="bg-gradient-to-br from-green-50 to-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-gradient-to-br from-teal-50 to-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Total Proyectos Registrados</p>
                     <h3 className="text-3xl font-bold text-gray-900">50</h3>
                     <div className="flex items-center gap-1 mt-2">
-                      <i className="pi pi-arrow-up text-xs text-green-600"></i>
-                      <span className="text-xs text-green-600 font-medium">1,890 Proyectos Activos</span>
+                      <i className="pi pi-arrow-up text-xs text-teal-600"></i>
+                      <span className="text-xs text-teal-600 font-medium">1,890 Proyectos Activos</span>
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <i className="pi pi-chart-line text-xl text-green-600"></i>
+                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                    <i className="pi pi-chart-line text-xl text-teal-600"></i>
                   </div>
                 </div>
               </div>
@@ -148,56 +151,28 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Estudiantes Participantes por Materia */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Estudiantes Participantes por Materia
                 </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={estudiantesPorMateriaData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="estudiantes" 
-                      fill="#16a34a" 
-                      radius={[8, 8, 0, 0]}
-                      name="Estudiantes"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Profesores por Departamento - Stacked */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                  Profesores por Departamento
-                </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={profesoresPorDepartamentoData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="departamento" 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={estudiantesPorMateriaData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={90}
+                      innerRadius={50}
+                      fill="#8884d8"
+                      dataKey="estudiantes"
+                      nameKey="name"
+                      paddingAngle={2}
+                    >
+                      {estudiantesPorMateriaData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#0d9488', '#14b8a6', '#2dd4bf', '#5eead4'][index % 4]} />
+                      ))}
+                    </Pie>
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: '#fff',
@@ -207,39 +182,69 @@ export default function AdminDashboard() {
                       }}
                     />
                     <Legend 
-                      wrapperStyle={{ fontSize: '12px' }}
+                      verticalAlign="bottom" 
+                      height={36}
                       iconType="circle"
+                      wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
                     />
-                    <Bar 
-                      dataKey="profesores" 
-                      stackId="a" 
-                      fill="#16a34a" 
-                      radius={[0, 0, 0, 0]}
-                      name="Profesores"
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Profesores por Departamento */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Profesores por Departamento
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={profesoresPorDepartamentoData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius={90}
+                      innerRadius={50}
+                      fill="#8884d8"
+                      dataKey="total"
+                      nameKey="departamento"
+                      paddingAngle={2}
+                    >
+                      {profesoresPorDepartamentoData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={['#7c3aed', '#a855f7', '#c084fc', '#ddd6fe'][index % 4]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#fff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
                     />
-                    <Bar 
-                      dataKey="profesoras" 
-                      stackId="a" 
-                      fill="#4ade80" 
-                      radius={[8, 8, 0, 0]}
-                      name="Profesoras"
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
                     />
-                  </BarChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Tendencia de Visitantes - Area Chart */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Tendencia de Visitantes
               </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={visitantesData}>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={visitantesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorVisitantes" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -263,7 +268,7 @@ export default function AdminDashboard() {
                   <Area 
                     type="monotone" 
                     dataKey="visitantes" 
-                    stroke="#16a34a" 
+                    stroke="#0d9488" 
                     strokeWidth={2}
                     fillOpacity={1} 
                     fill="url(#colorVisitantes)"
@@ -298,7 +303,7 @@ export default function AdminDashboard() {
                         <td className="py-3 px-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             proyecto.estado === "Activo" 
-                              ? "bg-green-100 text-green-800" 
+                              ? "bg-teal-100 text-teal-800" 
                               : "bg-blue-100 text-blue-800"
                           }`}>
                             {proyecto.estado}

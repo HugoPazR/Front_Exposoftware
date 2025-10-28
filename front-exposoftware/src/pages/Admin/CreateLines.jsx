@@ -91,8 +91,8 @@ export default function CreateLines() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">C</span>
                 </div>
               </div>
               
@@ -120,7 +120,7 @@ export default function CreateLines() {
                   onClick={() => setActiveTab("lineas")}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                     activeTab === "lineas"
-                      ? "bg-green-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -130,7 +130,7 @@ export default function CreateLines() {
                   onClick={() => setActiveTab("sublineas")}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                     activeTab === "sublineas"
-                      ? "bg-green-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -140,7 +140,7 @@ export default function CreateLines() {
                   onClick={() => setActiveTab("areas")}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                     activeTab === "areas"
-                      ? "bg-green-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -174,7 +174,7 @@ export default function CreateLines() {
                         value={codigoLinea}
                         onChange={(e) => setCodigoLinea(e.target.value)}
                         placeholder="Ej: LI-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         required
                       />
                       <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
@@ -190,7 +190,7 @@ export default function CreateLines() {
                         value={nombreLinea}
                         onChange={(e) => setNombreLinea(e.target.value)}
                         placeholder="Ej: Inteligencia Artificial"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         required
                       />
                     </div>
@@ -199,7 +199,7 @@ export default function CreateLines() {
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                     >
                       Crear Línea de Investigación
                     </button>
@@ -222,7 +222,7 @@ export default function CreateLines() {
                         placeholder="Buscar líneas..."
                         value={searchTermLinea}
                         onChange={(e) => setSearchTermLinea(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                       <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -258,7 +258,7 @@ export default function CreateLines() {
                           lineasFiltradas.map((linea) => (
                             <tr key={linea.id} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-teal-100 text-teal-800">
                                   {linea.codigo_linea}
                                 </span>
                               </td>
@@ -318,7 +318,7 @@ export default function CreateLines() {
                       id="idLineaParaSublinea"
                       value={idLineaParaSublinea}
                       onChange={(e) => setIdLineaParaSublinea(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                       required
                     >
                       <option value="">Selecciona una línea</option>
@@ -342,7 +342,7 @@ export default function CreateLines() {
                         value={codigoSublinea}
                         onChange={(e) => setCodigoSublinea(e.target.value)}
                         placeholder="Ej: SL-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         required
                       />
                       <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
@@ -358,7 +358,7 @@ export default function CreateLines() {
                         value={nombreSublinea}
                         onChange={(e) => setNombreSublinea(e.target.value)}
                         placeholder="Ej: Deep Learning"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         required
                       />
                     </div>
@@ -367,7 +367,7 @@ export default function CreateLines() {
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                     >
                       Crear Sublínea
                     </button>
@@ -390,7 +390,7 @@ export default function CreateLines() {
                         placeholder="Buscar sublíneas..."
                         value={searchTermSublinea}
                         onChange={(e) => setSearchTermSublinea(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                       <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -494,7 +494,7 @@ export default function CreateLines() {
                       id="idSublineaParaArea"
                       value={idSublineaParaArea}
                       onChange={(e) => setIdSublineaParaArea(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                       required
                     >
                       <option value="">Selecciona una sublínea</option>
@@ -518,7 +518,7 @@ export default function CreateLines() {
                         value={codigoArea}
                         onChange={(e) => setCodigoArea(e.target.value)}
                         placeholder="Ej: AT-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         required
                       />
                       <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
@@ -534,7 +534,7 @@ export default function CreateLines() {
                         value={nombreArea}
                         onChange={(e) => setNombreArea(e.target.value)}
                         placeholder="Ej: Redes Neuronales"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                         required
                       />
                     </div>
@@ -543,7 +543,7 @@ export default function CreateLines() {
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                     >
                       Crear Área Temática
                     </button>
@@ -566,7 +566,7 @@ export default function CreateLines() {
                         placeholder="Buscar áreas..."
                         value={searchTermArea}
                         onChange={(e) => setSearchTermArea(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                       <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>

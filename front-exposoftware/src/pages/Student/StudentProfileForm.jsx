@@ -19,23 +19,6 @@ export default function StudentProfileForm({
           <span>📋</span> Información Personal
         </h3>
 
-        <div className="flex flex-col md:flex-row gap-8 mb-6">
-          {/* Avatar y botón de cambiar foto */}
-          <div className="flex flex-col items-center md:items-start">
-            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-4">
-              <img 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop" 
-                alt="Avatar" 
-                className="w-full h-full object-cover" 
-              />
-            </div>
-            {isEditing && (
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                Cambiar Foto
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* Grid 2 columnas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

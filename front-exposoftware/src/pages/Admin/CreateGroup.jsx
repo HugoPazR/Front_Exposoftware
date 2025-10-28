@@ -6,23 +6,35 @@ import { API_ENDPOINTS } from "../../utils/constants";
 
 // Mock data inicial de grupos
 const GRUPOS_INICIAL = [
-  { id: "grp1", codigo_grupo: 101, id_docente: 1, fechaCreacion: "2025-01-15" },
-  { id: "grp2", codigo_grupo: 202, id_docente: 2, fechaCreacion: "2025-01-20" },
+  { 
+    codigo_grupo: "L7Tz5A23fWx19oK9jK1a", 
+    nombre_grupo: "Grupo 01", 
+    id_docente: "BU7rpAz6Nbn9DKq517wb",
+    fecha_creacion: "12/05/2025",
+    fecha_modificacion: "12/05/2025"
+  },
+  { 
+    codigo_grupo: "X3Kp9B47mNr82pL5fT6z", 
+    nombre_grupo: "Grupo 02", 
+    id_docente: "TEElkzBShoDC6beuFjHE",
+    fecha_creacion: "15/05/2025",
+    fecha_modificacion: "15/05/2025"
+  },
 ];
 
 // Mock data de profesores disponibles (esto vendrá del backend)
 const PROFESORES_MOCK = [
-  { id: 1, nombre: "Dr. Alejandro José Meriño", departamento: "Ingeniería de Software" },
-  { id: 2, nombre: "Ing. Sofía Benítez", departamento: "Redes de Computadoras" },
-  { id: 3, nombre: "Lic. Carla Ruíz", departamento: "Inteligencia Artificial" },
-  { id: 4, nombre: "Dr. Fernando Vargas", departamento: "Sistemas Operativos" },
-  { id: 5, nombre: "Ing. María González", departamento: "Bases de Datos" },
-  { id: 6, nombre: "Dr. Juan Pérez", departamento: "Desarrollo Web" },
+  { id: "BU7rpAz6Nbn9DKq517wb", nombre: "Dr. Alejandro José Meriño", departamento: "Ingeniería de Software" },
+  { id: "TEElkzBShoDC6beuFjHE", nombre: "Ing. Sofía Benítez", departamento: "Redes de Computadoras" },
+  { id: "P9Qm3Z8yRfK21sN4xL7w", nombre: "Lic. Carla Ruíz", departamento: "Inteligencia Artificial" },
+  { id: "A5Vh2T6kMpD93jB8xC4q", nombre: "Dr. Fernando Vargas", departamento: "Sistemas Operativos" },
+  { id: "W7Jn4F9cLsX62oP5yR3m", nombre: "Ing. María González", departamento: "Bases de Datos" },
+  { id: "E8Kp1G6vNrT45hM9zQ2s", nombre: "Dr. Juan Pérez", departamento: "Desarrollo Web" },
 ];
 
 export default function CreateGroup() {
   // Estados para el formulario
-  const [codigoGrupo, setCodigoGrupo] = useState("");
+  const [nombreGrupo, setNombreGrupo] = useState("");
   const [idDocente, setIdDocente] = useState("");
   
   // Estado para la lista de grupos y profesores
@@ -31,7 +43,7 @@ export default function CreateGroup() {
   
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingCodigoGrupo, setEditingCodigoGrupo] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   
   // Estado para búsqueda/filtro
@@ -87,15 +99,23 @@ export default function CreateGroup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!codigoGrupo || !idDocente) {
+    if (!nombreGrupo || !idDocente) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
+    // Validar longitud del nombre
+    if (nombreGrupo.length > 10) {
+      alert("El nombre del grupo no puede exceder 10 caracteres");
+      return;
+    }
+
     // Estructura exacta que espera el backend
+    // codigo_grupo se genera automáticamente en Firebase
+    // fecha_creacion y fecha_modificacion se asignan automáticamente
     const payload = {
-      codigo_grupo: parseInt(codigoGrupo),
-      id_docente: parseInt(idDocente)
+      nombre_grupo: nombreGrupo,
+      id_docente: idDocente
     };
 
     console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
@@ -107,35 +127,57 @@ export default function CreateGroup() {
         body: JSON.stringify(payload)
       });
 
-      if (response.ok) {
+      // Manejo específico de códigos de estado HTTP
+      if (response.status === 201) {
+        // 201: Recurso creado exitosamente
         const data = await response.json();
         console.log('✅ Respuesta del backend:', data);
         
         await cargarGrupos();
         alert("✅ Grupo creado exitosamente");
         limpiarFormulario();
+      } else if (response.status === 400) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Solicitud incorrecta:', errorData);
+        alert(`❌ Solicitud incorrecta: ${errorData.message || errorData.detail || 'Verifique los datos ingresados'}`);
+      } else if (response.status === 401) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ No autorizado:', errorData);
+        alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión'}`);
+      } else if (response.status === 403) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Sin permisos:', errorData);
+        alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para crear grupos'}`);
+      } else if (response.status === 409) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Conflicto:', errorData);
+        alert(`❌ Conflicto: ${errorData.message || errorData.detail || 'El grupo ya existe'}`);
+      } else if (response.status === 422) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error de validación:', errorData);
+        alert(`❌ Error de validación: ${errorData.message || errorData.detail || 'Los datos no son válidos'}`);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear el grupo: ${errorData.message || 'Error desconocido'}`);
+        alert(`❌ Error al crear el grupo (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('❌ Error al crear grupo:', error);
-      alert("❌ Error de conexión al crear el grupo");
+      alert("❌ Error de conexión al crear el grupo. Verifique su conexión a internet.");
     }
   };
 
   // Limpiar formulario
   const limpiarFormulario = () => {
-    setCodigoGrupo("");
+    setNombreGrupo("");
     setIdDocente("");
   };
 
   // Iniciar edición
   const handleEdit = (grupo) => {
-    setEditingId(grupo.id);
-    setCodigoGrupo(grupo.codigo_grupo.toString());
-    setIdDocente(grupo.id_docente.toString());
+    setEditingCodigoGrupo(grupo.codigo_grupo); // Firebase ID
+    setNombreGrupo(grupo.nombre_grupo);
+    setIdDocente(grupo.id_docente);
     setIsEditing(true);
     setShowEditModal(true);
   };
@@ -144,20 +186,27 @@ export default function CreateGroup() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     
-    if (!codigoGrupo || !idDocente) {
+    if (!nombreGrupo || !idDocente) {
       alert("Por favor complete todos los campos obligatorios");
       return;
     }
 
+    // Validar longitud del nombre
+    if (nombreGrupo.length > 10) {
+      alert("El nombre del grupo no puede exceder 10 caracteres");
+      return;
+    }
+
+    // fecha_modificacion se actualiza automáticamente en el backend
     const payload = {
-      codigo_grupo: parseInt(codigoGrupo),
-      id_docente: parseInt(idDocente)
+      nombre_grupo: nombreGrupo,
+      id_docente: idDocente
     };
 
-    console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
+    console.log('📤 Actualizando en backend (codigo_grupo: ' + editingCodigoGrupo + '):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPO_BY_ID(editingId), {
+      const response = await fetch(API_ENDPOINTS.GRUPO_BY_ID(editingCodigoGrupo), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -170,35 +219,55 @@ export default function CreateGroup() {
         await cargarGrupos();
         alert("✅ Grupo actualizado exitosamente");
         handleCancelEdit();
+      } else if (response.status === 400) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Solicitud incorrecta:', errorData);
+        alert(`❌ Solicitud incorrecta: ${errorData.message || errorData.detail || 'Verifique los datos'}`);
+      } else if (response.status === 401) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ No autorizado:', errorData);
+        alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión'}`);
+      } else if (response.status === 403) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Sin permisos:', errorData);
+        alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para editar grupos'}`);
+      } else if (response.status === 404) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ No encontrado:', errorData);
+        alert(`❌ No encontrado: ${errorData.message || errorData.detail || 'El grupo no existe'}`);
+      } else if (response.status === 422) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Error de validación:', errorData);
+        alert(`❌ Error de validación: ${errorData.message || errorData.detail || 'Los datos no son válidos'}`);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar el grupo: ${errorData.message || 'Error desconocido'}`);
+        alert(`❌ Error al actualizar el grupo (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
       console.error('❌ Error al actualizar grupo:', error);
-      alert("❌ Error de conexión al actualizar el grupo");
+      alert("❌ Error de conexión al actualizar el grupo. Verifique su conexión a internet.");
     }
   };
 
   // Cancelar edición
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditingId(null);
+    setEditingCodigoGrupo(null);
     setShowEditModal(false);
     limpiarFormulario();
   };
 
   // Eliminar grupo
-  const handleDelete = async (id) => {
-    const grupoAEliminar = grupos.find(g => g.id === id);
+  const handleDelete = async (codigoGrupo) => {
+    const grupoAEliminar = grupos.find(g => g.codigo_grupo === codigoGrupo);
     
-    if (window.confirm(`¿Está seguro de que desea eliminar el Grupo ${grupoAEliminar?.codigo_grupo}?`)) {
-      console.log('🗑️ Eliminando del backend - ID:', id);
-      console.log('📋 Grupo a eliminar:', grupoAEliminar?.codigo_grupo);
+    if (window.confirm(`¿Está seguro de que desea eliminar el ${grupoAEliminar?.nombre_grupo}?`)) {
+      console.log('🗑️ Eliminando del backend - codigo_grupo:', codigoGrupo);
+      console.log('📋 Grupo a eliminar:', grupoAEliminar?.nombre_grupo);
       
       try {
-        const response = await fetch(API_ENDPOINTS.GRUPO_BY_ID(id), { 
+        const response = await fetch(API_ENDPOINTS.GRUPO_BY_ID(codigoGrupo), { 
           method: 'DELETE' 
         });
         
@@ -206,14 +275,26 @@ export default function CreateGroup() {
           console.log('✅ Grupo eliminado del backend');
           await cargarGrupos();
           alert("✅ Grupo eliminado exitosamente");
+        } else if (response.status === 401) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('❌ No autorizado:', errorData);
+          alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión'}`);
+        } else if (response.status === 403) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('❌ Sin permisos:', errorData);
+          alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para eliminar grupos'}`);
+        } else if (response.status === 404) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('❌ No encontrado:', errorData);
+          alert(`❌ No encontrado: ${errorData.message || errorData.detail || 'El grupo no existe'}`);
         } else {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar el grupo: ${errorData.message || 'Error desconocido'}`);
+          alert(`❌ Error al eliminar el grupo (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
         }
       } catch (error) {
         console.error('❌ Error al eliminar grupo:', error);
-        alert("❌ Error de conexión al eliminar el grupo");
+        alert("❌ Error de conexión al eliminar el grupo. Verifique su conexión a internet.");
       }
     }
   };
@@ -224,7 +305,7 @@ export default function CreateGroup() {
 
   // Filtrar grupos por búsqueda
   const gruposFiltrados = grupos.filter(grupo =>
-    grupo.codigo_grupo.toString().includes(searchTerm) ||
+    grupo.nombre_grupo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     getProfesorNombre(grupo.id_docente).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -246,8 +327,8 @@ export default function CreateGroup() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">C</span>
                 </div>
               </div>
               
@@ -281,25 +362,25 @@ export default function CreateGroup() {
 
               {/* Formulario */}
               <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-                {/* Código del Grupo */}
+                {/* Nombre del Grupo */}
                 <div>
                   <label 
-                    htmlFor="codigoGrupo" 
+                    htmlFor="nombreGrupo" 
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Código del Grupo <span className="text-red-500">*</span>
+                    Nombre del Grupo <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="number"
-                    id="codigoGrupo"
-                    value={codigoGrupo}
-                    onChange={(e) => setCodigoGrupo(e.target.value)}
-                    placeholder="Ej: 101, 202, 303"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    type="text"
+                    id="nombreGrupo"
+                    value={nombreGrupo}
+                    onChange={(e) => setNombreGrupo(e.target.value)}
+                    placeholder="Ej: Grupo 01, Grupo 02"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                     required
-                    min="1"
+                    maxLength="10"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Número único que identifica el grupo</p>
+                  <p className="mt-1 text-xs text-gray-500">Nombre descriptivo del grupo (máx. 10 caracteres). El código único se genera automáticamente.</p>
                 </div>
 
                 {/* Asignar Profesor */}
@@ -314,7 +395,7 @@ export default function CreateGroup() {
                     id="idDocente"
                     value={idDocente}
                     onChange={(e) => setIdDocente(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                     required
                   >
                     <option value="">Selecciona un profesor</option>
@@ -331,7 +412,7 @@ export default function CreateGroup() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                    className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                   >
                     Crear Grupo
                   </button>
@@ -355,7 +436,7 @@ export default function CreateGroup() {
                       placeholder="Buscar grupos..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     />
                     <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                   </div>
@@ -367,16 +448,16 @@ export default function CreateGroup() {
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Código Grupo
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          ID Docente
+                          Nombre Grupo
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Profesor Asignado
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha Creación
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Última Modificación
                         </th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Acciones
@@ -393,22 +474,28 @@ export default function CreateGroup() {
                         </tr>
                       ) : (
                         gruposFiltrados.map((grupo) => (
-                          <tr key={grupo.id} className="hover:bg-gray-50 transition">
+                          <tr key={grupo.codigo_grupo} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                {grupo.codigo_grupo}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                                {grupo.id_docente}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-teal-100 text-teal-800 w-fit">
+                                  {grupo.nombre_grupo}
+                                </span>
+                                <span className="text-xs text-gray-400 mt-1" title={grupo.codigo_grupo}>
+                                  ID: {grupo.codigo_grupo.substring(0, 8)}...
+                                </span>
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">{getProfesorNombre(grupo.id_docente)}</div>
+                              <div className="text-xs text-gray-400 mt-1" title={grupo.id_docente}>
+                                ID: {grupo.id_docente.substring(0, 8)}...
+                              </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{grupo.fechaCreacion || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{grupo.fecha_creacion || 'N/A'}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{grupo.fecha_modificacion || 'N/A'}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-center">
                               <div className="flex items-center justify-center gap-2">
@@ -420,7 +507,7 @@ export default function CreateGroup() {
                                   <i className="pi pi-pencil"></i>
                                 </button>
                                 <button
-                                  onClick={() => handleDelete(grupo.id)}
+                                  onClick={() => handleDelete(grupo.codigo_grupo)}
                                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                   title="Eliminar"
                                 >
@@ -449,20 +536,36 @@ export default function CreateGroup() {
             </div>
             
             <form onSubmit={handleSaveEdit} className="p-6 space-y-6">
-              {/* Código del Grupo */}
+              {/* Código del Grupo (No editable - ID de Firebase) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Código del Grupo <span className="text-red-500">*</span>
+                  Código del Grupo (ID único)
                 </label>
                 <input
-                  type="number"
-                  value={codigoGrupo}
-                  onChange={(e) => setCodigoGrupo(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                  placeholder="Ej: 101, 202, 303"
-                  required
-                  min="1"
+                  type="text"
+                  value={editingCodigoGrupo || ''}
+                  disabled
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                  placeholder="Generado automáticamente por Firebase"
                 />
+                <p className="mt-1 text-xs text-gray-500">Este código se genera automáticamente y no puede modificarse</p>
+              </div>
+
+              {/* Nombre del Grupo */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre del Grupo <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={nombreGrupo}
+                  onChange={(e) => setNombreGrupo(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                  placeholder="Ej: Grupo 01, Grupo 02"
+                  required
+                  maxLength="10"
+                />
+                <p className="mt-1 text-xs text-gray-500">Máximo 10 caracteres</p>
               </div>
 
               {/* Asignar Profesor */}
@@ -473,7 +576,7 @@ export default function CreateGroup() {
                 <select
                   value={idDocente}
                   onChange={(e) => setIdDocente(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                   required
                 >
                   <option value="">Seleccionar profesor</option>
@@ -496,7 +599,7 @@ export default function CreateGroup() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
                 >
                   💾 Guardar Cambios
                 </button>

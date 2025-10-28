@@ -274,7 +274,7 @@ export default function RegisterProject() {
                     value={t.id} 
                     checked={form.tipo_actividad === t.id.toString()} 
                     onChange={() => setForm(s => ({...s, tipo_actividad: t.id.toString()}))} 
-                    className="text-green-600 focus:ring-green-500"
+                    className="text-teal-600 focus:ring-teal-500"
                     required
                   />
                   <span className="text-sm">{t.name}</span>
@@ -291,7 +291,7 @@ export default function RegisterProject() {
             <input 
               value={form.titulo_proyecto} 
               onChange={e => setForm(s=>({...s,titulo_proyecto:e.target.value}))} 
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
               maxLength={60}
               required
             />
@@ -305,7 +305,7 @@ export default function RegisterProject() {
               value={form.descripcion} 
               onChange={e => setForm(s=>({...s,descripcion:e.target.value}))} 
               rows={4} 
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" 
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" 
             />
           </div>
 
@@ -332,7 +332,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.articulo && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.articulo.name}</p>
                       )}
                     </div>
                     <div>
@@ -347,7 +347,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.video && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.video.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.video.name}</p>
                       )}
                     </div>
                   </>
@@ -368,7 +368,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.articulo && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.articulo.name}</p>
                       )}
                     </div>
                     <div>
@@ -383,7 +383,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.imagen && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.imagen.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.imagen.name}</p>
                       )}
                     </div>
                   </>
@@ -404,7 +404,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.poster && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.poster.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.poster.name}</p>
                       )}
                     </div>
                     <div>
@@ -419,7 +419,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.articulo && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.articulo.name}</p>
                       )}
                     </div>
                   </>
@@ -440,7 +440,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.poster && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.poster.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.poster.name}</p>
                       )}
                     </div>
                     <div>
@@ -455,7 +455,7 @@ export default function RegisterProject() {
                         required
                       />
                       {form.articulo && (
-                        <p className="text-xs text-green-600 mt-1">✓ {form.articulo.name}</p>
+                        <p className="text-xs text-teal-600 mt-1">✓ {form.articulo.name}</p>
                       )}
                     </div>
                   </>
@@ -473,12 +473,12 @@ export default function RegisterProject() {
             <div className="border border-gray-200 rounded-lg p-3">
               <div className="flex gap-2 flex-wrap mb-2">
                 {form.participantes.map(p => (
-                  <span key={p} className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-3 py-1 rounded-full text-sm">
+                  <span key={p} className="inline-flex items-center gap-2 bg-teal-50 text-teal-800 px-3 py-1 rounded-full text-sm">
                     {p}
                     <button 
                       type="button" 
                       onClick={() => removeParticipant(p)} 
-                      className="text-green-700 hover:text-green-900"
+                      className="text-teal-700 hover:text-teal-900"
                     >
                       ✕
                     </button>
@@ -500,7 +500,7 @@ export default function RegisterProject() {
               <select 
                 value={form.id_materia} 
                 onChange={e=>setForm(s=>({...s,id_materia:e.target.value,id_grupo:'',area:''}))} 
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="">Seleccionar materia</option>
                 {materias.map(m=> <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -512,7 +512,7 @@ export default function RegisterProject() {
               <select 
                 value={form.id_grupo} 
                 onChange={e=>setForm(s=>({...s,id_grupo:e.target.value}))} 
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 disabled={!form.id_materia}
               >
                 <option value="">Seleccionar grupo</option>
@@ -538,7 +538,7 @@ export default function RegisterProject() {
               <select 
                 value={form.codigo_linea} 
                 onChange={e=>setForm(s=>({...s,codigo_linea:e.target.value, codigo_sublinea:'', area:''}))} 
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="">Seleccionar línea</option>
                 {lineas.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -550,7 +550,7 @@ export default function RegisterProject() {
               <select 
                 value={form.codigo_sublinea} 
                 onChange={e=>setForm(s=>({...s,codigo_sublinea:e.target.value, area:''}))} 
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 disabled={!form.codigo_linea}
               >
                 <option value="">Seleccionar sublínea</option>
@@ -563,7 +563,7 @@ export default function RegisterProject() {
               <select 
                 value={form.area} 
                 onChange={e=>setForm(s=>({...s,area:e.target.value}))} 
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 disabled={!form.codigo_sublinea || areas.length === 0}
               >
                 <option value="">
@@ -586,7 +586,7 @@ export default function RegisterProject() {
             </button>
             <button 
               type="submit" 
-              className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400"
+              className="px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:bg-gray-400"
               disabled={loading}
             >
               {loading ? 'Enviando...' : 'Enviar postulación'}

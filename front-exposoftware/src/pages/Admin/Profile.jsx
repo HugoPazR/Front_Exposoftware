@@ -173,8 +173,8 @@ export default function AdminProfile() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">Carlos </span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">C</span>
                 </div>
               </div>
               
@@ -201,7 +201,7 @@ export default function AdminProfile() {
                 {!isEditing && (
                   <button 
                     onClick={handleEdit}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
                   >
                     <i className="pi pi-pencil"></i>
                     Editar Perfil
@@ -216,22 +216,6 @@ export default function AdminProfile() {
                 </h3>
 
                 <div className="flex flex-col md:flex-row gap-8">
-                  {/* Avatar y botón de cambiar foto */}
-                  <div className="flex flex-col items-center md:items-start">
-                    <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center mb-4 border-4 border-green-200">
-                      <img 
-                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop" 
-                        alt="Avatar" 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                    {isEditing && (
-                      <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors">
-                        <i className="pi pi-camera mr-2"></i>
-                        Cambiar Foto
-                      </button>
-                    )}
-                  </div>
 
                   {/* Formulario de información */}
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,7 +227,7 @@ export default function AdminProfile() {
                       <select
                         value={profileData.tipoDocumento}
                         onChange={(e) => handleInputChange('tipoDocumento', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                       >
                         <option value="CC">Cédula de Ciudadanía</option>
@@ -275,7 +259,7 @@ export default function AdminProfile() {
                         type="text" 
                         value={profileData.nombres}
                         onChange={(e) => handleInputChange('nombres', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                         placeholder="Ej: Carlos Andrés"
                       />
@@ -290,7 +274,7 @@ export default function AdminProfile() {
                         type="text" 
                         value={profileData.apellidos}
                         onChange={(e) => handleInputChange('apellidos', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                         placeholder="Ej: Mendoza Pérez"
                       />
@@ -304,7 +288,7 @@ export default function AdminProfile() {
                       <select
                         value={profileData.genero}
                         onChange={(e) => handleInputChange('genero', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                       >
                         <option value="">Seleccionar</option>
@@ -323,7 +307,7 @@ export default function AdminProfile() {
                       <select
                         value={profileData.identidadSexual}
                         onChange={(e) => handleInputChange('identidadSexual', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                       >
                         <option value="">Seleccionar</option>
@@ -344,7 +328,7 @@ export default function AdminProfile() {
                         type="date" 
                         value={profileData.fechaNacimiento}
                         onChange={(e) => handleInputChange('fechaNacimiento', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                       />
                     </div>
@@ -358,7 +342,7 @@ export default function AdminProfile() {
                         type="tel" 
                         value={profileData.telefono}
                         onChange={(e) => handleInputChange('telefono', e.target.value)}
-                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                         disabled={!isEditing}
                         placeholder="3001234567"
                       />
@@ -447,7 +431,7 @@ export default function AdminProfile() {
                         handleInputChange('departamentoResidencia', e.target.value);
                         handleInputChange('ciudadResidencia', ''); // Reset ciudad
                       }}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing}
                     >
                       <option value="">Seleccionar departamento</option>
@@ -467,7 +451,7 @@ export default function AdminProfile() {
                     <select
                       value={profileData.ciudadResidencia}
                       onChange={(e) => handleInputChange('ciudadResidencia', e.target.value)}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing || !profileData.departamentoResidencia}
                     >
                       <option value="">Seleccionar ciudad</option>
@@ -488,7 +472,7 @@ export default function AdminProfile() {
                       type="text" 
                       value={profileData.direccionResidencia}
                       onChange={(e) => handleInputChange('direccionResidencia', e.target.value)}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing}
                       placeholder="Ej: Calle 15 # 10-45"
                     />
@@ -505,7 +489,7 @@ export default function AdminProfile() {
                         handleInputChange('departamento', e.target.value);
                         handleInputChange('municipio', ''); // Reset municipio
                       }}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing}
                     >
                       <option value="">Seleccionar departamento</option>
@@ -525,7 +509,7 @@ export default function AdminProfile() {
                     <select
                       value={profileData.municipio}
                       onChange={(e) => handleInputChange('municipio', e.target.value)}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing || !profileData.departamento}
                     >
                       <option value="">Seleccionar municipio</option>
@@ -546,7 +530,7 @@ export default function AdminProfile() {
                       type="text" 
                       value={profileData.ciudad}
                       onChange={(e) => handleInputChange('ciudad', e.target.value)}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing}
                       placeholder="Ej: Valledupar"
                     />
@@ -635,7 +619,7 @@ export default function AdminProfile() {
                       type="text" 
                       value={profileData.anioIngreso}
                       onChange={(e) => handleInputChange('anioIngreso', e.target.value)}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing}
                       placeholder="2020"
                     />
@@ -650,7 +634,7 @@ export default function AdminProfile() {
                       type="text" 
                       value={profileData.periodo}
                       onChange={(e) => handleInputChange('periodo', e.target.value)}
-                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'}`}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2 text-gray-900 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-teal-500' : 'bg-gray-50'}`}
                       disabled={!isEditing}
                       placeholder="2020-1"
                     />
@@ -663,7 +647,7 @@ export default function AdminProfile() {
                     </label>
                     <div className="flex items-center h-[42px]">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        profileData.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        profileData.activo ? 'bg-teal-100 text-teal-800' : 'bg-red-100 text-red-800'
                       }`}>
                         {profileData.activo ? '✓ Activo' : '✗ Inactivo'}
                       </span>
@@ -713,7 +697,7 @@ export default function AdminProfile() {
                   </button>
                   <button 
                     onClick={handleSave}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors"
                   >
                     Guardar Cambios
                   </button>
@@ -748,7 +732,7 @@ export default function AdminProfile() {
                   name="currentPassword"
                   value={passwordForm.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -762,7 +746,7 @@ export default function AdminProfile() {
                   name="newPassword"
                   value={passwordForm.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                   minLength={6}
                 />
@@ -778,7 +762,7 @@ export default function AdminProfile() {
                   name="confirmPassword"
                   value={passwordForm.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -793,7 +777,7 @@ export default function AdminProfile() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
                 >
                   Guardar Contraseña
                 </button>

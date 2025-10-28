@@ -77,13 +77,13 @@ export default function TeacherDashboard() {
 
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors">
+              <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800 transition-colors">
                 Registrar Asistencia
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">M</span>
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-emerald-600 font-bold text-lg">M</span>
                 </div>
               </div>
 
@@ -104,7 +104,7 @@ export default function TeacherDashboard() {
               <nav className="space-y-1">
                 <Link
                   to="/teacher/dashboard"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-green-50 text-green-700"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-50 text-emerald-700"
                 >
                   <i className="pi pi-home text-base"></i>
                   Dashboard
@@ -147,8 +147,8 @@ export default function TeacherDashboard() {
                   <p className="text-sm text-gray-500">Total proyectos</p>
                   <h3 className="text-2xl font-bold text-gray-900">{total}</h3>
                 </div>
-                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                  <i className="pi pi-folder-open text-green-600 text-xl"></i>
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-folder-open text-emerald-600 text-xl"></i>
                 </div>
               </div>
 
@@ -157,8 +157,8 @@ export default function TeacherDashboard() {
                   <p className="text-sm text-gray-500">Aprobados</p>
                   <h3 className="text-2xl font-bold text-gray-900">{aprobados}</h3>
                 </div>
-                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                  <i className="pi pi-check text-green-600 text-xl"></i>
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-check text-emerald-600 text-xl"></i>
                 </div>
               </div>
 
@@ -201,7 +201,7 @@ export default function TeacherDashboard() {
                     />
                     <Bar 
                       dataKey="estudiantes" 
-                      fill="#16a34a" 
+                      fill="#10b981" 
                       radius={[8, 8, 0, 0]}
                       name="Estudiantes"
                     />
@@ -261,13 +261,13 @@ export default function TeacherDashboard() {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Buscar estudiante..."
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
 
                   <select 
                     value={selectedMateria}
                     onChange={(e) => setSelectedMateria(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Todas">Todas las materias</option>
                     <option value="Ingeniería de Software">Ingeniería de Software</option>
@@ -278,7 +278,7 @@ export default function TeacherDashboard() {
                   <select 
                     value={selectedGrupo}
                     onChange={(e) => setSelectedGrupo(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Todos">Todos los grupos</option>
                     <option value="G1">G1</option>
@@ -308,7 +308,7 @@ export default function TeacherDashboard() {
                         <td className="py-3 px-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             estudiante.estado === "Activo" 
-                              ? "bg-green-100 text-green-800" 
+                              ? "bg-emerald-100 text-emerald-800" 
                               : "bg-gray-100 text-gray-800"
                           }`}>
                             {estudiante.estado}
