@@ -3,15 +3,15 @@ import Select from 'react-select';
 import { useState } from 'react';
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+import { useDocentesManagement } from "./useDocentesManagement";
 import { 
-  useTeacherManagement,
   TIPOS_DOCUMENTO,
   GENEROS,
   IDENTIDADES_SEXUALES,
   CATEGORIAS_DOCENTE,
   DEPARTAMENTOS_COLOMBIA,
   PAISES
-} from "./useTeacherManagement";
+} from "../../utils/constants";
 import EditTeacherModal from "./EditTeacherModal";
 import { 
   validateField, 
