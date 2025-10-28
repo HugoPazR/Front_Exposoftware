@@ -26,13 +26,9 @@ import GraduateProjects from "./pages/Graduate/Proyects";
 import GuestDashboard from "./pages/Guest/Dashboard.jsx";
 import GuestProjects from "./pages/Guest/Proyects";
 import GuestProfile from "./pages/Guest/Profile";
-<<<<<<< Updated upstream
 import Proyects from "./pages/Home/Projects";
-=======
-import Projects from "./pages/Home/Projects";
 import AdminEvento from "./pages/Admin/AdminEvento";
 import Home_dinamico from "./pages/Home/Home_dinamico";
->>>>>>> Stashed changes
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
