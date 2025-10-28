@@ -20,14 +20,37 @@ function InformacionEstudiante({ formData, errors, handleChange, cargando, succe
       </div>
 
       <div>
-        <label className="block font-medium text-gray-700 mb-1">Código del Programa *</label>
+        <label className="block font-medium text-gray-700 mb-1">Facultad *</label>
         <div className="relative">
-          <input name="codigoPrograma" type="text" placeholder="Código del Programa" value={formData.codigoPrograma} onChange={handleChange} disabled={cargando}
-            className={getInputClassName("codigoPrograma")}
+          <input
+            name="facultad"
+            type="text"
+            placeholder="Nombre de la Facultad"
+            value={formData.facultad}
+            onChange={handleChange}
+            disabled={cargando}
+            className={getInputClassName("facultad")}
           />
-          {successFields.codigoPrograma && !errors.codigoPrograma && (<CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />)}
+          {successFields.facultad && !errors.facultad && (
+            <CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />
+          )}
         </div>
-        {errors.codigoPrograma && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} />{errors.codigoPrograma}</p>)}
+        {errors.facultad && (
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <AlertCircle size={14} /> {errors.facultad}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label className="block font-medium text-gray-700 mb-1">Programa *</label>
+        <div className="relative">
+          <input name="programa" type="text" placeholder="Código del Programa" value={formData.programa} onChange={handleChange} disabled={cargando}
+            className={getInputClassName("programa")}
+          />
+          {successFields.programa && !errors.programa && (<CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />)}
+        </div>
+        {errors.programa && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} />{errors.programa}</p>)}
       </div>
 
       <div>

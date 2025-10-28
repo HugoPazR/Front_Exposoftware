@@ -10,7 +10,6 @@ export const validateField = (name, value, formData = {}, rol = "") => {
   // 💡 Todos los campos (menos los opcionales) deben tener valor
   const requiredFields = [
     "primerNombre",
-
     "primerApellido",
     "segundoApellido",
     "telefono",
@@ -30,11 +29,11 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     "correo",
     "contraseña",
     "confirmarcontraseña",
-    "codigoPrograma",
+    "programa",
+    "facultad",
     "semestre",
     "tipoDocente",
     "sector",
-    
     "nombreEmpresa",
     "titulado",
     "periodo",
@@ -72,20 +71,21 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       }
       break;
 
-      case "direccionResidencia":
-        // 🏠 Validación de dirección colombiana con nombres completos (sin abreviaturas)
-        const direccionRegex =
-          /^(?:(?:calle|carrera|diagonal|transversal|avenida|autopista|bulevar)\s*\d+[a-zA-Z]?(?:\s*[#-]\s*\d+[a-zA-Z]?(?:\s*-\s*\d+)?)?(?:\s*[a-zA-Z0-9\s]*)?)$/i;
+    case "direccionResidencia":
+      // 🏠 Validación de dirección colombiana con nombres completos (sin abreviaturas)
+      const direccionRegex =
+        /^(?:(?:calle|carrera|diagonal|transversal|avenida|autopista|bulevar)\s*\d+[a-zA-Z]?(?:\s*[#-]\s*\d+[a-zA-Z]?(?:\s*-\s*\d+)?)?(?:\s*[a-zA-Z0-9\s]*)?)$/i;
 
-        if (!direccionRegex.test(val.trim())) {
-          error =
-            "Formato de dirección inválido. Ejemplo válido: 'Calle 10 #15-30' o 'Carrera 7A - 45'.";
-        } else if (val.trim().length < 6) {
-          error = "La dirección debe tener al menos 6 caracteres.";
-        }
-        break;
+      if (!direccionRegex.test(val.trim())) {
+        error =
+          "Formato de dirección inválido. Ejemplo válido: 'Calle 10 #15-30' o 'Carrera 7A - 45'.";
+      } else if (val.trim().length < 6) {
+        error = "La dirección debe tener al menos 6 caracteres.";
+      }
+      break;
 
-    case "codigoPrograma":
+    case "programa":
+    case "facultad":
       if (!/^[a-zA-Z0-9\s-]*$/.test(val)) {
         error = "Solo se permiten letras, números, espacios y guiones.";
       } else if (val.trim().length > 0 && val.trim().length < 3) {
@@ -100,20 +100,19 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       break;
 
     case "telefono":
-      const digits = val.replace(/\D/g, "");
+      // Convertir a string y extraer solo los dígitos
+      const phoneStr = String(val || "");
+      const digits = phoneStr.replace(/\D/g, "");
 
-      // Si empieza con +57 o 57 → Colombia
+      // Si empieza con 57 → Colombia
       const isColombia = digits.startsWith("57");
 
       if (isColombia) {
-        let number = digits.startsWith("57") ? digits.slice(2) : digits;
+        // Remover el código de país (57)
+        const number = digits.slice(2);
 
-        if (!/^\d+$/.test(number)) {
-          error = "El número solo debe contener dígitos.";
-        } else if (!number.startsWith("3")) {
-          error = "El número colombiano debe comenzar con 3.";
-        } else if (number.length !== 10) {
-          error = "El número colombiano debe tener 10 dígitos.";
+        if (!number.startsWith("3") || number.length !== 10) {
+          error = "El número colombiano debe comenzar con 3 y tener 10 dígitos.";
         }
       } else {
         if (digits.length < 6) {
@@ -180,7 +179,6 @@ export const validateAllFields = (formData, rol) => {
   // Campos básicos comunes
   const basicFields = [
     "primerNombre",
-
     "intitucionOrigen",
     "primerApellido",
     "segundoApellido",
@@ -214,7 +212,7 @@ export const validateAllFields = (formData, rol) => {
 
   // Dependiendo del rol, se agregan campos extra
   if (rol === "estudiante") {
-    ["correo", "codigoPrograma", "semestre", "fechaIngreso", "periodo"].forEach(
+    ["correo", "programa", "facultad", "semestre", "fechaIngreso", "periodo"].forEach(
       (f) => {
         const err = validateField(f, formData[f], formData, rol);
         if (err) errors[f] = err;
@@ -230,20 +228,19 @@ export const validateAllFields = (formData, rol) => {
   }
 
   if (rol === "egresado") {
-    ["correo", "titulado", "fechaFinalizacion", "periodo", "codigoPrograma"].forEach((f) => {
+    ["correo", "titulado", "fechaFinalizacion", "periodo", "programa", "facultad"].forEach((f) => {
       const err = validateField(f, formData[f], formData, rol);
       if (err) errors[f] = err;
     });
   }
 
   // OPCIONALES que SI SE VALIDAN si el usuario los llena
-["segundoNombre"].forEach((field) => {
-  if (formData[field] && formData[field].trim() !== "") {
-    const error = validateField(field, formData[field], formData, rol);
-    if (error) errors[field] = error;
-  }
-});
-
+  ["segundoNombre"].forEach((field) => {
+    if (formData[field] && formData[field].trim() !== "") {
+      const error = validateField(field, formData[field], formData, rol);
+      if (error) errors[field] = error;
+    }
+  });
 
   return errors;
 };

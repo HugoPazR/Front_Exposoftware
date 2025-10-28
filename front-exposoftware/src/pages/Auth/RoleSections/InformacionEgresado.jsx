@@ -58,24 +58,47 @@ function InformacionEgresado({
       </div>
 
       <div>
-        <label className="block font-medium text-gray-700 mb-1">Código del Programa *</label>
+        <label className="block font-medium text-gray-700 mb-1">Facultad *</label>
         <div className="relative">
           <input
-            name="codigoPrograma"
+            name="facultad"
             type="text"
-            placeholder="Código del Programa"
-            value={formData.codigoPrograma}
+            placeholder="Nombre de la Facultad"
+            value={formData.facultad}
             onChange={handleChange}
             disabled={cargando}
-            className={getInputClassName("codigoPrograma")}
+            className={getInputClassName("facultad")}
           />
-          {successFields.codigoPrograma && !errors.codigoPrograma && (
+          {successFields.facultad && !errors.facultad && (
             <CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />
           )}
         </div>
-        {errors.codigoPrograma && (
+        {errors.facultad && (
           <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-            <AlertCircle size={14} /> {errors.codigoPrograma}
+            <AlertCircle size={14} /> {errors.facultad}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label className="block font-medium text-gray-700 mb-1">programa *</label>
+        <div className="relative">
+          <input
+            name="programa"
+            type="text"
+            placeholder="Código del programa"
+            value={formData.programa}
+            onChange={handleChange}
+            disabled={cargando}
+            className={getInputClassName("programa")}
+          />
+          {successFields.programa && !errors.programa && (
+            <CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />
+          )}
+        </div>
+        {errors.programa && (
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <AlertCircle size={14} /> {errors.programa}
           </p>
         )}
       </div>

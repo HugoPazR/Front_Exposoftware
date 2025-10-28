@@ -21,22 +21,19 @@ export const handleChange = (
   let cleanValue = value;
 
   // ✅ Campos que solo aceptan letras
-const alphabeticFields = [
-  "primerNombre",
-  "segundoNombre",
-  "primerApellido",
-  "segundoApellido",
-];
+  const alphabeticFields = [
+    "primerNombre",
+    "segundoNombre",
+    "primerApellido",
+    "segundoApellido",
+  ];
 
-// Bloquear caracteres inválidos + capitalizar
-if (alphabeticFields.includes(name)) {
-  cleanValue = value
-    .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "")
-    .toLowerCase(); // primero pasamos todo a minúscula
+  // Bloquear caracteres inválidos + capitalizar
+  if (alphabeticFields.includes(name)) {
+    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "").toLowerCase(); // primero pasamos todo a minúscula
 
-  cleanValue = capitalizeWords(cleanValue); // luego capitalizamos
-}
-
+    cleanValue = capitalizeWords(cleanValue); // luego capitalizamos
+  }
 
   // Limpiar caracteres no numéricos
   if (isNumericField(name)) {
@@ -44,7 +41,7 @@ if (alphabeticFields.includes(name)) {
   }
 
   // Alfanumérico en código de programa
-  if (name === "codigoPrograma") {
+  if (name === "programa" || name === "facultad") {
     cleanValue = value.replace(/[^a-zA-Z0-9\s-]/g, "");
   }
 
@@ -115,7 +112,7 @@ export const handleDepartamentoChange = (
   colombia
 ) => {
   const selectedDepartamento = e.target.value;
-  
+
   setFormData((prev) => ({
     ...prev,
     departamentoResidencia: selectedDepartamento,
@@ -149,25 +146,25 @@ export const handlePhoneChange = (
   setSuccessFields,
   rol
 ) => {
-  // PhoneInput ya incluye el "+" en el value
-  const phoneValue = value.startsWith('+') ? value : `+${value}`;
+  // PhoneInput ya incluye el "+" en algunos casos
+  const phoneValue = value.startsWith("+") ? value : `+${value}`;
 
-  setFormData((prev) => {
-    const updatedForm = { ...prev, telefono: phoneValue };
-    const error = validateField("telefono", phoneValue, updatedForm, rol);
+  // Crear el formData actualizado para validar
+  const updatedForm = { ...formData, telefono: phoneValue };
 
-    // Actualizar errores
-    setErrors((prevErrors) => ({ ...prevErrors, telefono: error }));
+  // Validar con el formData actualizado
+  const error = validateField("telefono", phoneValue, updatedForm, rol);
 
-    // Marcar campo como exitoso si no hay error y tiene valor
-    if (!error && phoneValue.trim() !== "") {
-      setSuccessFields((prev) => ({ ...prev, telefono: true }));
-    } else {
-      setSuccessFields((prev) => ({ ...prev, telefono: false }));
-    }
+  // Actualizar todo el estado en un solo bloque
+  setFormData(updatedForm);
+  setErrors((prevErrors) => ({ ...prevErrors, telefono: error }));
 
-    return updatedForm;
-  });
+  // Marcar campo como exitoso si no hay error y tiene valor
+  if (!error && phoneValue.trim() !== "" && phoneValue !== "+") {
+    setSuccessFields((prev) => ({ ...prev, telefono: true }));
+  } else {
+    setSuccessFields((prev) => ({ ...prev, telefono: false }));
+  }
 };
 
 /**
@@ -225,7 +222,12 @@ export const handleSubmit = (
 /**
  * Obtiene las clases CSS para un input según su estado
  */
-export const getInputClassName = (fieldName, errors, successFields, cargando) => {
+export const getInputClassName = (
+  fieldName,
+  errors,
+  successFields,
+  cargando
+) => {
   const baseClass =
     "w-full border rounded-lg p-2 focus:ring-2 outline-none transition-all";
 
