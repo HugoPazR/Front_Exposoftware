@@ -26,20 +26,14 @@ import GraduateProjects from "./pages/Graduate/Proyects";
 import GuestDashboard from "./pages/Guest/Dashboard.jsx";
 import GuestProjects from "./pages/Guest/Proyects";
 import GuestProfile from "./pages/Guest/Profile";
+<<<<<<< Updated upstream
 import Proyects from "./pages/Home/Projects";
+=======
+import Projects from "./pages/Home/Projects";
+import AdminEvento from "./pages/Admin/AdminEvento";
+import Home_dinamico from "./pages/Home/Home_dinamico";
+>>>>>>> Stashed changes
 
-
-
-
-/*import StudentProjects from './pages/Teacher/Studentprojects.jsx';
-import StudentDashboard from './pages/Student/Dashboard.jsx';
-import Profile from './pages/Student/Profile.jsx';
-import MyProjects from './pages/Student/MyProjects.jsx';
-import RegisterProject from './pages/Student/RegisterProject.jsx';
-
-import TeacherDashboard from './pages/Teacher/Dashboard.jsx';
-import TeacherProfile from './pages/Teacher/Profile.jsx';
-*/
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
@@ -67,7 +61,10 @@ function App() {
     "/graduate/proyectos",
     "/guest/dashboard",
     "/guest/profile",
-    "/guest/proyectos"
+    "/guest/proyectos",
+    "/home-dinamico",
+    "/admin/evento"
+
   ];
 
   return (
@@ -78,6 +75,7 @@ function App() {
           {/* Página principal */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/home-dinamico" element={<Home_dinamico />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
@@ -102,6 +100,8 @@ function App() {
           <Route path="/admin/crear-materia" element={<CreateSubject />} />
           <Route path="/admin/crear-profesor" element={<CreateTeacher />} />
           <Route path="/admin/lineas-investigacion" element={<AdminCreatelines />} />
+          <Route path="/admin/evento" element={<AdminEvento />} />
+
 
           {/* ✅ Egresados */}
           <Route path="/graduate/dashboard" element={<GraduateDashboard />} />
