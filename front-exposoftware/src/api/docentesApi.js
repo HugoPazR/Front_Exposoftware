@@ -1,4 +1,5 @@
 import API from './axiosConfig';
+import { storageService } from '../services/storageService';
 
 // Función helper para procesar errores
 const handleApiError = (error) => {
@@ -18,10 +19,18 @@ const handleApiError = (error) => {
         throw new Error('El recurso ya existe');
       case 422:
         // Formatear errores de validación
-        const validationErrors = data.errors?.map(err => 
-          `${err.field}: ${err.message}`
-        ).join(', ');
-        throw new Error(`Error de validación: ${validationErrors || data.message}`);
+        // Soportar distintos esquemas de validación (errors[] o detail[])
+        const validationErrors = data.errors?.map(err => `${err.field}: ${err.message}`).join(', ');
+        if (validationErrors) {
+          throw new Error(`Error de validación: ${validationErrors}`);
+        }
+        // Algunos backends (FastAPI) devuelven un array 'detail'
+        const detailErrors = data.detail?.map(d => {
+          // detalle puede tener 'loc' y 'msg'
+          const field = Array.isArray(d.loc) ? d.loc.join('.') : d.loc;
+          return `${field}: ${d.msg || d.message || JSON.stringify(d)}`;
+        }).join(', ');
+        throw new Error(`Error de validación: ${detailErrors || data.message}`);
       case 429:
         throw new Error('Demasiadas solicitudes. Por favor, intente más tarde');
       case 500:
@@ -47,6 +56,30 @@ export const crearDocente = async (docenteData) => {
     return handleSuccessResponse(data);
   } catch (error) {
     console.error('Error al crear el docente:', error);
+
+    // Si es un error de red o de servidor (sin respuesta o 5xx), guardar en localStorage como fallback
+    const status = error.response?.status;
+    if (!error.response || (status >= 500 && status < 600)) {
+      try {
+        const key = 'exposoftware_docentes';
+        const docentes = storageService.get(key, []);
+        const nuevoDocente = {
+          ...docenteData,
+          id: `local_${Date.now()}`,
+          createdAt: new Date().toISOString(),
+          _local: true
+        };
+        docentes.push(nuevoDocente);
+        storageService.set(key, docentes);
+        // Devolver el objeto creado localmente
+        return nuevoDocente;
+      } catch (e) {
+        console.error('Error al guardar docente en localStorage como fallback:', e);
+        throw new Error('No se pudo crear el docente (backend y fallback fallaron)');
+      }
+    }
+
+    // Si es un error del cliente (4xx) o validación, propagar el error formateado
     throw handleApiError(error);
   }
 };
@@ -67,6 +100,23 @@ export const obtenerDocentes = async ({ page = 1, limit = 20, activos = true } =
   }
 };
 
+// Alias para endpoint con nombre 'profesores'
+export const obtenerProfesores = async ({ page = 1, limit = 20, activos = true } = {}) => {
+  try {
+    const { data } = await API.get('/admin/profesores', {
+      params: {
+        page,
+        limit,
+        activos
+      }
+    });
+    return handleSuccessResponse(data);
+  } catch (error) {
+    console.error('Error al obtener profesores:', error);
+    throw handleApiError(error);
+  }
+};
+
 export const obtenerDocentePorId = async (id) => {
   if (!id) {
     throw new Error('El ID del profesor es requerido');
@@ -77,6 +127,37 @@ export const obtenerDocentePorId = async (id) => {
     return handleSuccessResponse(data);
   } catch (error) {
     console.error('Error al obtener docente:', error);
+    throw handleApiError(error);
+  }
+};
+
+// Alias para endpoint /admin/profesores/{id}
+export const obtenerProfesorPorId = async (id) => {
+  if (!id) {
+    throw new Error('El ID del profesor es requerido');
+  }
+
+  try {
+    const { data } = await API.get(`/admin/profesores/${id}`);
+    return handleSuccessResponse(data);
+  } catch (error) {
+    console.error('Error al obtener profesor por /admin/profesores:', error);
+
+    // Si el id corresponde a un registro local (prefijo local_) o la API respondió 404,
+    // intentamos recuperar desde el fallback en localStorage
+    const isLocal = String(id).startsWith('local_');
+    const status = error.response?.status;
+    if (isLocal || status === 404) {
+      try {
+        const key = 'exposoftware_docentes';
+        const docentes = storageService.get(key, []);
+        const found = docentes.find(d => String(d.id) === String(id) || String(d.usuario?.identificacion) === String(id));
+        if (found) return found;
+      } catch (e) {
+        console.error('Error al buscar profesor en localStorage como fallback:', e);
+      }
+    }
+
     throw handleApiError(error);
   }
 };
