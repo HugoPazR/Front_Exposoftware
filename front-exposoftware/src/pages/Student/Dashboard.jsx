@@ -73,9 +73,6 @@ export default function StudentDashboard() {
 
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors">
-                Registrar Asistencia
-              </button>
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -101,18 +98,17 @@ export default function StudentDashboard() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
+
           {/* Sidebar */}
           <aside className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <nav className="space-y-1">
                 <button
                   onClick={() => setActiveTab("dashboard")}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === "dashboard"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "dashboard"
                       ? "bg-green-50 text-green-700"
                       : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   <i className="pi pi-home text-base"></i>
                   Dashboard
@@ -125,6 +121,13 @@ export default function StudentDashboard() {
                   Mis Proyectos
                 </Link>
                 <Link
+                  to="/student/asistencia"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}
+                >
+                  <i className="pi pi-qrcode text-base"></i>
+                  Registrar Asistencia
+                </Link>
+                <Link
                   to="/student/profile"
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}
                 >
@@ -135,8 +138,8 @@ export default function StudentDashboard() {
             </div>
 
             {/* --- BOTÓN MOVIDO AQUÍ --- */}
-            <Link 
-              to="/student/register-project" 
+            <Link
+              to="/student/register-project"
               className="w-full inline-block text-center bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-300 transform animate-pulse hover:animate-none mt-4"
             >
               <span className="flex items-center justify-center gap-2">
@@ -166,7 +169,7 @@ export default function StudentDashboard() {
 
           {/* Main Content */}
           <main className="lg:col-span-3">
-            
+
             {/* Welcome Section */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 mb-6 text-white">
               <h2 className="text-2xl font-bold mb-2">¡Bienvenido, {user?.nombres || 'Estudiante'}!</h2>
@@ -242,26 +245,26 @@ export default function StudentDashboard() {
                     <ResponsiveContainer width="100%" height={250}>
                       <BarChart data={proyectosPorMateria}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis 
-                          dataKey="name" 
+                        <XAxis
+                          dataKey="name"
                           tick={{ fontSize: 12 }}
                           stroke="#6b7280"
                         />
-                        <YAxis 
+                        <YAxis
                           tick={{ fontSize: 12 }}
                           stroke="#6b7280"
                         />
-                        <Tooltip 
-                          contentStyle={{ 
+                        <Tooltip
+                          contentStyle={{
                             backgroundColor: '#fff',
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '12px'
                           }}
                         />
-                        <Bar 
-                          dataKey="proyectos" 
-                          fill="#16a34a" 
+                        <Bar
+                          dataKey="proyectos"
+                          fill="#16a34a"
                           radius={[8, 8, 0, 0]}
                           name="Proyectos"
                         />
@@ -289,8 +292,8 @@ export default function StudentDashboard() {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
+                        <Tooltip
+                          contentStyle={{
                             backgroundColor: '#fff',
                             border: '1px solid #e5e7eb',
                             borderRadius: '8px',
@@ -299,14 +302,14 @@ export default function StudentDashboard() {
                         />
                       </PieChart>
                     </ResponsiveContainer>
-                    
+
                     {/* Leyenda personalizada */}
                     <div className="mt-4 space-y-2">
                       {estadoInscripciones.map((item, index) => (
                         <div key={index} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
+                            <div
+                              className="w-3 h-3 rounded-full"
                               style={{ backgroundColor: item.color }}
                             ></div>
                             <span className="text-gray-700">{item.name}</span>

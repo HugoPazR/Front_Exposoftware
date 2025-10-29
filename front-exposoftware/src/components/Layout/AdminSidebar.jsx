@@ -42,6 +42,11 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Gestión de Líneas de Investigación"
     },
     {
+      to: "/admin/asistencia",
+      icon: "pi-qrcode",
+      label: "Registro de Asistencia"
+    },
+    {
       to: "/admin/profile",
       icon: "pi-cog",
       label: "Configuración de Perfil"

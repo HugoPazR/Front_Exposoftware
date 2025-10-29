@@ -200,6 +200,13 @@ export default function Profile() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
+                                <Link
+                  to="/student/asistencia"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}
+                >
+                  <i className="pi pi-qrcode text-base"></i>
+                  Registrar Asistencia
+                </Link>
                 <Link to="/student/configuracion" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-gray-50">
                   <i className="pi pi-cog text-base"></i>
                   Configuración
