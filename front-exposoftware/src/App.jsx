@@ -23,7 +23,8 @@ import GraduateDashboard from "./pages/Graduate/Dashboard";
 import GraduateProfile from "./pages/Graduate/Profile";
 import GraduateProjects from "./pages/Graduate/Proyects";
 import Proyects from "./pages/Home/Projects";
-import Attendance from "./pages/Asistencia/Attendance";
+import { AdminRoute, DocenteRoute, EstudianteRoute } from "./components/ProtectedRoute";
+
 
 
 
@@ -41,6 +42,7 @@ function App() {
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
+    "/admin/dashboard",
     "/admin/dash",
     "/admin/profile",
     "/admin/crear-grupo",
@@ -66,9 +68,6 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/projects" element={<Proyects />} />
-          
-          {/* Registro de Asistencia Pública */}
-          <Route path="/asistencia" element={<Attendance />} />
 
           {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
@@ -81,14 +80,15 @@ function App() {
           <Route path="/teacher/proyectos" element={<StudentProjects />} />
           <Route path="/teacher/profile" element={<TeacherProfile />} />
 
-          {/* ✅ Administrador */}
-          <Route path="/admin/dash" element={<AdminDashboard />} />
-          <Route path="/admin/profile" element={<AdminProfile />} />
-          <Route path="/admin/crear-grupo" element={<CreateGroup />} />
-          <Route path="/admin/crear-materia" element={<CreateSubject />} />
-          <Route path="/admin/crear-profesor" element={<CreateTeacher />} />
-          <Route path="/admin/lineas-investigacion" element={<AdminCreatelines />} />
-          <Route path="/admin/registrar-eventos" element={<RegisterEvent />} />
+          {/* ✅ Administrador - RUTAS PROTEGIDAS */}
+          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/dash" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/profile" element={<AdminRoute><AdminProfile /></AdminRoute>} />
+          <Route path="/admin/crear-grupo" element={<AdminRoute><CreateGroup /></AdminRoute>} />
+          <Route path="/admin/crear-materia" element={<AdminRoute><CreateSubject /></AdminRoute>} />
+          <Route path="/admin/crear-profesor" element={<AdminRoute><CreateTeacher /></AdminRoute>} />
+          <Route path="/admin/lineas-investigacion" element={<AdminRoute><AdminCreatelines /></AdminRoute>} />
+          <Route path="/admin/registrar-eventos" element={<AdminRoute><RegisterEvent /></AdminRoute>} />
 
           {/* ✅ Egresados */}
           <Route path="/graduate/dashboard" element={<GraduateDashboard />} />

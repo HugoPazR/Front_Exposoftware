@@ -1,10 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+import * as AuthService from "../../Services/AuthService";
 import { useResearchLinesManagement } from "./useResearchLinesManagement";
 import { EditLineaModal, EditSublineaModal, EditAreaModal } from "./EditResearchLinesModals";
 
 export default function CreateLines() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Usuario';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+      }
+    }
+  };
+
   // Estado para tabs
   const [activeTab, setActiveTab] = useState("lineas"); // lineas | sublineas | areas
 
@@ -90,13 +126,16 @@ export default function CreateLines() {
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
                 <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">C</span>
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -109,7 +148,7 @@ export default function CreateLines() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3">

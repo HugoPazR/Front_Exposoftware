@@ -1,53 +1,11 @@
 import { useState, useEffect } from "react";
-import { API_ENDPOINTS } from "../../utils/constants";
-
-// Mock data de docentes disponibles
-const DOCENTES_MOCK = [
-  { id: 1, nombre: "Dr. Alejandro José Meriño" },
-  { id: 2, nombre: "Dr. Juan Pérez" },
-  { id: 3, nombre: "Ing. María González" },
-  { id: 4, nombre: "Lic. Carla Ruíz" },
-  { id: 5, nombre: "Ing. Sofía Benítez" },
-];
+import * as SubjectService from "../../Services/CreateSubject";
 
 // Opciones de ciclo semestral
 export const CICLOS_SEMESTRALES = [
   "Ciclo Básico",
   "Ciclo Profesional",
   "Ciclo de Profundización"
-];
-
-// Mock data inicial de grupos
-const GRUPOS_MOCK = [
-  { id: "grp1", codigo_grupo: 101, id_docente: 1 },
-  { id: "grp2", codigo_grupo: 102, id_docente: 2 },
-  { id: "grp3", codigo_grupo: 201, id_docente: 3 },
-  { id: "grp4", codigo_grupo: 202, id_docente: 1 },
-];
-
-// Mock data inicial de materias
-const MATERIAS_INICIAL = [
-  {
-    id: "mat1",
-    codigo_materia: "PROG3",
-    nombre_materia: "Programación III",
-    ciclo_semestral: "Ciclo Profesional",
-    grupos_con_docentes: [
-      { codigo_grupo: 101, id_docente: 1 },
-      { codigo_grupo: 102, id_docente: 2 }
-    ],
-    fechaCreacion: "2025-01-15"
-  },
-  {
-    id: "mat2",
-    codigo_materia: "BD2",
-    nombre_materia: "Bases de Datos II",
-    ciclo_semestral: "Ciclo Profesional",
-    grupos_con_docentes: [
-      { codigo_grupo: 201, id_docente: 3 }
-    ],
-    fechaCreacion: "2025-01-20"
-  },
 ];
 
 
@@ -58,12 +16,12 @@ export const useSubjectManagement = () => {
   const [cicloSemestral, setCicloSemestral] = useState("");
   
   // Estados para grupos disponibles y seleccionados
-  const [gruposDisponibles, setGruposDisponibles] = useState(GRUPOS_MOCK);
+  const [gruposDisponibles, setGruposDisponibles] = useState([]);
   const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
-  const [profesores, setProfesores] = useState(DOCENTES_MOCK);
+  const [profesores, setProfesores] = useState([]);
   
   // Estado para la lista de materias
-  const [materias, setMaterias] = useState(MATERIAS_INICIAL);
+  const [materias, setMaterias] = useState([]);
   
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
@@ -120,129 +78,86 @@ export const useSubjectManagement = () => {
 
 
   /**
-   * Cargar materias desde el backend
+   * Cargar materias desde el backend usando el servicio
    */
   const cargarMaterias = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS);
-      if (response.ok) {
-        const data = await response.json();
-        setMaterias(data);
-        console.log('📥 Materias cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar materias:', response.statusText);
-      }
+      console.log('🔄 Iniciando carga de materias...');
+      const data = await SubjectService.obtenerMaterias();
+      console.log('✅ Materias cargadas exitosamente:', data);
+      setMaterias(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar materias:', error);
-      console.log('⚠️ Usando datos mock locales');
+      console.error('❌ Error al cargar materias:', error);
+      // No mostrar alert para no bloquear la UI
+      setMaterias([]);
     }
   };
 
   /**
-   * Cargar grupos desde el backend
+   * Cargar grupos desde el backend usando el servicio
    */
   const cargarGrupos = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPOS);
-      if (response.ok) {
-        const data = await response.json();
-        setGruposDisponibles(data);
-        console.log('📥 Grupos cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar grupos:', response.statusText);
-      }
+      const data = await SubjectService.obtenerGrupos();
+      setGruposDisponibles(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar grupos:', error);
-      console.log('⚠️ Usando grupos mock locales');
+      console.log('⚠️ Error al cargar grupos del backend');
+      setGruposDisponibles([]);
     }
   };
 
   /**
-   * Cargar profesores desde el backend
+   * Cargar profesores desde el backend usando el servicio
    */
   const cargarProfesores = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES);
-      if (response.ok) {
-        const data = await response.json();
-        setProfesores(data);
-        console.log('📥 Profesores cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar profesores:', response.statusText);
-      }
+      const data = await SubjectService.obtenerDocentes();
+      setProfesores(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar profesores:', error);
-      console.log('⚠️ Usando profesores mock locales');
+      console.log('⚠️ Error al cargar profesores del backend');
+      setProfesores([]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!codigoMateria || !nombreMateria || !cicloSemestral) {
-      alert("Por favor complete todos los campos obligatorios");
+    console.log('📝 Iniciando creación de materia...');
+    console.log('📋 Datos del formulario:', {
+      codigo_materia: codigoMateria,
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
+    });
+    
+    // Validar campos usando el servicio
+    const validacion = SubjectService.validarDatosMateria({
+      codigo_materia: codigoMateria,
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
+    });
+
+    if (!validacion.valido) {
+      console.error('❌ Validación fallida:', validacion.errores);
+      alert('⚠️ Por favor complete todos los campos requeridos:\n\n' + validacion.errores.join('\n'));
       return;
     }
 
-    // Payload SOLO con información de la materia (sin grupos)
-    const payload = {
-      codigo_materia: codigoMateria.toUpperCase(),
-      nombre_materia: nombreMateria,
-      ciclo_semestral: cicloSemestral
-    };
-
-    console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
-
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const resultado = await SubjectService.crearMateria({
+        codigo_materia: codigoMateria,
+        nombre_materia: nombreMateria,
+        ciclo_semestral: cicloSemestral
       });
 
-      // Manejo específico de códigos de estado HTTP
-      if (response.status === 201) {
-        // 201: Recurso creado exitosamente
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
+      if (resultado.success) {
+        console.log('✅ Materia creada, recargando lista...');
         await cargarMaterias();
-        alert("✅ Materia creada exitosamente. Ahora puede asignarle grupos desde la lista de materias.");
+        alert("✅ " + resultado.message + "\n\nLa materia ha sido creada exitosamente. Ahora puede asignarle grupos desde la pestaña 'Editar Materias'.");
         limpiarFormulario();
-      } else if (response.status === 400) {
-        // 400: Solicitud incorrecta
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Solicitud incorrecta:', errorData);
-        alert(`❌ Solicitud incorrecta: ${errorData.message || errorData.detail || 'Verifique los datos ingresados'}`);
-      } else if (response.status === 401) {
-        // 401: No autorizado
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ No autorizado:', errorData);
-        alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión para realizar esta acción'}`);
-      } else if (response.status === 403) {
-        // 403: Sin permisos suficientes
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Sin permisos:', errorData);
-        alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para crear materias'}`);
-      } else if (response.status === 409) {
-        // 409: Conflicto - El recurso ya existe
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Conflicto:', errorData);
-        alert(`❌ Conflicto: ${errorData.message || errorData.detail || 'La materia con ese código ya existe'}`);
-      } else if (response.status === 422) {
-        // 422: Error de validación
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Error de validación:', errorData);
-        alert(`❌ Error de validación: ${errorData.message || errorData.detail || 'Los datos enviados no son válidos'}`);
-      } else {
-        // Otros errores
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear la materia (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
-      console.error('❌ Error al crear materia:', error);
-      alert("❌ Error de conexión al crear la materia. Verifique su conexión a internet.");
+      console.error('❌ Error en handleSubmit:', error);
+      alert("❌ Error al crear la materia:\n\n" + error.message);
     }
   };
 
@@ -268,76 +183,33 @@ export const useSubjectManagement = () => {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     
-    if (!codigoMateria || !nombreMateria || !cicloSemestral) {
-      alert("Por favor complete todos los campos obligatorios");
+    // Validar campos usando el servicio
+    const validacion = SubjectService.validarDatosMateria({
+      codigo_materia: codigoMateria,
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
+    });
+
+    if (!validacion.valido) {
+      alert(validacion.errores.join('\n'));
       return;
     }
 
-    // Ahora los grupos son opcionales en la edición
-    const payload = {
-      codigo_materia: codigoMateria.toUpperCase(),
-      nombre_materia: nombreMateria,
-      ciclo_semestral: cicloSemestral,
-      grupos_con_docentes: gruposSeleccionados // Puede ser un array vacío
-    };
-
-    console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
-
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const resultado = await SubjectService.actualizarMateria(editingId, {
+        codigo_materia: codigoMateria,
+        nombre_materia: nombreMateria,
+        ciclo_semestral: cicloSemestral,
+        grupos_con_docentes: gruposSeleccionados
       });
 
-      // Manejo específico de códigos de estado HTTP
-      if (response.ok) {
-        // 200 o 201: Actualización exitosa
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
+      if (resultado.success) {
         await cargarMaterias();
-        alert("✅ Materia actualizada exitosamente");
+        alert("✅ " + resultado.message);
         handleCancelEdit();
-      } else if (response.status === 400) {
-        // 400: Solicitud incorrecta
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Solicitud incorrecta:', errorData);
-        alert(`❌ Solicitud incorrecta: ${errorData.message || errorData.detail || 'Verifique los datos ingresados'}`);
-      } else if (response.status === 401) {
-        // 401: No autorizado
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ No autorizado:', errorData);
-        alert(`❌ No autorizado: ${errorData.message || errorData.detail || 'Debe iniciar sesión para realizar esta acción'}`);
-      } else if (response.status === 403) {
-        // 403: Sin permisos suficientes
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Sin permisos:', errorData);
-        alert(`❌ Sin permisos: ${errorData.message || errorData.detail || 'No tiene permisos para editar materias'}`);
-      } else if (response.status === 404) {
-        // 404: No encontrado
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ No encontrado:', errorData);
-        alert(`❌ No encontrado: ${errorData.message || errorData.detail || 'La materia no existe'}`);
-      } else if (response.status === 409) {
-        // 409: Conflicto
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Conflicto:', errorData);
-        alert(`❌ Conflicto: ${errorData.message || errorData.detail || 'Ya existe una materia con ese código'}`);
-      } else if (response.status === 422) {
-        // 422: Error de validación
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Error de validación:', errorData);
-        alert(`❌ Error de validación: ${errorData.message || errorData.detail || 'Los datos enviados no son válidos'}`);
-      } else {
-        // Otros errores
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar la materia (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
       }
     } catch (error) {
-      console.error('❌ Error al actualizar materia:', error);
-      alert("❌ Error de conexión al actualizar la materia. Verifique su conexión a internet.");
+      alert("❌ Error al actualizar la materia: " + error.message);
     }
   };
 
@@ -352,32 +224,21 @@ export const useSubjectManagement = () => {
   };
 
   /**
-   * Eliminar materia
+   * Eliminar materia usando el servicio
    */
   const handleDelete = async (id) => {
     const materiaAEliminar = materias.find(m => m.id === id);
     
     if (window.confirm(`¿Está seguro de que desea eliminar la materia "${materiaAEliminar?.nombre_materia}"? Esta acción también eliminará todos los grupos asociados.`)) {
-      console.log('🗑️ Eliminando del backend - ID:', id);
-      console.log('📋 Materia a eliminar:', materiaAEliminar?.codigo_materia);
-      
       try {
-        const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(id), { 
-          method: 'DELETE' 
-        });
+        const resultado = await SubjectService.eliminarMateria(id);
         
-        if (response.ok) {
-          console.log('✅ Materia eliminada del backend');
+        if (resultado.success) {
           await cargarMaterias();
-          alert("✅ Materia eliminada exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar la materia: ${errorData.message || 'Error desconocido'}`);
+          alert("✅ " + resultado.message);
         }
       } catch (error) {
-        console.error('❌ Error al eliminar materia:', error);
-        alert("❌ Error de conexión al eliminar la materia");
+        alert("❌ Error al eliminar la materia: " + error.message);
       }
     }
   };
@@ -392,11 +253,8 @@ export const useSubjectManagement = () => {
     cargarProfesores();
   }, []);
 
-  const materiasFiltradas = materias.filter(materia =>
-    materia.codigo_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    materia.nombre_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    materia.ciclo_semestral.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar materias usando el servicio
+  const materiasFiltradas = SubjectService.filtrarMaterias(materias, searchTerm);
 
 
   return {

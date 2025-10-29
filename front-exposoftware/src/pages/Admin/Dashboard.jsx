@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+import * as AuthService from "../../Services/AuthService";
 import {
   BarChart,
   Bar,
@@ -22,38 +23,43 @@ import {
 
 // Main Dashboard Component
 export default function AdminDashboard() {
-  // Datos para "Estudiantes Participantes por Materia"
-  const estudiantesPorMateriaData = [
-    { name: "Prog. Software", estudiantes: 45 },
-    { name: "Móvil", estudiantes: 32 },
-    { name: "Web", estudiantes: 28 },
-    { name: "Prog. Básica", estudiantes: 52 },
-  ];
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
 
-  // Datos para "Tendencia de Visitantes" - ÁreaChart
-  const visitantesData = [
-    { mes: "Ene", visitantes: 850 },
-    { mes: "Feb", visitantes: 1200 },
-    { mes: "Mar", visitantes: 1050 },
-    { mes: "Abr", visitantes: 1400 },
-    { mes: "May", visitantes: 1800 },
-    { mes: "Jun", visitantes: 1650 },
-  ];
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+      console.log('👤 Usuario autenticado:', user);
+    } else {
+      console.warn('⚠️ No hay usuario autenticado');
+      navigate('/login');
+    }
+  }, [navigate]);
 
-  // Datos para "Profesores por Departamento" - Pie Chart
-  const profesoresPorDepartamentoData = [
-    { departamento: "Matemáticas", total: 43 },
-    { departamento: "Ciencias", total: 55 },
-    { departamento: "Humanidades", total: 42 },
-    { departamento: "Artes", total: 35 },
-  ];
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+      }
+    }
+  };
 
-  // Datos para "Proyectos Recientes"
-  const proyectosRecientes = [
-    { id: "PRJ001", nombre: "Sistema de Gestión de Aula Virtual", estado: "Activo", fecha: "2025-01-15", profesor: "Dr. Alejandro José Meriño" },
-    { id: "PRJ002", nombre: "Investigación de IA", estado: "Completado", fecha: "2025-03-01", profesor: "Ing. Sofía Benítez" },
-    { id: "PRJ003", nombre: "Diseño Curricular", estado: "Completado", fecha: "2022-11-20", profesor: "Lic. Carla Ruíz" },
-  ];
+  // Obtener nombre e iniciales del usuario
+  const getUserName = () => {
+    if (!userData) return 'Usuario';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -72,13 +78,16 @@ export default function AdminDashboard() {
             {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
                 <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">C</span>
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -91,7 +100,10 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar 
+            userName={getUserName()} 
+            userRole="Administrador" 
+          />
 
           {/* Main Content */}
           <main className="lg:col-span-3">
@@ -147,48 +159,20 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Charts Row */}
+            {/* Charts Row - Datos reales del backend */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Estudiantes Participantes por Materia */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Estudiantes Participantes por Materia
                 </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={estudiantesPorMateriaData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                      outerRadius={90}
-                      innerRadius={50}
-                      fill="#8884d8"
-                      dataKey="estudiantes"
-                      nameKey="name"
-                      paddingAngle={2}
-                    >
-                      {estudiantesPorMateriaData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={['#0d9488', '#14b8a6', '#2dd4bf', '#5eead4'][index % 4]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <i className="pi pi-chart-pie text-4xl mb-3 text-gray-400"></i>
+                    <p>Datos en tiempo real próximamente</p>
+                    <p className="text-sm">Se cargarán desde el backend</p>
+                  </div>
+                </div>
               </div>
 
               {/* Profesores por Departamento */}
@@ -196,86 +180,28 @@ export default function AdminDashboard() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Profesores por Departamento
                 </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={profesoresPorDepartamentoData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                      outerRadius={90}
-                      innerRadius={50}
-                      fill="#8884d8"
-                      dataKey="total"
-                      nameKey="departamento"
-                      paddingAngle={2}
-                    >
-                      {profesoresPorDepartamentoData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={['#7c3aed', '#a855f7', '#c084fc', '#ddd6fe'][index % 4]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <i className="pi pi-users text-4xl mb-3 text-gray-400"></i>
+                    <p>Datos en tiempo real próximamente</p>
+                    <p className="text-sm">Se cargarán desde el backend</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Tendencia de Visitantes - Area Chart */}
+            {/* Tendencia de Visitantes */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Tendencia de Visitantes
               </h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={visitantesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorVisitantes" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="mes" 
-                    tick={{ fontSize: 12 }}
-                    stroke="#6b7280"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    stroke="#6b7280"
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="visitantes" 
-                    stroke="#0d9488" 
-                    strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorVisitantes)"
-                    name="Visitantes"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <i className="pi pi-chart-line text-4xl mb-3 text-gray-400"></i>
+                  <p>Datos en tiempo real próximamente</p>
+                  <p className="text-sm">Se cargarán desde el backend</p>
+                </div>
+              </div>
             </div>
 
             {/* Proyectos Recientes */}
@@ -283,38 +209,12 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 Proyectos Recientes
               </h3>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">ID Proyecto</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Nombre</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Estado</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Fecha de Inicio</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Profesor Asignado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {proyectosRecientes.map((proyecto) => (
-                      <tr key={proyecto.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-4 text-sm text-gray-900 font-medium">{proyecto.id}</td>
-                        <td className="py-3 px-4 text-sm text-gray-900">{proyecto.nombre}</td>
-                        <td className="py-3 px-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            proyecto.estado === "Activo" 
-                              ? "bg-teal-100 text-teal-800" 
-                              : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {proyecto.estado}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{proyecto.fecha}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{proyecto.profesor}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <i className="pi pi-folder text-4xl mb-3 text-gray-400"></i>
+                  <p>No hay proyectos recientes para mostrar</p>
+                  <p className="text-sm">Los proyectos se cargarán desde el backend</p>
+                </div>
               </div>
             </div>
           </main>

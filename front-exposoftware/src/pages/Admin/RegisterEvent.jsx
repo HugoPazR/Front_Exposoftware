@@ -1,12 +1,44 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import QRCode from "react-qr-code";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import { API_ENDPOINTS } from "../../utils/constants";
+import * as AuthService from "../../Services/AuthService";
 
 export default function RegisterAttendance() {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Admin';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Admin';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+      }
+    }
+  };
 
   // Estados para crear evento (Administrador)
   const [nombreEvento, setNombreEvento] = useState("");
@@ -14,9 +46,6 @@ export default function RegisterAttendance() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [lugarEvento, setLugarEvento] = useState("");
-  const [codigoQR, setCodigoQR] = useState("");
-  const [eventoCreado, setEventoCreado] = useState(false);
-  const [idEventoCreado, setIdEventoCreado] = useState("");
 
   // Estados para listar eventos
   const [eventos, setEventos] = useState([]);
@@ -73,7 +102,6 @@ export default function RegisterAttendance() {
 
     // Generar código QR automáticamente
     const nuevoCodigoQR = generarCodigoAlfanumerico();
-    setCodigoQR(nuevoCodigoQR);
 
     // Payload para crear evento (fechas en formato ISO 8601)
     const payload = {
@@ -98,10 +126,11 @@ export default function RegisterAttendance() {
 
       if (response.ok) {
         const data = await response.json();
-        setIdEventoCreado(data.id || data.id_evento);
-        setEventoCreado(true);
         alert("✅ Evento creado exitosamente");
         console.log("✅ Evento creado:", data);
+
+        // Limpiar formulario
+        limpiarFormularioEvento();
 
         // Recargar lista de eventos
         cargarEventos();
@@ -123,9 +152,6 @@ export default function RegisterAttendance() {
     setFechaInicio("");
     setFechaFin("");
     setLugarEvento("");
-    setCodigoQR("");
-    setEventoCreado(false);
-    setIdEventoCreado("");
   };
 
   return (
@@ -144,13 +170,16 @@ export default function RegisterAttendance() {
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Admin</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
                 <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">A</span>
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -162,7 +191,7 @@ export default function RegisterAttendance() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
-          <AdminSidebar userName="Administrador" userRole="Admin" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3 space-y-6">
@@ -170,10 +199,10 @@ export default function RegisterAttendance() {
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  🎫 Crear Evento con Código QR
+                  🎫 Crear Evento
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Crea un nuevo evento y genera automáticamente un código QR único para el control de asistencia.
+                  Crea un nuevo evento. Se generará automáticamente un código QR único para el control de asistencia.
                 </p>
               </div>
 
@@ -191,7 +220,6 @@ export default function RegisterAttendance() {
                       placeholder="Ej: Expo-software 2025"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       required
-                      disabled={eventoCreado}
                     />
                   </div>
 
@@ -207,7 +235,6 @@ export default function RegisterAttendance() {
                       placeholder="Ej: Auditorio Principal"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       required
-                      disabled={eventoCreado}
                     />
                   </div>
 
@@ -222,7 +249,6 @@ export default function RegisterAttendance() {
                       onChange={(e) => setFechaInicio(e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       required
-                      disabled={eventoCreado}
                     />
                   </div>
 
@@ -237,7 +263,6 @@ export default function RegisterAttendance() {
                       onChange={(e) => setFechaFin(e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       required
-                      disabled={eventoCreado}
                     />
                   </div>
 
@@ -253,79 +278,19 @@ export default function RegisterAttendance() {
                       rows={3}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                       required
-                      disabled={eventoCreado}
                     />
                   </div>
-
-                  {/* Código QR Generado (solo lectura) */}
-                  {eventoCreado && (
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Código QR Generado
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={codigoQR}
-                          readOnly
-                          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 font-mono"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(codigoQR);
-                            alert("✅ Código QR copiado al portapapeles");
-                          }}
-                          className="px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition"
-                          title="Copiar código"
-                        >
-                          <i className="pi pi-copy"></i>
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
-                {/* Botones */}
+                {/* Botón de creación */}
                 <div className="flex gap-3">
-                  {!eventoCreado ? (
-                    <button
-                      type="submit"
-                      className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition shadow-md"
-                    >
-                      🎫 Crear Evento y Generar QR
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={limpiarFormularioEvento}
-                      className="px-6 py-3 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition"
-                    >
-                      🔄 Crear Nuevo Evento
-                    </button>
-                  )}
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition shadow-md"
+                  >
+                    🎫 Crear Evento
+                  </button>
                 </div>
-
-                {/* Visualización del QR */}
-                {eventoCreado && (
-                  <div className="mt-6 p-6 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg border-2 border-teal-200">
-                    <div className="text-center">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">
-                        📱 Código QR del Evento: {nombreEvento}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        {lugarEvento} | {new Date(fechaInicio).toLocaleDateString("es-ES")}
-                      </p>
-                      <div className="inline-block p-4 bg-white rounded-lg shadow-lg">
-                        <QRCode value={codigoQR} size={200} />
-                      </div>
-                      <p className="mt-4 text-sm text-gray-600">
-                        Escanea este código o usa el código alfanumérico:{" "}
-                        <span className="font-mono font-bold text-teal-700">{codigoQR}</span>
-                      </p>
-                    </div>
-                  </div>
-                )}
               </form>
             </div>
           </main>

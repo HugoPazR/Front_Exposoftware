@@ -1,19 +1,31 @@
-// URL base del backend API
-export const API_BASE_URL = 'http://localhost:8000'; // Ajusta según tu configuración
+// URL base del backend API - Backend desplegado en AWS Lambda
+export const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
 
 // Endpoints de la API
 export const API_ENDPOINTS = {
+  // Autenticación - Login universal para todos los roles
+  LOGIN: `${API_BASE_URL}/api/v1/auth/login`,
+  AUTH_ME: `${API_BASE_URL}/api/v1/auth/me`,
+  AUTH_REFRESH: `${API_BASE_URL}/api/v1/auth/refresh`,
+  AUTH_LOGOUT: `${API_BASE_URL}/api/v1/auth/logout`,
+  
   // Materias
-  MATERIAS: `${API_BASE_URL}/materias`,
-  MATERIA_BY_ID: (id) => `${API_BASE_URL}/materias/${id}`,
+  MATERIAS: `${API_BASE_URL}/api/v1/admin/materias`,
+  MATERIA_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/materias/${id}`,
   
   // Grupos
-  GRUPOS: `${API_BASE_URL}/grupos`,
-  GRUPO_BY_ID: (id) => `${API_BASE_URL}/grupos/${id}`,
+  GRUPOS: `${API_BASE_URL}/api/v1/admin/grupos`,
+  GRUPO_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/grupos/${id}`,
   
-  // Docentes
-  DOCENTES: `${API_BASE_URL}/docentes`,
-  DOCENTE_BY_ID: (id) => `${API_BASE_URL}/docentes/${id}`,
+  // Docentes/Profesores
+  DOCENTES: `${API_BASE_URL}/api/v1/admin/profesores`,
+  PROFESORES: `${API_BASE_URL}/api/v1/admin/profesores`,
+  DOCENTE_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/profesores/${id}`,
+  PROFESOR_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/profesores/${id}`,
+  
+  // Asignaciones Docente-Materia (para asociar grupos con materias)
+  ASIGNACIONES_DOCENTE: `${API_BASE_URL}/api/v1/admin/asignaciones-docentes`,
+  ASIGNACION_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/asignaciones-docentes/${id}`,
   
   // Estudiantes
   ESTUDIANTES: `${API_BASE_URL}/estudiantes`,

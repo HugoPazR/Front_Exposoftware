@@ -1,12 +1,74 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Select from 'react-select';
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import colombiaData from "../../data/colombia.json";
 import countryList from 'react-select-country-list';
+import * as AuthService from "../../Services/AuthService";
 
 export default function AdminProfile() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+
+  // Cargar datos del usuario autenticado al montar el componente
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+      // Inicializar profileData con datos reales del usuario
+      setProfileData({
+        tipoDocumento: user.tipo_documento || "CC",
+        identificacion: user.identificacion || user.documento || "",
+        nombres: user.nombre || user.nombres || "",
+        apellidos: user.apellido || user.apellidos || "",
+        genero: user.genero || "",
+        identidadSexual: user.identidad_sexual || "",
+        fechaNacimiento: user.fecha_nacimiento || "",
+        telefono: user.telefono || "",
+        pais: user.pais || "CO",
+        nacionalidad: user.nacionalidad || "CO",
+        departamentoResidencia: user.departamento_residencia || "",
+        ciudadResidencia: user.ciudad_residencia || "",
+        direccionResidencia: user.direccion_residencia || "",
+        departamento: user.departamento || "",
+        municipio: user.municipio || "",
+        ciudad: user.ciudad || "",
+        correo: user.correo || user.email || "",
+        programa: "N/A",
+        semestre: "N/A",
+        fechaIngreso: user.fecha_ingreso || "",
+        anioIngreso: user.anio_ingreso || "",
+        periodo: user.periodo || "",
+        activo: user.activo !== undefined ? user.activo : true,
+        rol: "Administrador"
+      });
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Usuario';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+      }
+    }
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -15,37 +77,30 @@ export default function AdminProfile() {
     confirmPassword: ""
   });
 
-  // Datos del perfil - Campos editables
+  // Datos del perfil - Se inicializa con datos reales del usuario
   const [profileData, setProfileData] = useState({
-    // Información personal
-    tipoDocumento: "CC",
-    identificacion: "1065874321", // ❌ NO EDITABLE
-    nombres: "Carlos Andrés",
-    apellidos: "Mendoza Pérez",
-    genero: "Masculino",
-    identidadSexual: "Masculino",
-    fechaNacimiento: "1985-06-15",
-    telefono: "3001234567",
-    
-    // Ubicación y residencia
+    tipoDocumento: "",
+    identificacion: "",
+    nombres: "",
+    apellidos: "",
+    genero: "",
+    identidadSexual: "",
+    fechaNacimiento: "",
+    telefono: "",
     pais: "CO",
     nacionalidad: "CO",
-    departamentoResidencia: "Cesar",
-    ciudadResidencia: "Valledupar",
-    direccionResidencia: "Calle 15 # 10-45",
-    departamento: "Cesar",
-    municipio: "Valledupar",
-    ciudad: "Valledupar",
-    
-    // Información institucional
-    correo: "admin@exposoftware.edu", // ❌ NO EDITABLE
-    programa: "N/A", // ❌ NO EDITABLE - Administrador no tiene programa
-    semestre: "N/A", // ❌ NO EDITABLE - Administrador no tiene semestre
-    fechaIngreso: "2020-01-15", // ❌ NO EDITABLE
-    anioIngreso: "2020",
-    periodo: "2020-1",
-    
-    // Estado
+    departamentoResidencia: "",
+    ciudadResidencia: "",
+    direccionResidencia: "",
+    departamento: "",
+    municipio: "",
+    ciudad: "",
+    correo: "",
+    programa: "N/A",
+    semestre: "N/A",
+    fechaIngreso: "",
+    anioIngreso: "",
+    periodo: "",
     activo: true,
     rol: "Administrador"
   });
@@ -172,13 +227,16 @@ export default function AdminProfile() {
             {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos </span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
                 <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">C</span>
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -191,7 +249,7 @@ export default function AdminProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main content: Configuración de Perfil */}
           <main className="lg:col-span-3">

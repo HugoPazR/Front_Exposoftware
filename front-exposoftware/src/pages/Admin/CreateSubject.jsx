@@ -1,9 +1,52 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import { useSubjectManagement, CICLOS_SEMESTRALES } from "./useSubjectManagement";
+import * as AuthService from "../../Services/AuthService";
 
 export default function CreateSubject() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Usuario';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+  
+  // Estado para tabs
+  const [activeTab, setActiveTab] = useState("crear"); // crear | editar
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        console.log('✅ Sesión cerrada exitosamente');
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+        // Aunque falle, redirigir al login
+        navigate('/login');
+      }
+    }
+  };
+
   // Obtener todas las funcionalidades del custom hook
   const {
     // Estados del formulario
@@ -60,13 +103,16 @@ export default function CreateSubject() {
             {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
                 <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">C</span>
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -79,11 +125,38 @@ export default function CreateSubject() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3 space-y-6">
-            {/* Formulario de Crear Materia */}
+            {/* Tabs de navegación */}
+            <div className="bg-white rounded-lg border border-gray-200 p-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab("crear")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "crear"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ➕ Crear Materia
+                </button>
+                <button
+                  onClick={() => setActiveTab("editar")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "editar"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ✏️ Editar Materias
+                </button>
+              </div>
+            </div>
+
+            {/* ========== TAB 1: CREAR MATERIA ========== */}
+            {activeTab === "crear" && (
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               {/* Título y descripción */}
               <div className="mb-8">
@@ -194,32 +267,41 @@ export default function CreateSubject() {
                 </div>
               </form>
             </div>
+            )}
 
-            {/* Lista de Materias */}
+            {/* ========== TAB 2: EDITAR MATERIAS ========== */}
+            {activeTab === "editar" && (
             <div className="bg-white rounded-lg border border-gray-200 p-8">
-              {/* Header de la lista */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Editar Materias
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Busca y edita la información de las materias registradas en el sistema.
+                </p>
+              </div>
+
+              {/* Lista de Materias */}
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                      Lista de Materias
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      Total de materias registradas: <span className="font-semibold text-teal-600">{materias.length}</span>
+                    <h3 className="text-xl font-bold text-gray-900">Materias Registradas</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {materiasFiltradas.length} {materiasFiltradas.length === 1 ? 'materia' : 'materias'} encontradas
                     </p>
                   </div>
-                </div>
 
-                {/* Buscador */}
-                <div className="relative">
-                  <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                  <input
-                    type="text"
-                    placeholder="Buscar materia por nombre o grupo..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
+                  {/* Buscador */}
+                  <div className="relative w-64">
+                    <input
+                      type="text"
+                      placeholder="Buscar materias..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    />
+                    <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                  </div>
                 </div>
               </div>
 
@@ -259,36 +341,40 @@ export default function CreateSubject() {
                       </tr>
                     ) : (
                       materiasFiltradas.map((materia) => (
-                        <tr key={materia.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={materia?.id || Math.random()} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-teal-100 text-teal-800">
-                              {materia.codigo_materia}
+                              {materia?.codigo_materia || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">{materia.nombre_materia}</div>
+                            <div className="text-sm font-medium text-gray-900">{materia?.nombre_materia || 'N/A'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                              {materia.ciclo_semestral}
+                              {materia?.ciclo_semestral || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1">
-                              {materia.grupos_con_docentes.map((grupo, idx) => (
-                                <div key={idx} className="group relative">
-                                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
-                                    Grupo {grupo.codigo_grupo}
-                                  </span>
-                                  {/* Tooltip con nombre del docente */}
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                                    {getDocenteNombre(grupo.id_docente)}
-                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                                      <div className="border-4 border-transparent border-t-gray-900"></div>
+                              {materia?.grupos_con_docentes && Array.isArray(materia.grupos_con_docentes) && materia.grupos_con_docentes.length > 0 ? (
+                                materia.grupos_con_docentes.map((grupo, idx) => (
+                                  <div key={idx} className="group relative">
+                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
+                                      Grupo {grupo?.codigo_grupo || 'N/A'}
+                                    </span>
+                                    {/* Tooltip con nombre del docente */}
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                      {getDocenteNombre(grupo?.id_docente)}
+                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-400 italic">Sin grupos</span>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -318,6 +404,7 @@ export default function CreateSubject() {
                 </table>
               </div>
             </div>
+            )}
           </main>
         </div>
       </div>

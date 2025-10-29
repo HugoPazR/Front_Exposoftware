@@ -31,10 +31,15 @@ export default function EditTeacherModal({
   setTipoDocumento,
   identificacion,
   setIdentificacion,
-  nombres,
-  setNombres,
-  apellidos,
-  setApellidos,
+  // Nombres y apellidos separados
+  primerNombre,
+  setPrimerNombre,
+  segundoNombre,
+  setSegundoNombre,
+  primerApellido,
+  setPrimerApellido,
+  segundoApellido,
+  setSegundoApellido,
   genero,
   setGenero,
   identidadSexual,
@@ -71,7 +76,7 @@ export default function EditTeacherModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200 bg-teal-600">
           <h3 className="text-xl font-bold text-white">Editar Profesor</h3>
         </div>
@@ -80,7 +85,7 @@ export default function EditTeacherModal({
           {/* Información Personal */}
           <div>
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Información Personal</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* Tipo de Documento */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -113,31 +118,65 @@ export default function EditTeacherModal({
                 />
               </div>
 
-              {/* Nombres */}
+              {/* Primer Nombre */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombres
+                  Primer Nombre <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={nombres}
-                  onChange={(e) => setNombres(e.target.value)}
+                  value={primerNombre}
+                  onChange={(e) => setPrimerNombre(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: María"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
 
-              {/* Apellidos */}
+              {/* Segundo Nombre */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellidos
+                  Segundo Nombre
                 </label>
                 <input
                   type="text"
-                  value={apellidos}
-                  onChange={(e) => setApellidos(e.target.value)}
+                  value={segundoNombre}
+                  onChange={(e) => setSegundoNombre(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: José"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* Primer Apellido */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Primer Apellido <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={primerApellido}
+                  onChange={(e) => setPrimerApellido(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: Pérez"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
+                />
+              </div>
+
+              {/* Segundo Apellido */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Segundo Apellido
+                </label>
+                <input
+                  type="text"
+                  value={segundoApellido}
+                  onChange={(e) => setSegundoApellido(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: García"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
@@ -208,7 +247,7 @@ export default function EditTeacherModal({
           {/* Información de Ubicación y Residencia */}
           <div className="border-t pt-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Información de Ubicación y Residencia</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* País - Select dinámico */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -322,7 +361,7 @@ export default function EditTeacherModal({
               </div>
 
               {/* Dirección de Residencia */}
-              <div className="md:col-span-2">
+              <div className="md:col-span-2 lg:col-span-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Dirección de Residencia
                 </label>
@@ -341,7 +380,7 @@ export default function EditTeacherModal({
           {/* Información del Docente */}
           <div className="border-t pt-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Información del Docente</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* Correo */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
