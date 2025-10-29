@@ -40,17 +40,17 @@ export const handleChange = (
     cleanValue = value.replace(/[^\d]/g, "");
   }
 
-  // Alfanumérico en código de programa
-  if (name === "programa" || name === "facultad") {
-    cleanValue = value.replace(/[^a-zA-Z0-9\s-]/g, "");
-  }
 
   if (name === "rol") {
     setrol(cleanValue);
   }
 
   setFormData((prev) => {
-    const updatedForm = { ...prev, [name]: cleanValue };
+    // 🔥 Si cambia la facultad, resetear el programa
+    const updatedForm = name === "facultad" 
+      ? { ...prev, [name]: cleanValue, programa: "" }
+      : { ...prev, [name]: cleanValue };
+    
     const error = validateField(
       name,
       cleanValue,
@@ -59,11 +59,25 @@ export const handleChange = (
     );
 
     // Actualizar errores
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors, [name]: error };
+      // 🔥 Si cambió la facultad, limpiar también el error del programa
+      if (name === "facultad") {
+        newErrors.programa = "";
+      }
+      return newErrors;
+    });
 
     // Marcar campo como exitoso si no hay error y tiene valor
     if (!error && cleanValue.trim() !== "") {
-      setSuccessFields((prev) => ({ ...prev, [name]: true }));
+      setSuccessFields((prev) => {
+        const newSuccess = { ...prev, [name]: true };
+        // 🔥 Si cambió la facultad, resetear el success del programa
+        if (name === "facultad") {
+          newSuccess.programa = false;
+        }
+        return newSuccess;
+      });
     } else {
       setSuccessFields((prev) => ({ ...prev, [name]: false }));
     }

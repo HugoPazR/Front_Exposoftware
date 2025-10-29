@@ -84,15 +84,6 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       }
       break;
 
-    case "programa":
-    case "facultad":
-      if (!/^[a-zA-Z0-9\s-]*$/.test(val)) {
-        error = "Solo se permiten letras, números, espacios y guiones.";
-      } else if (val.trim().length > 0 && val.trim().length < 3) {
-        error = "Debe tener al menos 3 caracteres.";
-      }
-      break;
-
     case "nombreEmpresa":
       if (val.trim().length > 0 && val.trim().length < 3) {
         error = "Debe tener al menos 3 caracteres.";

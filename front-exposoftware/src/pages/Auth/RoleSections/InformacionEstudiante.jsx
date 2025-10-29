@@ -1,5 +1,45 @@
 import { AlertCircle, CheckCircle } from "lucide-react";
 
+const facultadesYProgramas = {
+  "Ciencias Administrativas, Contables y Económicas": [
+    "Administración de Empresas",
+    "Contaduría Pública",
+    "Economía",
+    "Comercio Internacionales",
+    "Administracion de Empresas y Hoteleras"
+  ],
+  "Bellas Artes": [
+    "Licenciatura en Artes",
+    "Música",
+  ],
+  "Derecho, Ciencias Políticas y Sociales": [
+    "Derecho",
+    "Psicologia",
+    "Sociología"
+  ],
+  "Ciencias Básicas": [
+    "Microbiología",
+  ],
+  "Ingeniería y Tecnologías": [
+    "Ingeniería de Sistemas",
+    "Ingeniería Agroindustrial",
+    "Ingeniería Electrónica",
+    "Ingeniería Ambiental y Sanitaria"
+  ],
+  "Ciencias de la Salud": [
+    "Intrumentacion Quirurgica",
+    "Enfermería",
+    "Fisioterapia",
+  ],
+  "Educación": [
+    "Licenciatura en Ciencias Naturales y Educacion Ambiental",
+    "Licenciatura en Matemáticas",
+    "Licenciatura en Literatura y Lengua Castellana",
+    "Licenciatura en Español e Inglés",
+    "Licenciatura en Educacion Fisica, Recreacion y Deporte"
+  ]
+};
+
 function InformacionEstudiante({ formData, errors, handleChange, cargando, successFields, getInputClassName }) {
   return (
     <>
@@ -19,20 +59,25 @@ function InformacionEstudiante({ formData, errors, handleChange, cargando, succe
         {errors.correo && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} />{errors.correo}</p>)}
       </div>
 
-      <div>
+      <div className="col-span-2">
         <label className="block font-medium text-gray-700 mb-1">Facultad *</label>
         <div className="relative">
-          <input
+          <select
             name="facultad"
-            type="text"
-            placeholder="Nombre de la Facultad"
             value={formData.facultad}
             onChange={handleChange}
             disabled={cargando}
             className={getInputClassName("facultad")}
-          />
+          >
+            <option value="">Seleccione una Facultad</option>
+            {Object.keys(facultadesYProgramas).map((facultad) => (
+              <option key={facultad} value={facultad}>
+                {facultad}
+              </option>
+            ))}
+          </select>
           {successFields.facultad && !errors.facultad && (
-            <CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />
+            <CheckCircle className="absolute right-3 top-3 text-green-500 pointer-events-none" size={20} />
           )}
         </div>
         {errors.facultad && (
@@ -45,12 +90,31 @@ function InformacionEstudiante({ formData, errors, handleChange, cargando, succe
       <div>
         <label className="block font-medium text-gray-700 mb-1">Programa *</label>
         <div className="relative">
-          <input name="programa" type="text" placeholder="Código del Programa" value={formData.programa} onChange={handleChange} disabled={cargando}
+          <select
+            name="programa"
+            value={formData.programa}
+            onChange={handleChange}
+            disabled={cargando || !formData.facultad}
             className={getInputClassName("programa")}
-          />
-          {successFields.programa && !errors.programa && (<CheckCircle className="absolute right-3 top-3 text-green-500" size={20} />)}
+          >
+            <option value="">
+              {!formData.facultad ? "Primero seleccione una Facultad" : "Seleccione un Programa"}
+            </option>
+            {formData.facultad && facultadesYProgramas[formData.facultad]?.map((programa) => (
+              <option key={programa} value={programa}>
+                {programa}
+              </option>
+            ))}
+          </select>
+          {successFields.programa && !errors.programa && (
+            <CheckCircle className="absolute right-3 top-3 text-green-500 pointer-events-none" size={20} />
+          )}
         </div>
-        {errors.programa && (<p className="text-red-500 text-sm mt-1 flex items-center gap-1"><AlertCircle size={14} />{errors.programa}</p>)}
+        {errors.programa && (
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <AlertCircle size={14} /> {errors.programa}
+          </p>
+        )}
       </div>
 
       <div>
