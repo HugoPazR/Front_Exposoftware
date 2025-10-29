@@ -10,7 +10,7 @@ export default function About() {
     "https://www.unicesar.edu.co/wp-content/uploads/2025/06/Registro-5._11zon-980x653.webp",
   ];
 
-  // 🔧 Plantilla para renderizar cada imagen
+ 
   const imageTemplate = (image) => {
     return (
       <div className="flex justify-center items-center">
@@ -101,6 +101,18 @@ export default function About() {
           <div className="bg-gray-100 p-6 rounded-lg shadow-md w-60">
             <h3 className="font-semibold text-lg text-green-700">Hugo Paz Rojas</h3>
             <p className="text-gray-600 text-sm">Líder Front-end</p>
+          </div>
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md w-60">
+            <h3 className="font-semibold text-lg text-green-700">Ana Claudia</h3>
+            <p className="text-gray-600 text-sm">Líder Back-end</p>
+          </div>
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md w-60">
+            <h3 className="font-semibold text-lg text-green-700">Luis Mario</h3>
+            <p className="text-gray-600 text-sm">Líder Diccionario de Datos</p>
+          </div>
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md w-60">
+            <h3 className="font-semibold text-lg text-green-700">Valentina Doncel</h3>
+            <p className="text-gray-600 text-sm">Líder Analisis de Datos</p>
           </div>
           <div className="bg-gray-100 p-6 rounded-lg shadow-md w-60">
             <h3 className="font-semibold text-lg text-green-700">Equipo Exposoftware</h3>
