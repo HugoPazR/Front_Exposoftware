@@ -85,7 +85,7 @@ function App() {
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/projects" element={<Proyects />} />
+          {/* <Route path="/projects" element={<Proyects />} /> */}
 
           {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
