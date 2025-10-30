@@ -2,48 +2,39 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/Logo-unicesar.png";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Log para debug
+  console.log('🎯 StudentDashboard - Estado actual:');
+  console.log('   - Loading:', loading);
+  console.log('   - User:', user);
+  console.log('   - FullName:', getFullName());
+  console.log('   - Initials:', getInitials());
+
   // Handler para cerrar sesión
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      console.log('🚪 Iniciando cierre de sesión...');
+      await logout();
+      console.log('✅ Sesión cerrada, redirigiendo...');
+      navigate('/login');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      // Redirigir de todas formas
+      navigate('/login');
+    }
   };
 
-  // Datos para gráfica de barras - Proyectos por Materia
-  const proyectosPorMateria = [
-    { name: "Ing. Software", proyectos: 12 },
-    { name: "Desarrollo Web", proyectos: 8 },
-    { name: "Móvil", proyectos: 6 },
-    { name: "IA", proyectos: 5 },
-    { name: "Redes", proyectos: 4 },
-  ];
-
-  // Datos para gráfica de dona - Estado de Inscripciones
-  const estadoInscripciones = [
-    { name: "Confirmados", value: 28, color: "#16a34a" },
-    { name: "Pendientes", value: 10, color: "#fbbf24" },
-    { name: "En Revisión", value: 4, color: "#1f2937" },
-  ];
-
-  const totalProyectos = estadoInscripciones.reduce((sum, item) => sum + item.value, 0);
-  const COLORS = ["#16a34a", "#fbbf24", "#1f2937"];
+  // TODO: Estos datos vendrán del backend
+  // const proyectosPorMateria = [];
+  // const estadoInscripciones = [];
+  // const totalProyectos = 0;
+  // const misProyectos = 0;
+  // const diasRestantes = 0;
 
   // Colores representativos de la universidad
   const universityColors = [
@@ -200,10 +191,9 @@ export default function StudentDashboard() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Proyectos Inscritos</p>
-                        <h3 className="text-3xl font-bold text-gray-900">{totalProyectos}</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">-</h3>
                         <div className="flex items-center gap-1 mt-2">
-                          <i className="pi pi-arrow-up text-xs" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
-                          <span className="text-xs font-medium" style={{ color: 'rgba(12, 183, 106, 1)' }}>+12% este mes</span>
+                          <span className="text-xs text-gray-500">Próximamente</span>
                         </div>
                       </div>
                       <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
@@ -217,9 +207,9 @@ export default function StudentDashboard() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Mis Proyectos</p>
-                        <h3 className="text-3xl font-bold text-gray-900">3</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">-</h3>
                         <div className="flex items-center gap-1 mt-2">
-                          <span className="text-xs text-gray-500">2 aprobados</span>
+                          <span className="text-xs text-gray-500">Próximamente</span>
                         </div>
                       </div>
                       <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
@@ -233,9 +223,9 @@ export default function StudentDashboard() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Días Restantes</p>
-                        <h3 className="text-3xl font-bold text-gray-900">45</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">-</h3>
                         <div className="flex items-center gap-1 mt-2">
-                          <span className="text-xs text-gray-500">Hasta el cierre</span>
+                          <span className="text-xs text-gray-500">Próximamente</span>
                         </div>
                       </div>
                       <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center">
@@ -245,98 +235,34 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* Charts Row */}
+                {/* Charts Row - Comentado hasta que lleguen datos del backend */}
+                {/* 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  {/* Gráfica Circular - Proyectos por Materia */}
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">
                       Proyectos por Materia
                     </h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                      <Pie
-                        data={proyectosPorMateria}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
-                        paddingAngle={5}
-                        dataKey="proyectos"
-                        nameKey="name"
-                      >
-                        {proyectosPorMateria.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={universityColors[index % universityColors.length]} />
-                        ))}
-                      </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    
-                    {/* Leyenda personalizada */}
-                    <div className="mt-4 space-y-2">
-                      {proyectosPorMateria.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: universityColors[index % universityColors.length] }}
-                            ></div>
-                            <span className="text-gray-700">{item.name}</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">{item.proyectos}</span>
-                        </div>
-                      ))}
+                    <div className="h-64 flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <i className="pi pi-chart-pie text-4xl mb-2"></i>
+                        <p className="text-sm">Datos no disponibles</p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Gráfica de Dona - Estado de Inscripciones */}
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">
                       Estado de Inscripciones
                     </h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={estadoInscripciones}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {estadoInscripciones.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#fff',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    
-                    {/* Leyenda personalizada */}
-                    <div className="mt-4 space-y-2">
-                      {estadoInscripciones.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: item.color }}
-                            ></div>
-                            <span className="text-gray-700">{item.name}</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">{item.value}</span>
-                        </div>
-                      ))}
+                    <div className="h-64 flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <i className="pi pi-chart-pie text-4xl mb-2"></i>
+                        <p className="text-sm">Datos no disponibles</p>
+                      </div>
                     </div>
                   </div>
                 </div>
+                */}
               </>
             )}
 
@@ -390,7 +316,7 @@ export default function StudentDashboard() {
                   <div className="border-t border-gray-100 pt-4 mb-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
                       <i className="pi pi-users" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
-                      Proyectos Registrados: <span className="font-semibold">42</span>
+                      Proyectos Registrados: <span className="font-semibold">-</span>
                     </div>
                   </div>
 

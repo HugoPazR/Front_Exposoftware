@@ -3,46 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/Logo-unicesar.png";
 
-const MOCK_PROJECTS = [
-  {
-    id: 1,
-    title: "Sistema de Gestión de Bibliotecas con IA",
-    participants: ["Cristian Guzman", "Pedro Lopez", "Ana García"],
-    group: "Grupo A / Programación Avanzada",
-    status: "Aprobado",
-    description: "Sistema inteligente para gestión automatizada de bibliotecas universitarias utilizando técnicas de IA para recomendaciones personalizadas y búsqueda avanzada.",
-    subject: "Programación Avanzada",
-    groupName: "Grupo A",
-    professor: "Dr. Pérez",
-    line: "Inteligencia Artificial",
-    subline: "Aprendizaje Automático",
-    area: "Ciencias de la computación",
-    poster: "poster_biblioteca_ia.jpg",
-    slides: "presentacion_biblioteca_ia.pptx",
-  },
-  {
-    id: 2,
-    title: "App Móvil para Gestión de Turnos",
-    participants: ["Cristian Guzman", "Karen Martinez"],
-    group: "Grupo B / Programación Móvil",
-    status: "Aprobado",
-    description: "Aplicación móvil multiplataforma para la gestión eficiente de turnos en diferentes tipos de establecimientos, con sistema de notificaciones en tiempo real.",
-    subject: "Programación Móvil",
-    groupName: "Grupo B",
-    professor: "Ing. Ruiz",
-    line: "Ingeniería de Software",
-    subline: "Metodologías Ágiles",
-    area: "Ingeniería de software",
-    poster: "poster_turnos.jpg",
-    slides: "presentacion_turnos.pptx",
-  },
-];
+// TODO: Los proyectos vendrán del backend
+// const MOCK_PROJECTS = [];
 
 export default function MyProjects() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
+  
+  // TODO: Reemplazar con datos reales del backend
+  const projects = [];
 
   // Handler para cerrar sesión
   const handleLogout = () => {
@@ -193,34 +164,56 @@ export default function MyProjects() {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Mis Proyectos</h2>
             <p className="text-gray-600 mb-6">Aquí puedes gestionar todos los proyectos académicos que has postulado o en los que participas. Revisa su estado, edita los detalles o visualiza la información completa de cada uno.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {MOCK_PROJECTS.map(p => (
-                <div key={p.id} className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{p.title}</h3>
-                  <div className="text-sm text-gray-600 mb-3">
-                    <div className="flex items-center gap-2 mb-1"><i className="pi pi-user"></i><span>{p.participants.join(', ')}</span></div>
-                    <div className="flex items-center gap-2"><i className="pi pi-book"></i><span>{p.group}</span></div>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="px-3 py-1 rounded-full text-sm font-semibold" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>{p.status}</span>
-                    <button 
-                      onClick={() => handleViewDetails(p)}
-                      className="border border-gray-200 px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
-                    >
-                      <i className="pi pi-eye"></i> Ver detalles
-                    </button>
-                  </div>
+            {/* Mensaje cuando no hay proyectos */}
+            {projects.length === 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <i className="pi pi-folder-open text-4xl" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                 </div>
-              ))}
-
-              {/* Postular nuevo proyecto card */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center">
-                <div className="text-4xl text-gray-400 mb-4">+</div>
-                <h4 className="font-semibold text-gray-900 mb-2">Postular Nuevo Proyecto</h4>
-                <p className="text-gray-500 text-sm mb-4 text-center">Haga clic para iniciar una nueva postulación.</p>
-                <Link to="/student/register-project" className="text-white px-4 py-2 rounded-lg" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>Postular</Link>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes proyectos registrados</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Comienza postulando tu primer proyecto para la convocatoria Exposoftware 2025. 
+                  Podrás ver todos tus proyectos aquí y gestionar su información.
+                </p>
+                <Link 
+                  to="/student/register-project" 
+                  className="inline-flex items-center gap-2 text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}
+                >
+                  <i className="pi pi-plus-circle"></i>
+                  Postular Nuevo Proyecto
+                </Link>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {projects.map(p => (
+                  <div key={p.id} className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{p.title}</h3>
+                    <div className="text-sm text-gray-600 mb-3">
+                      <div className="flex items-center gap-2 mb-1"><i className="pi pi-user"></i><span>{p.participants.join(', ')}</span></div>
+                      <div className="flex items-center gap-2"><i className="pi pi-book"></i><span>{p.group}</span></div>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-sm font-semibold" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>{p.status}</span>
+                      <button 
+                        onClick={() => handleViewDetails(p)}
+                        className="border border-gray-200 px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
+                      >
+                        <i className="pi pi-eye"></i> Ver detalles
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Postular nuevo proyecto card */}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center">
+                  <div className="text-4xl text-gray-400 mb-4">+</div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Postular Nuevo Proyecto</h4>
+                  <p className="text-gray-500 text-sm mb-4 text-center">Haga clic para iniciar una nueva postulación.</p>
+                  <Link to="/student/register-project" className="text-white px-4 py-2 rounded-lg" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>Postular</Link>
+                </div>
+              </div>
+            )}
           </main>
         </div>
       </div>

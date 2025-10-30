@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as AuthService from '../Services/AuthService';
+import * as StudentProfileService from '../Services/StudentProfileService';
 
 // Crear el contexto de autenticación
 const AuthContext = createContext(null);
@@ -21,57 +23,51 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Intentar obtener datos del usuario desde localStorage
-        const storedUser = localStorage.getItem('userData');
-        
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-        } else {
-          // Si no hay datos en localStorage, usar datos de prueba
-          // En producción, esto vendría de tu API
-          const mockUser = {
-            id_usuario: 1,
-            identificacion: "1098765432",
-            nombres: "Cristian Ricardo",
-            apellidos: "Guzman Martinez",
-            correo: "crguzman@unicesar.edu.co",
-            telefono: "3001234567",
-            rol: "estudiante", // "estudiante", "docente", "administrador"
-            
-            // Datos específicos para estudiantes
-            id_estudiante: 101,
-            codigo_programa: "12345",
-            semestre: 5,
-            fecha_ingreso: "2022-02-01",
-            anio_ingreso: "2022",
-            periodo: "2022-I",
-            
-            // Datos personales adicionales
-            tipo_documento: "CC",
-            genero: "Masculino",
-            fecha_nacimiento: "2000-05-15",
-            pais: "CO",
-            nacionalidad: "CO",
-            departamento_residencia: "Cesar",
-            ciudad_residencia: "Valledupar",
-            
-            // Avatar/Iniciales
-            avatar: null,
-            iniciales: "CG",
-            
-            // Metadata
-            fecha_creacion: new Date().toISOString(),
-            ultimo_acceso: new Date().toISOString(),
-          };
+        // Verificar si hay sesión activa usando AuthService
+        if (AuthService.isAuthenticated()) {
+          const userData = AuthService.getUserData();
+          const userRole = AuthService.getUserRole();
           
-          setUser(mockUser);
-          // Guardar en localStorage para persistencia
-          localStorage.setItem('userData', JSON.stringify(mockUser));
+          console.log('🔐 Usuario autenticado detectado:');
+          console.log('   - Rol:', userRole);
+          
+          if (userData) {
+            // 🚀 CARGAR DATOS INMEDIATAMENTE desde localStorage
+            console.log('⚡ Cargando datos inmediatamente desde localStorage');
+            setUser(userData);
+            setLoading(false); // ← Liberar el loading INMEDIATAMENTE
+            
+            // Si es estudiante, cargar perfil completo desde el backend en SEGUNDO PLANO
+            if (userRole === 'estudiante') {
+              console.log('📚 Actualizando perfil en segundo plano...');
+              
+              // Esta llamada NO bloquea la UI
+              StudentProfileService.obtenerMiPerfil()
+                .then(resultado => {
+                  if (resultado.success && resultado.data) {
+                    const perfilProcesado = StudentProfileService.procesarDatosPerfil(resultado.data);
+                    setUser(perfilProcesado);
+                    console.log('✅ ¡PERFIL ACTUALIZADO EN SEGUNDO PLANO!');
+                    console.log('   - Nombre completo:', perfilProcesado.nombre_completo);
+                  } else {
+                    console.warn('⚠️ Backend respondió pero sin datos válidos, manteniendo datos de localStorage');
+                  }
+                })
+                .catch(error => {
+                  console.error('❌ Error actualizando perfil en segundo plano:', error.message);
+                  console.log('✅ Manteniendo datos de localStorage (ya mostrados)');
+                });
+            }
+          } else {
+            console.warn('⚠️ No hay datos de usuario en localStorage');
+            setLoading(false);
+          }
+        } else {
+          console.log('🔓 No hay sesión activa');
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Error cargando datos del usuario:', error);
-      } finally {
+        console.error('❌ Error crítico cargando datos del usuario:', error);
         setLoading(false);
       }
     };
@@ -84,49 +80,46 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      //  la llamada a la API
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(credentials)
-      // });
-      // const userData = await response.json();
+      // Usar AuthService para hacer login
+      const resultado = await AuthService.login(credentials);
       
-      // Por ahora, usar datos de prueba
-      const userData = {
-        id_usuario: 1,
-        identificacion: credentials.identificacion || "1098765432",
-        nombres: "Cristian Ricardo",
-        apellidos: "Guzman Martinez",
-        correo: credentials.correo || "crguzman@unicesar.edu.co",
-        telefono: "3001234567",
-        rol: "estudiante",
-        id_estudiante: 101,
-        codigo_programa: "12345",
-        semestre: 5,
-        fecha_ingreso: "2022-02-01",
-        anio_ingreso: "2022",
-        periodo: "2022-I",
-        tipo_documento: "CC",
-        genero: "Masculino",
-        fecha_nacimiento: "2000-05-15",
-        pais: "CO",
-        nacionalidad: "CO",
-        departamento_residencia: "Cesar",
-        ciudad_residencia: "Valledupar",
-        avatar: null,
-        iniciales: "CG",
-        fecha_creacion: new Date().toISOString(),
-        ultimo_acceso: new Date().toISOString(),
-      };
-
-      setUser(userData);
-      localStorage.setItem('userData', JSON.stringify(userData));
-      localStorage.setItem('authToken', 'mock-token-12345'); // Token de autenticación
+      if (resultado.success && resultado.data) {
+        const userRole = AuthService.getUserRole();
+        
+        // 🚀 CARGAR DATOS INMEDIATAMENTE desde el login
+        console.log('⚡ Cargando datos inmediatamente tras login');
+        setUser(resultado.data);
+        
+        // Si es estudiante, cargar perfil completo en SEGUNDO PLANO
+        if (userRole === 'estudiante') {
+          console.log('📚 Actualizando perfil completo en segundo plano tras login...');
+          
+          // Esta llamada NO bloquea la UI
+          StudentProfileService.obtenerMiPerfil()
+            .then(perfilResultado => {
+              if (perfilResultado.success && perfilResultado.data) {
+                const perfilProcesado = StudentProfileService.procesarDatosPerfil(perfilResultado.data);
+                setUser(perfilProcesado);
+                // Guardar en localStorage para próximas cargas
+                localStorage.setItem('user_data', JSON.stringify(perfilProcesado));
+                console.log('✅ Perfil completo actualizado y guardado tras login');
+              }
+            })
+            .catch(error => {
+              console.error('❌ Error al cargar perfil tras login:', error.message);
+              console.log('✅ Manteniendo datos básicos del login');
+            });
+          
+          return { success: true, user: resultado.data };
+        } else {
+          // Para otros roles, usar datos del login
+          return { success: true, user: resultado.data };
+        }
+      }
       
-      return { success: true, user: userData };
+      return { success: false, error: 'Error en el login' };
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('❌ Error en login:', error);
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -134,38 +127,94 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Función para hacer logout
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('userData');
-    localStorage.removeItem('authToken');
+  const logout = async () => {
+    try {
+      console.log('🚪 Cerrando sesión desde AuthContext...');
+      // Llamar al servicio de logout que cierra sesión en el backend
+      await AuthService.logout();
+      setUser(null);
+      console.log('✅ Sesión cerrada correctamente');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      // Limpiar de todas formas aunque falle el backend
+      setUser(null);
+      localStorage.clear();
+    }
   };
 
   // Función para actualizar datos del usuario
   const updateUser = (newData) => {
     const updatedUser = { ...user, ...newData };
     setUser(updatedUser);
-    localStorage.setItem('userData', JSON.stringify(updatedUser));
+    // Actualizar también en localStorage usando las claves correctas del AuthService
+    localStorage.setItem('user_data', JSON.stringify(updatedUser));
+  };
+
+  // Función para recargar el perfil del usuario (útil después de actualizar datos)
+  const reloadUserProfile = async () => {
+    try {
+      console.log('🔄 Recargando perfil del usuario...');
+      setLoading(true);
+      
+      const userRole = AuthService.getUserRole();
+      
+      if (userRole === 'estudiante') {
+        const resultado = await StudentProfileService.obtenerMiPerfil();
+        if (resultado.success && resultado.data) {
+          const perfilProcesado = StudentProfileService.procesarDatosPerfil(resultado.data);
+          setUser(perfilProcesado);
+          console.log('✅ Perfil recargado exitosamente:', perfilProcesado);
+          return { success: true, data: perfilProcesado };
+        }
+      }
+      
+      return { success: false, error: 'No se pudo recargar el perfil' };
+    } catch (error) {
+      console.error('❌ Error al recargar perfil:', error);
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Función para obtener el token de autenticación
   const getAuthToken = () => {
-    return localStorage.getItem('authToken');
+    return AuthService.getToken();
   };
 
   // Verificar si el usuario tiene un rol específico
   const hasRole = (role) => {
-    return user?.rol === role;
+    const userRole = AuthService.getUserRole();
+    return userRole === role;
   };
 
   // Verificar si el usuario está autenticado
   const isAuthenticated = () => {
-    return user !== null && getAuthToken() !== null;
+    return AuthService.isAuthenticated();
   };
 
   // Obtener nombre completo del usuario
   const getFullName = () => {
     if (!user) return '';
-    return `${user.nombres} ${user.apellidos}`.trim();
+    
+    // Si tiene nombres y apellidos del backend, usarlos
+    if (user.nombres && user.apellidos) {
+      return `${user.nombres} ${user.apellidos}`.trim();
+    }
+    
+    // Si tiene nombre_completo, usarlo
+    if (user.nombre_completo) {
+      return user.nombre_completo;
+    }
+    
+    // Fallback: buscar en el token de Firebase (podría tener displayName)
+    const storedUser = AuthService.getUserData();
+    if (storedUser?.name) {
+      return storedUser.name;
+    }
+    
+    // Último recurso: usar el correo
+    return user.correo || '';
   };
 
   // Obtener iniciales del usuario
@@ -173,9 +222,42 @@ export const AuthProvider = ({ children }) => {
     if (user?.iniciales) return user.iniciales;
     if (!user) return '';
     
-    const nombres = user.nombres?.split(' ')[0] || '';
-    const apellidos = user.apellidos?.split(' ')[0] || '';
-    return `${nombres.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
+    // Si tiene nombres y apellidos del backend
+    if (user.nombres && user.apellidos) {
+      const nombres = user.nombres?.split(' ')[0] || '';
+      const apellidos = user.apellidos?.split(' ')[0] || '';
+      return `${nombres.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
+    }
+    
+    // Si tiene nombre_completo, extraer iniciales
+    if (user.nombre_completo) {
+      const partes = user.nombre_completo.split(' ').filter(p => p.length > 0);
+      if (partes.length >= 2) {
+        return `${partes[0].charAt(0)}${partes[partes.length - 1].charAt(0)}`.toUpperCase();
+      }
+      if (partes.length === 1) {
+        return partes[0].substring(0, 2).toUpperCase();
+      }
+    }
+    
+    // Fallback: buscar en el token de Firebase
+    const storedUser = AuthService.getUserData();
+    if (storedUser?.name) {
+      const partes = storedUser.name.split(' ').filter(p => p.length > 0);
+      if (partes.length >= 2) {
+        return `${partes[0].charAt(0)}${partes[partes.length - 1].charAt(0)}`.toUpperCase();
+      }
+      if (partes.length === 1) {
+        return partes[0].substring(0, 2).toUpperCase();
+      }
+    }
+    
+    // Último recurso: usar las primeras 2 letras del correo
+    if (user.correo) {
+      return user.correo.substring(0, 2).toUpperCase();
+    }
+    
+    return '';
   };
 
   const value = {
@@ -184,6 +266,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateUser,
+    reloadUserProfile,
     getAuthToken,
     hasRole,
     isAuthenticated,

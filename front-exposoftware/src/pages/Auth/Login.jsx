@@ -83,7 +83,20 @@ function LoginPage() {
       }
     } catch (error) {
       console.error('❌ Error en login:', error);
-      setError(error.message || "Error al iniciar sesión. Verifique sus credenciales.");
+      
+      // Mostrar mensaje más específico según el tipo de error
+      let mensajeError = error.message || "Error al iniciar sesión. Verifique sus credenciales.";
+      
+      if (error.message.includes('servidor no está disponible') || 
+          error.message.includes('502') || 
+          error.message.includes('503') ||
+          error.message.includes('Bad Gateway')) {
+        mensajeError = "⚠️ El servidor está temporalmente fuera de servicio. Por favor, intenta más tarde.";
+      } else if (error.message.includes('No se puede conectar')) {
+        mensajeError = "🌐 No hay conexión con el servidor. Verifica tu conexión a internet.";
+      }
+      
+      setError(mensajeError);
     } finally {
       setLoading(false);
     }
@@ -134,8 +147,24 @@ function LoginPage() {
             
             {/* Mostrar error si existe */}
             {error && (
-              <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                <strong>Error:</strong> {error}
+              <div className={`mt-4 border px-4 py-3 rounded-lg text-sm ${
+                error.includes('servidor') || error.includes('502') || error.includes('503')
+                  ? 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                  : 'bg-red-50 border-red-200 text-red-700'
+              }`}>
+                <div className="flex items-start gap-2">
+                  {error.includes('servidor') || error.includes('502') || error.includes('503') ? (
+                    <span className="text-xl">⚠️</span>
+                  ) : error.includes('conexión') ? (
+                    <span className="text-xl">🌐</span>
+                  ) : (
+                    <span className="text-xl">❌</span>
+                  )}
+                  <div>
+                    <p className="font-semibold">{error.includes('servidor') ? 'Servidor no disponible' : 'Error'}</p>
+                    <p>{error}</p>
+                  </div>
+                </div>
               </div>
             )}
           </header>

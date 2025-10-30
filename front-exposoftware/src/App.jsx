@@ -5,9 +5,9 @@ import Home from "./pages/Home/Home";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import StudentDashboard from "./pages/Student/Dashboard";
-import StudentProjects from "./pages/Teacher/StudentProjects";
-import TeacherProfile from "./pages/Teacher/Dashboard";
-import TeacherDashboard from "./pages/Teacher/Profile";
+import Studentprojects from "./pages/Teacher/Studentprojects";
+import TeacherDashboard from "./pages/Teacher/Dashboard";
+import TeacherProfile from "./pages/Teacher/Profile";
 import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
@@ -69,16 +69,16 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/projects" element={<Proyects />} />
 
-          {/* Estudiantes */}
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student/proyectos" element={<MyProjects />} />
-          <Route path="/student/profile" element={<Profile />} />
-          <Route path="/student/register-project" element={<RegisterProject />} />
+          {/* ✅ Estudiantes - RUTAS PROTEGIDAS */}
+          <Route path="/student/dashboard" element={<EstudianteRoute><StudentDashboard /></EstudianteRoute>} />
+          <Route path="/student/proyectos" element={<EstudianteRoute><MyProjects /></EstudianteRoute>} />
+          <Route path="/student/profile" element={<EstudianteRoute><Profile /></EstudianteRoute>} />
+          <Route path="/student/register-project" element={<EstudianteRoute><RegisterProject /></EstudianteRoute>} />
 
-          {/* Profesores */}
-          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-          <Route path="/teacher/proyectos" element={<StudentProjects />} />
-          <Route path="/teacher/profile" element={<TeacherProfile />} />
+          {/* ✅ Profesores - RUTAS PROTEGIDAS */}
+          <Route path="/teacher/dashboard" element={<DocenteRoute><TeacherDashboard /></DocenteRoute>} />
+          <Route path="/teacher/proyectos" element={<DocenteRoute><Studentprojects /></DocenteRoute>} />
+          <Route path="/teacher/profile" element={<DocenteRoute><TeacherProfile /></DocenteRoute>} />
 
           {/* ✅ Administrador - RUTAS PROTEGIDAS */}
           <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

@@ -95,6 +95,18 @@ export default function CreateGroup() {
       console.log('🔄 Iniciando carga de profesores...');
       const data = await obtenerProfesores();
       console.log('✅ Profesores cargados exitosamente:', data);
+      
+      // 🔍 DEBUG: Ver estructura del primer profesor
+      if (data && data.length > 0) {
+        console.log('🔍 ESTRUCTURA DEL PRIMER PROFESOR:', data[0]);
+        console.log('🔍 CLAVES DISPONIBLES:', Object.keys(data[0]));
+        console.log('🔍 ID del profesor:', data[0].id);
+        console.log('🔍 ¿Tiene usuario anidado?', data[0].usuario ? 'SÍ' : 'NO');
+        if (data[0].usuario) {
+          console.log('🔍 Claves de usuario:', Object.keys(data[0].usuario));
+        }
+      }
+      
       setProfesores(data);
     } catch (error) {
       console.error('❌ Error al cargar profesores:', error);
@@ -108,10 +120,33 @@ export default function CreateGroup() {
     e.preventDefault();
 
     console.log('📝 Iniciando creación de grupo...');
-    console.log('📋 Datos del formulario:', {
-      codigo_grupo: codigoGrupo,
-      id_docente: idDocente
-    });
+    console.log('📋 Valores del formulario:');
+    console.log('   - codigo_grupo:', codigoGrupo, typeof codigoGrupo);
+    console.log('   - id_docente:', idDocente, typeof idDocente);
+    
+    // 🔍 DEBUG: Buscar el profesor seleccionado en el array
+    const profesorSeleccionado = profesores.find(p => 
+      p?.id_docente === idDocente 
+      || p?.id === idDocente 
+      || p?.identificacion === idDocente
+    );
+    console.log('🔍 Profesor seleccionado del array:', profesorSeleccionado);
+    
+    if (profesorSeleccionado) {
+      console.log('✅ Profesor encontrado:');
+      console.log('   - id_docente:', profesorSeleccionado.id_docente);
+      console.log('   - categoria_docente:', profesorSeleccionado.categoria_docente);
+      console.log('   - Objeto completo:', profesorSeleccionado);
+    } else {
+      console.warn('⚠️ No se encontró el profesor en el array con ID:', idDocente);
+    }
+    
+    // Validar que se haya seleccionado un profesor válido
+    if (!idDocente || idDocente === '' || idDocente.startsWith('temp_')) {
+      alert('❌ Error: Debe seleccionar un profesor válido');
+      console.error('❌ ID de docente inválido:', idDocente);
+      return;
+    }
 
     try {
       const resultado = await crearGrupo(codigoGrupo, idDocente);
@@ -305,23 +340,63 @@ export default function CreateGroup() {
                   <select
                     id="idDocente"
                     value={idDocente}
-                    onChange={(e) => setIdDocente(e.target.value)}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      console.log('🔄 Profesor seleccionado - ID:', selectedId);
+                      setIdDocente(selectedId);
+                    }}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                     required
                   >
                     <option value="">Selecciona un profesor</option>
-                    {Array.isArray(profesores) && profesores.map((profesor) => {
-                      // El profesor puede tener la estructura con usuario anidado
-                      const nombre = profesor?.usuario?.primer_nombre 
-                        ? `${profesor.usuario.primer_nombre} ${profesor.usuario.segundo_nombre || ''} ${profesor.usuario.primer_apellido} ${profesor.usuario.segundo_apellido || ''}`.trim()
-                        : profesor?.nombre || 'Sin nombre';
-                      
-                      return (
-                        <option key={profesor.id} value={profesor.id}>
-                          {nombre}
-                        </option>
-                      );
-                    })}
+                    {Array.isArray(profesores) && profesores.length > 0 ? (
+                      profesores.map((profesor, index) => {
+
+                        const profesorId = profesor?.id_docente || profesor?.id || profesor?.identificacion || `temp_${index}`;
+                        
+                        // 🔍 Construir nombre del profesor
+                        const primerNombre = profesor?.usuario?.primer_nombre || profesor?.primer_nombre || '';
+                        const segundoNombre = profesor?.usuario?.segundo_nombre || profesor?.segundo_nombre || '';
+                        const primerApellido = profesor?.usuario?.primer_apellido || profesor?.primer_apellido || '';
+                        const segundoApellido = profesor?.usuario?.segundo_apellido || profesor?.segundo_apellido || '';
+                        
+                        const nombreCompleto = `${primerNombre} ${segundoNombre} ${primerApellido} ${segundoApellido}`.replace(/\s+/g, ' ').trim();
+                        
+                        // Fallback si no hay datos de nombre
+                        const correo = profesor?.usuario?.correo || profesor?.correo || '';
+                        const nombre = nombreCompleto || correo?.split('@')[0] || `Profesor ${profesorId}`;
+                        
+                        // Información adicional
+                        const categoria = profesor?.categoria_docente || '';
+                        const codigoPrograma = profesor?.codigo_programa || '';
+                        
+                        let displayText = nombre;
+                        if (categoria) {
+                          displayText += ` - ${categoria}`;
+                        }
+                        if (codigoPrograma) {
+                          displayText += ` (${codigoPrograma})`;
+                        }
+                        
+                        // 🔍 DEBUG en consola para el primer profesor
+                        if (index === 0) {
+                          console.log('🔍 Primer profesor en dropdown:');
+                          console.log('   - profesor.id_docente:', profesor?.id_docente);
+                          console.log('   - ID FINAL usado:', profesorId);
+                          console.log('   - Nombre:', nombre);
+                          console.log('   - Display:', displayText);
+                          console.log('   - Objeto completo:', profesor);
+                        }
+                        
+                        return (
+                          <option key={`prof_${index}_${profesorId}`} value={profesorId}>
+                            {displayText}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option value="" disabled>No hay profesores disponibles</option>
+                    )}
                   </select>
                   <p className="mt-1 text-xs text-gray-500">Profesor responsable del grupo</p>
                 </div>
@@ -523,11 +598,25 @@ export default function CreateGroup() {
                   required
                 >
                   <option value="">Seleccionar profesor</option>
-                  {profesores.map((profesor) => (
-                    <option key={profesor.id} value={profesor.id}>
-                      {profesor.nombre} - {profesor.departamento}
-                    </option>
-                  ))}
+                  {profesores.map((profesor) => {
+                    // Manejar ambas estructuras de respuesta del backend
+                    const primerNombre = profesor?.usuario?.primer_nombre || profesor?.primer_nombre || '';
+                    const segundoNombre = profesor?.usuario?.segundo_nombre || profesor?.segundo_nombre || '';
+                    const primerApellido = profesor?.usuario?.primer_apellido || profesor?.primer_apellido || '';
+                    const segundoApellido = profesor?.usuario?.segundo_apellido || profesor?.segundo_apellido || '';
+                    
+                    const nombreCompleto = `${primerNombre} ${segundoNombre} ${primerApellido} ${segundoApellido}`.replace(/\s+/g, ' ').trim();
+                    const nombre = nombreCompleto || profesor?.nombre || `Profesor ${profesor?.identificacion || profesor?.id}`;
+                    
+                    const categoriaDocente = profesor?.categoria_docente || profesor?.departamento || '';
+                    const displayText = categoriaDocente ? `${nombre} - ${categoriaDocente}` : nombre;
+                    
+                    return (
+                      <option key={profesor.id} value={profesor.id}>
+                        {displayText}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

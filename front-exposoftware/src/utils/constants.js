@@ -9,6 +9,13 @@ export const API_ENDPOINTS = {
   AUTH_REFRESH: `${API_BASE_URL}/api/v1/auth/refresh`,
   AUTH_LOGOUT: `${API_BASE_URL}/api/v1/auth/logout`,
   
+  // Registro público
+  REGISTRO_ESTUDIANTE: `${API_BASE_URL}/api/v1/estudiantes/registro`,
+  
+  // Usuarios
+  USUARIOS: `${API_BASE_URL}/api/v1/usuarios`,
+  USUARIO_BY_ID: (id) => `${API_BASE_URL}/api/v1/usuarios/${id}`,
+  
   // Materias
   MATERIAS: `${API_BASE_URL}/api/v1/admin/materias`,
   MATERIA_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/materias/${id}`,
@@ -30,6 +37,7 @@ export const API_ENDPOINTS = {
   // Estudiantes
   ESTUDIANTES: `${API_BASE_URL}/estudiantes`,
   ESTUDIANTE_BY_ID: (id) => `${API_BASE_URL}/estudiantes/${id}`,
+  MI_PERFIL_ESTUDIANTE: `${API_BASE_URL}/api/v1/estudiantes/mi-perfil`,
   
   // Proyectos
   PROYECTOS: `${API_BASE_URL}/proyectos`,

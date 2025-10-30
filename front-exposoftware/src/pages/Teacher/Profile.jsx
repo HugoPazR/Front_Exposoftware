@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import countryList from 'react-select-country-list';
 import colombiaData from "../../data/colombia.json";
 import logo from "../../assets/Logo-unicesar.png";
 import ProfileForm from "./ProfileForm";
 
 export default function TeacherProfile() {
+  const { user, getFullName, getInitials, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -166,6 +169,17 @@ export default function TeacherProfile() {
     handleClosePasswordModal();
   };
 
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 Cerrando sesión del docente...");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("❌ Error al cerrar sesión:", error);
+      alert("❌ Error al cerrar sesión");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - mismo que dashboard */}
@@ -186,16 +200,19 @@ export default function TeacherProfile() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                   <span className="text-emerald-600 font-bold text-lg">
-                    {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
+                    {getInitials()}
                   </span>
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">{profileData.nombres} {profileData.apellidos}</p>
-                  <p className="text-xs text-gray-500">{profileData.rol}</p>
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500">Docente</p>
                 </div>
               </div>
                 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -239,11 +256,11 @@ export default function TeacherProfile() {
               <div className="text-center">
                 <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-emerald-600 font-bold text-2xl">
-                    {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
+                    {getInitials()}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900">{profileData.nombres} {profileData.apellidos}</h3>
-                <p className="text-sm text-gray-500">{profileData.rol}</p>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500">Docente</p>
                 <p className="text-xs text-gray-400 mt-1">Categoría: {profileData.categoria_docente}</p>
               </div>
             </div>

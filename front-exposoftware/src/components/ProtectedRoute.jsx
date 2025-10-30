@@ -9,6 +9,11 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
   const isAuthenticated = AuthService.isAuthenticated();
   const userRole = AuthService.getUserRole();
 
+  console.log('🔐 ProtectedRoute - Verificando acceso:');
+  console.log('   - Autenticado:', isAuthenticated);
+  console.log('   - Rol actual:', userRole);
+  console.log('   - Rol requerido:', requiredRole);
+
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {
     console.log('❌ Usuario no autenticado - Redirigiendo a login');
@@ -32,6 +37,7 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
     }
   }
 
+  console.log('✅ Acceso permitido');
   // Usuario autenticado y con el rol correcto
   return children;
 };

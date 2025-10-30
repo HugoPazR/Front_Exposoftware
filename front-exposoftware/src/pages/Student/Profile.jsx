@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import * as StudentProfileService from "../../Services/StudentProfileService";
 import countryList from 'react-select-country-list';
 import logo from "../../assets/Logo-unicesar.png";
 import colombiaData from "../../data/colombia.json";
 import StudentProfileForm from "./StudentProfileForm";
 
 export default function Profile() {
+  const { user, getFullName, getInitials, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -14,35 +19,35 @@ export default function Profile() {
     confirmPassword: ""
   });
 
-  // Datos del perfil del estudiante - Campos editables
+  // Datos del perfil del estudiante - Inicializados desde el contexto
   const [profileData, setProfileData] = useState({
     // Información personal (heredada de Usuarios)
-    tipoDocumento: "CC",
-    identificacion: "1098765432", // ❌ NO EDITABLE
-    nombres: "Cristian David",
-    apellidos: "Guzmán Torres",
-    genero: "Masculino",
-    identidadSexual: "Masculino",
-    fechaNacimiento: "2003-03-22",
-    telefono: "3201234567",
+    tipoDocumento: "",
+    identificacion: "",
+    nombres: "",
+    apellidos: "",
+    genero: "",
+    identidadSexual: "",
+    fechaNacimiento: "",
+    telefono: "",
     
     // Ubicación y residencia
-    pais: "CO",
-    nacionalidad: "CO",
-    departamentoResidencia: "Cesar",
-    ciudadResidencia: "Valledupar",
-    direccionResidencia: "Calle 20 # 15-30 Barrio Centro",
-    departamento: "Cesar",
-    municipio: "Valledupar",
-    ciudad: "Valledupar",
+    pais: "",
+    nacionalidad: "",
+    departamentoResidencia: "",
+    ciudadResidencia: "",
+    direccionResidencia: "",
+    departamento: "",
+    municipio: "",
+    ciudad: "",
     
     // Información académica
-    correo: "crguzman@unicesar.edu.co", // ❌ NO EDITABLE
-    codigoPrograma: "12345", // ❌ NO EDITABLE - Programa del estudiante
-    semestre: 5, // ❌ NO EDITABLE - Semestre actual
-    fechaIngreso: "2022-02-01", // ❌ NO EDITABLE
-    anioIngreso: "2022",
-    periodo: "2022-1",
+    correo: "",
+    codigoPrograma: "",
+    semestre: 0,
+    fechaIngreso: "",
+    anioIngreso: "",
+    periodo: "",
     
     // Estado
     rol: "Estudiante"
@@ -52,6 +57,60 @@ export default function Profile() {
   const [opcionesPaises, setOpcionesPaises] = useState([]);
   const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+
+  // Cargar datos del usuario desde el contexto al montar el componente
+  useEffect(() => {
+    if (user) {
+      console.log('📋 Cargando datos del usuario en el perfil:', user);
+      
+      // Extraer datos del usuario (puede venir directo o dentro de user.usuario)
+      const datosUsuario = user.usuario || user;
+      
+      // Si no tiene nombres/apellidos separados pero sí tiene nombre_completo, dividirlo
+      let nombres = datosUsuario.nombres || user.nombres || "";
+      let apellidos = datosUsuario.apellidos || user.apellidos || "";
+      
+      if (!nombres && !apellidos && (datosUsuario.nombre_completo || user.nombre_completo || user.name)) {
+        const nombreCompleto = datosUsuario.nombre_completo || user.nombre_completo || user.name || "";
+        const partes = nombreCompleto.trim().split(" ");
+        
+        // Asumir que las primeras 2 palabras son nombres y el resto apellidos
+        if (partes.length >= 2) {
+          nombres = partes.slice(0, 2).join(" ");
+          apellidos = partes.slice(2).join(" ");
+        } else if (partes.length === 1) {
+          nombres = partes[0];
+        }
+        
+        console.log('📝 Nombre dividido:', { nombres, apellidos });
+      }
+      
+      setProfileData({
+        tipoDocumento: datosUsuario.tipo_documento || user.tipo_documento || "",
+        identificacion: datosUsuario.identificacion || user.identificacion || user.id_usuario || "",
+        nombres: nombres,
+        apellidos: apellidos,
+        genero: datosUsuario.genero || datosUsuario.sexo || user.sexo || user.genero || "",
+        identidadSexual: datosUsuario.identidad_sexual || user.identidad_sexual || "",
+        fechaNacimiento: datosUsuario.fecha_nacimiento || user.fecha_nacimiento || "",
+        telefono: datosUsuario.telefono || user.telefono || "",
+        pais: datosUsuario.pais_residencia || user.pais_residencia || "CO",
+        nacionalidad: datosUsuario.nacionalidad || user.nacionalidad || "CO",
+        departamentoResidencia: datosUsuario.departamento || user.departamento || "",
+        ciudadResidencia: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
+        direccionResidencia: datosUsuario.direccion_residencia || user.direccion_residencia || "",
+        departamento: datosUsuario.departamento || user.departamento || "",
+        municipio: datosUsuario.municipio || user.municipio || "",
+        ciudad: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
+        correo: datosUsuario.correo || user.correo || "",
+        codigoPrograma: user.codigo_programa || "",
+        semestre: user.semestre || 0,
+        anioIngreso: user.anio_ingreso || "",
+        periodo: user.periodo || "",
+        rol: datosUsuario.rol || user.rol || "Estudiante"
+      });
+    }
+  }, [user]);
 
   // Inicializar opciones de países
   useEffect(() => {
@@ -87,16 +146,54 @@ export default function Profile() {
     setIsEditing(false);
   };
 
-  const handleSave = () => {
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 Cerrando sesión del estudiante...");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("❌ Error al cerrar sesión:", error);
+      alert("❌ Error al cerrar sesión");
+    }
+  };
+
+  const handleSave = async () => {
     // Validaciones básicas
     if (!profileData.nombres || !profileData.apellidos || !profileData.telefono) {
       alert("Por favor completa los campos obligatorios");
       return;
     }
 
-    console.log("📤 Datos del estudiante a guardar:", profileData);
-    setIsEditing(false);
-    alert("✅ Cambios guardados exitosamente");
+    setLoading(true);
+    
+    try {
+      console.log("📤 Actualizando perfil del estudiante...");
+      
+      // Preparar datos para enviar al backend (solo campos editables)
+      const datosActualizar = {
+        codigo_programa: profileData.codigoPrograma
+      };
+
+      const resultado = await StudentProfileService.actualizarMiPerfil(datosActualizar);
+      
+      if (resultado.success) {
+        console.log("✅ Perfil actualizado exitosamente");
+        
+        // Actualizar el contexto con los nuevos datos
+        if (resultado.data) {
+          const perfilProcesado = StudentProfileService.procesarDatosPerfil(resultado.data);
+          updateUser(perfilProcesado);
+        }
+        
+        setIsEditing(false);
+        alert("✅ Cambios guardados exitosamente");
+      }
+    } catch (error) {
+      console.error("❌ Error al guardar perfil:", error);
+      alert("❌ Error al guardar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -173,11 +270,18 @@ export default function Profile() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">CG</span>
+                  <span className="text-teal-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500">Estudiante</p>
                 </div>
               </div>
 
-                 <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>

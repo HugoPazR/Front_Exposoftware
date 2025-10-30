@@ -202,37 +202,20 @@ export default function CreateLines() {
 
                 {/* Formulario Línea */}
                 <form onSubmit={handleSubmitLinea} className="space-y-6 max-w-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="codigoLinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Código de Línea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="codigoLinea"
-                        value={codigoLinea}
-                        onChange={(e) => setCodigoLinea(e.target.value)}
-                        placeholder="Ej: LI-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="nombreLinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre de la Línea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="nombreLinea"
-                        value={nombreLinea}
-                        onChange={(e) => setNombreLinea(e.target.value)}
-                        placeholder="Ej: Inteligencia Artificial"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="nombreLinea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre de la Línea de Investigación <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nombreLinea"
+                      value={nombreLinea}
+                      onChange={(e) => setNombreLinea(e.target.value)}
+                      placeholder="Ej: Inteligencia Artificial"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
                   </div>
 
                   <div className="pt-4">
@@ -370,37 +353,20 @@ export default function CreateLines() {
                     <p className="mt-1 text-xs text-gray-500">La línea principal a la que pertenece esta sublínea</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="codigoSublinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Código de Sublínea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="codigoSublinea"
-                        value={codigoSublinea}
-                        onChange={(e) => setCodigoSublinea(e.target.value)}
-                        placeholder="Ej: SL-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="nombreSublinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre de la Sublínea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="nombreSublinea"
-                        value={nombreSublinea}
-                        onChange={(e) => setNombreSublinea(e.target.value)}
-                        placeholder="Ej: Deep Learning"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="nombreSublinea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre de la Sublínea <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nombreSublinea"
+                      value={nombreSublinea}
+                      onChange={(e) => setNombreSublinea(e.target.value)}
+                      placeholder="Ej: Deep Learning"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
                   </div>
 
                   <div className="pt-4">
@@ -546,37 +512,20 @@ export default function CreateLines() {
                     <p className="mt-1 text-xs text-gray-500">La sublínea a la que pertenece esta área</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="codigoArea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Código de Área <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="codigoArea"
-                        value={codigoArea}
-                        onChange={(e) => setCodigoArea(e.target.value)}
-                        placeholder="Ej: AT-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="nombreArea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre del Área Temática <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="nombreArea"
-                        value={nombreArea}
-                        onChange={(e) => setNombreArea(e.target.value)}
-                        placeholder="Ej: Redes Neuronales"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="nombreArea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre del Área Temática <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nombreArea"
+                      value={nombreArea}
+                      onChange={(e) => setNombreArea(e.target.value)}
+                      placeholder="Ej: Redes Neuronales"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
                   </div>
 
                   <div className="pt-4">
