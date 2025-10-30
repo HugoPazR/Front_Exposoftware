@@ -47,6 +47,11 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Registro de Asistencia"
     },
     {
+      to: "/admin/registrar-eventos",
+      icon: "pi-check-circle",
+      label: "Registrar Eventos"
+    },
+    {
       to: "/admin/profile",
       icon: "pi-cog",
       label: "Configuración de Perfil"
@@ -64,7 +69,7 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
               to={item.to}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive(item.to)
-                  ? "bg-green-50 text-green-700"
+                  ? "bg-teal-50 text-green-700"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
             >

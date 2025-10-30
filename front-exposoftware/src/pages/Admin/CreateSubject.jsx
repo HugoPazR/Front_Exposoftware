@@ -1,9 +1,52 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import { useSubjectManagement, CICLOS_SEMESTRALES } from "./useSubjectManagement";
+import * as AuthService from "../../Services/AuthService";
 
 export default function CreateSubject() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Usuario';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+  
+  // Estado para tabs
+  const [activeTab, setActiveTab] = useState("crear"); // crear | editar
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        console.log('✅ Sesión cerrada exitosamente');
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+        // Aunque falle, redirigir al login
+        navigate('/login');
+      }
+    }
+  };
+
   // Obtener todas las funcionalidades del custom hook
   const {
     // Estados del formulario
@@ -60,13 +103,16 @@ export default function CreateSubject() {
             {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -79,11 +125,38 @@ export default function CreateSubject() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3 space-y-6">
-            {/* Formulario de Crear Materia */}
+            {/* Tabs de navegación */}
+            <div className="bg-white rounded-lg border border-gray-200 p-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab("crear")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "crear"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ➕ Crear Materia
+                </button>
+                <button
+                  onClick={() => setActiveTab("editar")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "editar"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ✏️ Editar Materias
+                </button>
+              </div>
+            </div>
+
+            {/* ========== TAB 1: CREAR MATERIA ========== */}
+            {activeTab === "crear" && (
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               {/* Título y descripción */}
               <div className="mb-8">
@@ -112,7 +185,7 @@ export default function CreateSubject() {
                       value={codigoMateria}
                       onChange={(e) => setCodigoMateria(e.target.value)}
                       placeholder="Ej: PROG3, BD2, IA1"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all uppercase"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all uppercase"
                       required
                     />
                   </div>
@@ -129,7 +202,7 @@ export default function CreateSubject() {
                       id="cicloSemestral"
                       value={cicloSemestral}
                       onChange={(e) => setCicloSemestral(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                       required
                     >
                       <option value="">Seleccione un ciclo</option>
@@ -156,87 +229,22 @@ export default function CreateSubject() {
                     value={nombreMateria}
                     onChange={(e) => setNombreMateria(e.target.value)}
                     placeholder="Ingrese el nombre completo de la materia"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                     required
                   />
                 </div>
 
-                {/* Asignar Grupos */}
-                <div className="border-t pt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Asignar Grupos a la Materia <span className="text-red-500">*</span>
-                  </label>
-                  <p className="text-xs text-gray-500 mb-4">
-                    Selecciona un grupo de la lista. El docente asignado se mostrará automáticamente.
-                  </p>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Selector de Grupos */}
+                {/* Nota informativa */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <i className="pi pi-info-circle text-blue-600 text-lg mt-0.5"></i>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-2">
-                        Grupos Disponibles
-                      </label>
-                      <select
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white mb-2"
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            agregarGrupoSeleccionado(e.target.value);
-                            e.target.value = "";
-                          }
-                        }}
-                      >
-                        <option value="">Seleccionar grupo...</option>
-                        {gruposDisponibles
-                          .filter(g => !gruposSeleccionados.find(gs => gs.codigo_grupo === g.codigo_grupo))
-                          .map((grupo) => (
-                            <option key={grupo.id} value={grupo.codigo_grupo}>
-                              Grupo {grupo.codigo_grupo} - {getDocenteNombre(grupo.id_docente)}
-                            </option>
-                          ))
-                        }
-                      </select>
-                    </div>
-
-                    {/* Grupos Seleccionados */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-2">
-                        Grupos Asignados ({gruposSeleccionados.length})
-                      </label>
-                      <div className="border border-gray-300 rounded-lg p-3 bg-gray-50 min-h-[120px] max-h-[200px] overflow-y-auto">
-                        {gruposSeleccionados.length === 0 ? (
-                          <p className="text-xs text-gray-400 text-center py-4">
-                            No hay grupos asignados
-                          </p>
-                        ) : (
-                          <div className="space-y-2">
-                            {gruposSeleccionados.map((grupo) => (
-                              <div 
-                                key={grupo.codigo_grupo} 
-                                className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
-                              >
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">
-                                      {grupo.codigo_grupo}
-                                    </span>
-                                    <span className="text-xs text-gray-600">
-                                      {getDocenteNombre(grupo.id_docente)}
-                                    </span>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => eliminarGrupoSeleccionado(grupo.codigo_grupo)}
-                                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                  title="Quitar grupo"
-                                >
-                                  <i className="pi pi-times text-xs"></i>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">
+                        Asignación de Grupos
+                      </h4>
+                      <p className="text-xs text-blue-700">
+                        Una vez creada la materia, podrá asignarle grupos desde la lista de materias haciendo clic en el botón "Editar".
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -252,39 +260,48 @@ export default function CreateSubject() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                    className="flex-1 bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                   >
                     Crear Materia
                   </button>
                 </div>
               </form>
             </div>
+            )}
 
-            {/* Lista de Materias */}
+            {/* ========== TAB 2: EDITAR MATERIAS ========== */}
+            {activeTab === "editar" && (
             <div className="bg-white rounded-lg border border-gray-200 p-8">
-              {/* Header de la lista */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Editar Materias
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Busca y edita la información de las materias registradas en el sistema.
+                </p>
+              </div>
+
+              {/* Lista de Materias */}
               <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                      Lista de Materias
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      Total de materias registradas: <span className="font-semibold text-green-600">{materias.length}</span>
+                    <h3 className="text-xl font-bold text-gray-900">Materias Registradas</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {materiasFiltradas.length} {materiasFiltradas.length === 1 ? 'materia' : 'materias'} encontradas
                     </p>
                   </div>
-                </div>
 
-                {/* Buscador */}
-                <div className="relative">
-                  <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                  <input
-                    type="text"
-                    placeholder="Buscar materia por nombre o grupo..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
+                  {/* Buscador */}
+                  <div className="relative w-64">
+                    <input
+                      type="text"
+                      placeholder="Buscar materias..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    />
+                    <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                  </div>
                 </div>
               </div>
 
@@ -324,36 +341,40 @@ export default function CreateSubject() {
                       </tr>
                     ) : (
                       materiasFiltradas.map((materia) => (
-                        <tr key={materia.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={materia?.id || Math.random()} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-green-100 text-green-800">
-                              {materia.codigo_materia}
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-teal-100 text-teal-800">
+                              {materia?.codigo_materia || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="text-sm font-medium text-gray-900">{materia.nombre_materia}</div>
+                            <div className="text-sm font-medium text-gray-900">{materia?.nombre_materia || 'N/A'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                              {materia.ciclo_semestral}
+                              {materia?.ciclo_semestral || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1">
-                              {materia.grupos_con_docentes.map((grupo, idx) => (
-                                <div key={idx} className="group relative">
-                                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
-                                    Grupo {grupo.codigo_grupo}
-                                  </span>
-                                  {/* Tooltip con nombre del docente */}
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                                    {getDocenteNombre(grupo.id_docente)}
-                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                                      <div className="border-4 border-transparent border-t-gray-900"></div>
+                              {materia?.grupos_con_docentes && Array.isArray(materia.grupos_con_docentes) && materia.grupos_con_docentes.length > 0 ? (
+                                materia.grupos_con_docentes.map((grupo, idx) => (
+                                  <div key={idx} className="group relative">
+                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
+                                      Grupo {grupo?.codigo_grupo || 'N/A'}
+                                    </span>
+                                    {/* Tooltip con nombre del docente */}
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                      {getDocenteNombre(grupo?.id_docente)}
+                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-400 italic">Sin grupos</span>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -383,6 +404,7 @@ export default function CreateSubject() {
                 </table>
               </div>
             </div>
+            )}
           </main>
         </div>
       </div>
@@ -392,7 +414,7 @@ export default function CreateSubject() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
             {/* Header del modal */}
-            <div className="bg-green-600 px-6 py-4 rounded-t-lg flex items-center justify-between">
+            <div className="bg-teal-600 px-6 py-4 rounded-t-lg flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">Editar Materia</h3>
               <button 
                 onClick={handleCancelEdit}
@@ -423,7 +445,7 @@ export default function CreateSubject() {
                     value={codigoMateria}
                     onChange={(e) => setCodigoMateria(e.target.value)}
                     placeholder="Ej: PROG3, BD2, IA1"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all uppercase"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all uppercase"
                     required
                   />
                 </div>
@@ -440,7 +462,7 @@ export default function CreateSubject() {
                     id="editCicloSemestral"
                     value={cicloSemestral}
                     onChange={(e) => setCicloSemestral(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                     required
                   >
                     <option value="">Seleccione un ciclo</option>
@@ -467,7 +489,7 @@ export default function CreateSubject() {
                   value={nombreMateria}
                   onChange={(e) => setNombreMateria(e.target.value)}
                   placeholder="Ingrese el nombre completo de la materia"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
@@ -488,7 +510,7 @@ export default function CreateSubject() {
                       Grupos Disponibles
                     </label>
                     <select
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white mb-2"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white mb-2"
                       onChange={(e) => {
                         if (e.target.value) {
                           agregarGrupoSeleccionado(e.target.value);
@@ -527,7 +549,7 @@ export default function CreateSubject() {
                             >
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-teal-100 text-teal-800">
                                     {grupo.codigo_grupo}
                                   </span>
                                   <span className="text-xs text-gray-600">
@@ -563,7 +585,7 @@ export default function CreateSubject() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                  className="flex-1 bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                 >
                   Guardar Cambios
                 </button>

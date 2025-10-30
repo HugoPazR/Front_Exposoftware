@@ -30,8 +30,6 @@ export const AuthProvider = ({ children }) => {
         } else {
           // Si no hay datos en localStorage, usar datos de prueba
           // En producción, esto vendría de tu API
-          
-          // EJEMPLO ESTUDIANTE:
           const mockUser = {
             id_usuario: 1,
             identificacion: "1098765432",
@@ -66,48 +64,6 @@ export const AuthProvider = ({ children }) => {
             fecha_creacion: new Date().toISOString(),
             ultimo_acceso: new Date().toISOString(),
           };
-
-          // EJEMPLO DOCENTE (Para probar el perfil de docente, descomenta esto y comenta el mockUser de arriba):
-          /*
-          const mockUser = {
-            id_usuario: 2,
-            identificacion: "40123456",
-            nombres: "María Elena",
-            apellidos: "Rodriguez Pérez",
-            correo: "merodriguez@unicesar.edu.co",
-            telefono: "3201234567",
-            rol: "docente",
-            
-            // Datos específicos para docentes (3 campos propios)
-            id_docente: 201,
-            categoria_docente: "Interno", // "Interno", "Invitado", "Externo"
-            codigo_programa: "67890",
-            
-            // Datos personales adicionales (heredados de Usuarios)
-            tipo_documento: "CC",
-            genero: "Femenino",
-            identidad_sexual: "Heterosexual",
-            fecha_nacimiento: "1980-03-15",
-            direccion_residencia: "Calle 15 #23-45",
-            anio_ingreso: "2015",
-            periodo: 1,
-            ciudad_residencia: "Valledupar",
-            departamento_residencia: "Cesar",
-            departamento: "Cesar",
-            municipio: "Valledupar",
-            pais: "CO",
-            nacionalidad: "CO",
-            ciudad: "Valledupar",
-            
-            // Avatar/Iniciales
-            avatar: null,
-            iniciales: "MR",
-            
-            // Metadata
-            fecha_creacion: new Date().toISOString(),
-            ultimo_acceso: new Date().toISOString(),
-          };
-          */
           
           setUser(mockUser);
           // Guardar en localStorage para persistencia

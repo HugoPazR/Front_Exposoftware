@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_ENDPOINTS } from "../../utils/constants";
-
-// Mock data de docentes disponibles
-const DOCENTES_MOCK = [
-  { id: 1, nombre: "Dr. Alejandro José Meriño" },
-  { id: 2, nombre: "Dr. Juan Pérez" },
-  { id: 3, nombre: "Ing. María González" },
-  { id: 4, nombre: "Lic. Carla Ruíz" },
-  { id: 5, nombre: "Ing. Sofía Benítez" },
-];
+import * as SubjectService from "../../Services/CreateSubject";
 
 // Opciones de ciclo semestral
 export const CICLOS_SEMESTRALES = [
@@ -17,58 +8,20 @@ export const CICLOS_SEMESTRALES = [
   "Ciclo de Profundización"
 ];
 
-// Mock data inicial de grupos
-const GRUPOS_MOCK = [
-  { id: "grp1", codigo_grupo: 101, id_docente: 1 },
-  { id: "grp2", codigo_grupo: 102, id_docente: 2 },
-  { id: "grp3", codigo_grupo: 201, id_docente: 3 },
-  { id: "grp4", codigo_grupo: 202, id_docente: 1 },
-];
 
-// Mock data inicial de materias
-const MATERIAS_INICIAL = [
-  {
-    id: "mat1",
-    codigo_materia: "PROG3",
-    nombre_materia: "Programación III",
-    ciclo_semestral: "Ciclo Profesional",
-    grupos_con_docentes: [
-      { codigo_grupo: 101, id_docente: 1 },
-      { codigo_grupo: 102, id_docente: 2 }
-    ],
-    fechaCreacion: "2025-01-15"
-  },
-  {
-    id: "mat2",
-    codigo_materia: "BD2",
-    nombre_materia: "Bases de Datos II",
-    ciclo_semestral: "Ciclo Profesional",
-    grupos_con_docentes: [
-      { codigo_grupo: 201, id_docente: 3 }
-    ],
-    fechaCreacion: "2025-01-20"
-  },
-];
-
-/**
- * Custom Hook para gestionar la lógica de materias
- * Contiene todos los estados y funciones necesarias para el CRUD de materias
- */
 export const useSubjectManagement = () => {
-  // ==================== ESTADOS ====================
-  
-  // Estados para el formulario principal
+
   const [codigoMateria, setCodigoMateria] = useState("");
   const [nombreMateria, setNombreMateria] = useState("");
   const [cicloSemestral, setCicloSemestral] = useState("");
   
   // Estados para grupos disponibles y seleccionados
-  const [gruposDisponibles, setGruposDisponibles] = useState(GRUPOS_MOCK);
+  const [gruposDisponibles, setGruposDisponibles] = useState([]);
   const [gruposSeleccionados, setGruposSeleccionados] = useState([]);
-  const [profesores, setProfesores] = useState(DOCENTES_MOCK);
+  const [profesores, setProfesores] = useState([]);
   
   // Estado para la lista de materias
-  const [materias, setMaterias] = useState(MATERIAS_INICIAL);
+  const [materias, setMaterias] = useState([]);
   
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
@@ -78,7 +31,7 @@ export const useSubjectManagement = () => {
   // Estado para búsqueda/filtro
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ==================== FUNCIONES AUXILIARES ====================
+ 
 
   /**
    * Obtener nombre del docente por ID
@@ -115,9 +68,6 @@ export const useSubjectManagement = () => {
     setGruposSeleccionados(gruposSeleccionados.filter(g => g.codigo_grupo !== codigoGrupo));
   };
 
-  /**
-   * Limpiar formulario
-   */
   const limpiarFormulario = () => {
     setCodigoMateria("");
     setNombreMateria("");
@@ -125,128 +75,101 @@ export const useSubjectManagement = () => {
     setGruposSeleccionados([]);
   };
 
-  // ==================== FUNCIONES DE CARGA ====================
+
 
   /**
-   * Cargar materias desde el backend
+   * Cargar materias desde el backend usando el servicio
    */
   const cargarMaterias = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS);
-      if (response.ok) {
-        const data = await response.json();
-        setMaterias(data);
-        console.log('📥 Materias cargadas:', data.length);
-      } else {
-        console.error('❌ Error al cargar materias:', response.statusText);
-      }
+      console.log('🔄 Iniciando carga de materias...');
+      const data = await SubjectService.obtenerMaterias();
+      console.log('✅ Materias cargadas exitosamente:', data);
+      setMaterias(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar materias:', error);
-      console.log('⚠️ Usando datos mock locales');
+      console.error('❌ Error al cargar materias:', error);
+      // No mostrar alert para no bloquear la UI
+      setMaterias([]);
     }
   };
 
   /**
-   * Cargar grupos desde el backend
+   * Cargar grupos desde el backend usando el servicio
    */
   const cargarGrupos = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPOS);
-      if (response.ok) {
-        const data = await response.json();
-        setGruposDisponibles(data);
-        console.log('📥 Grupos cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar grupos:', response.statusText);
-      }
+      const data = await SubjectService.obtenerGrupos();
+      setGruposDisponibles(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar grupos:', error);
-      console.log('⚠️ Usando grupos mock locales');
+      console.log('⚠️ Error al cargar grupos del backend');
+      setGruposDisponibles([]);
     }
   };
 
   /**
-   * Cargar profesores desde el backend
+   * Cargar profesores desde el backend usando el servicio
    */
   const cargarProfesores = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES);
-      if (response.ok) {
-        const data = await response.json();
-        setProfesores(data);
-        console.log('📥 Profesores cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar profesores:', response.statusText);
-      }
+      const data = await SubjectService.obtenerDocentes();
+      setProfesores(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar profesores:', error);
-      console.log('⚠️ Usando profesores mock locales');
+      console.log('⚠️ Error al cargar profesores del backend');
+      setProfesores([]);
     }
   };
 
-  // ==================== OPERACIONES CRUD ====================
-
-  /**
-   * Crear nueva materia
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!codigoMateria || !nombreMateria || !cicloSemestral) {
-      alert("Por favor complete todos los campos obligatorios");
+    console.log('📝 Iniciando creación de materia...');
+    console.log('📋 Datos del formulario:', {
+      codigo_materia: codigoMateria,
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
+    });
+    
+    // Validar campos usando el servicio
+    const validacion = SubjectService.validarDatosMateria({
+      codigo_materia: codigoMateria,
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
+    });
+
+    if (!validacion.valido) {
+      console.error('❌ Validación fallida:', validacion.errores);
+      alert('⚠️ Por favor complete todos los campos requeridos:\n\n' + validacion.errores.join('\n'));
       return;
     }
-
-    if (gruposSeleccionados.length === 0) {
-      alert("Por favor seleccione al menos un grupo para asignar a la materia");
-      return;
-    }
-
-    const payload = {
-      materia: {
-        codigo_materia: codigoMateria.toUpperCase(),
-        nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral
-      },
-      grupos_con_docentes: gruposSeleccionados
-    };
-
-    console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIAS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const resultado = await SubjectService.crearMateria({
+        codigo_materia: codigoMateria,
+        nombre_materia: nombreMateria,
+        ciclo_semestral: cicloSemestral
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
+      if (resultado.success) {
+        console.log('✅ Materia creada, recargando lista...');
         await cargarMaterias();
-        alert("✅ Materia creada exitosamente");
+        alert("✅ " + resultado.message + "\n\nLa materia ha sido creada exitosamente. Ahora puede asignarle grupos desde la pestaña 'Editar Materias'.");
         limpiarFormulario();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear la materia: ${errorData.message || 'Error desconocido'}`);
       }
     } catch (error) {
-      console.error('❌ Error al crear materia:', error);
-      alert("❌ Error de conexión al crear la materia");
+      console.error('❌ Error en handleSubmit:', error);
+      alert("❌ Error al crear la materia:\n\n" + error.message);
     }
   };
 
   /**
-   * Iniciar edición de materia
+   * Iniciar edición de materia (para asignar grupos)
    */
   const handleEdit = (materia) => {
     setEditingId(materia.id);
     setCodigoMateria(materia.codigo_materia);
     setNombreMateria(materia.nombre_materia);
     setCicloSemestral(materia.ciclo_semestral);
-    setGruposSeleccionados(materia.grupos_con_docentes.length > 0 
+    setGruposSeleccionados(materia.grupos_con_docentes && materia.grupos_con_docentes.length > 0 
       ? [...materia.grupos_con_docentes] 
       : []
     );
@@ -255,54 +178,38 @@ export const useSubjectManagement = () => {
   };
 
   /**
-   * Guardar edición de materia
+   * Guardar edición de materia (actualizar información básica y grupos)
    */
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     
-    if (!codigoMateria || !nombreMateria || !cicloSemestral) {
-      alert("Por favor complete todos los campos obligatorios");
+    // Validar campos usando el servicio
+    const validacion = SubjectService.validarDatosMateria({
+      codigo_materia: codigoMateria,
+      nombre_materia: nombreMateria,
+      ciclo_semestral: cicloSemestral
+    });
+
+    if (!validacion.valido) {
+      alert(validacion.errores.join('\n'));
       return;
     }
-
-    if (gruposSeleccionados.length === 0) {
-      alert("Por favor seleccione al menos un grupo para asignar a la materia");
-      return;
-    }
-
-    const payload = {
-      materia: {
-        codigo_materia: codigoMateria.toUpperCase(),
-        nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral
-      },
-      grupos_con_docentes: gruposSeleccionados
-    };
-
-    console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const resultado = await SubjectService.actualizarMateria(editingId, {
+        codigo_materia: codigoMateria,
+        nombre_materia: nombreMateria,
+        ciclo_semestral: cicloSemestral,
+        grupos_con_docentes: gruposSeleccionados
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
+      if (resultado.success) {
         await cargarMaterias();
-        alert("✅ Materia actualizada exitosamente");
+        alert("✅ " + resultado.message);
         handleCancelEdit();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar la materia: ${errorData.message || 'Error desconocido'}`);
       }
     } catch (error) {
-      console.error('❌ Error al actualizar materia:', error);
-      alert("❌ Error de conexión al actualizar la materia");
+      alert("❌ Error al actualizar la materia: " + error.message);
     }
   };
 
@@ -317,66 +224,38 @@ export const useSubjectManagement = () => {
   };
 
   /**
-   * Eliminar materia
+   * Eliminar materia usando el servicio
    */
   const handleDelete = async (id) => {
     const materiaAEliminar = materias.find(m => m.id === id);
     
     if (window.confirm(`¿Está seguro de que desea eliminar la materia "${materiaAEliminar?.nombre_materia}"? Esta acción también eliminará todos los grupos asociados.`)) {
-      console.log('🗑️ Eliminando del backend - ID:', id);
-      console.log('📋 Materia a eliminar:', materiaAEliminar?.codigo_materia);
-      
       try {
-        const response = await fetch(API_ENDPOINTS.MATERIA_BY_ID(id), { 
-          method: 'DELETE' 
-        });
+        const resultado = await SubjectService.eliminarMateria(id);
         
-        if (response.ok) {
-          console.log('✅ Materia eliminada del backend');
+        if (resultado.success) {
           await cargarMaterias();
-          alert("✅ Materia eliminada exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar la materia: ${errorData.message || 'Error desconocido'}`);
+          alert("✅ " + resultado.message);
         }
       } catch (error) {
-        console.error('❌ Error al eliminar materia:', error);
-        alert("❌ Error de conexión al eliminar la materia");
+        alert("❌ Error al eliminar la materia: " + error.message);
       }
     }
   };
 
-  /**
-   * Manejar cancelación del formulario
-   */
   const handleCancel = () => {
     limpiarFormulario();
   };
 
-  // ==================== EFECTOS ====================
-
-  /**
-   * Cargar datos iniciales al montar el componente
-   */
   useEffect(() => {
     cargarMaterias();
     cargarGrupos();
     cargarProfesores();
   }, []);
 
-  // ==================== DATOS COMPUTADOS ====================
+  // Filtrar materias usando el servicio
+  const materiasFiltradas = SubjectService.filtrarMaterias(materias, searchTerm);
 
-  /**
-   * Filtrar materias por búsqueda
-   */
-  const materiasFiltradas = materias.filter(materia =>
-    materia.codigo_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    materia.nombre_materia.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    materia.ciclo_semestral.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // ==================== RETORNO DEL HOOK ====================
 
   return {
     // Estados del formulario

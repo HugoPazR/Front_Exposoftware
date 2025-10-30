@@ -184,8 +184,8 @@ export default function TeacherProfile() {
             <div className="flex items-center gap-4">
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-emerald-600 font-bold text-lg">
                     {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
                   </span>
                 </div>
@@ -227,7 +227,7 @@ export default function TeacherProfile() {
                 </Link>
                 <Link
                   to="/teacher/profile"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-green-50 text-green-700"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-50 text-emerald-700"
                 >
                   <i className="pi pi-cog text-base"></i>
                   Configuración
@@ -237,8 +237,8 @@ export default function TeacherProfile() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-600 font-bold text-2xl">
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-emerald-600 font-bold text-2xl">
                     {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
                   </span>
                 </div>
@@ -257,7 +257,7 @@ export default function TeacherProfile() {
                 {!isEditing && (
                   <button 
                     onClick={handleEdit}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
                   >
                     <i className="pi pi-pencil"></i>
                     Editar Perfil
@@ -318,7 +318,7 @@ export default function TeacherProfile() {
                   </button>
                   <button 
                     onClick={handleSave}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
                   >
                     Guardar Cambios
                   </button>
@@ -353,7 +353,7 @@ export default function TeacherProfile() {
                   name="currentPassword"
                   value={passwordForm.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   required
                 />
               </div>
@@ -367,7 +367,7 @@ export default function TeacherProfile() {
                   name="newPassword"
                   value={passwordForm.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   required
                   minLength={6}
                 />
@@ -383,7 +383,7 @@ export default function TeacherProfile() {
                   name="confirmPassword"
                   value={passwordForm.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   required
                 />
               </div>
@@ -398,7 +398,7 @@ export default function TeacherProfile() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
                 >
                   Guardar Contraseña
                 </button>

@@ -1,107 +1,108 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Lock, Leaf, Users, Trophy, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import * as AuthService from "../../Services/AuthService";
 
-function LoginPage() {
+export default function LoginPage() {
+  const navigate = useNavigate();
+
+  // Carrusel de fondo
   const images = [
-    "https://elpilon2024.s3.us-west-2.amazonaws.com/2024/12/IMG_0427.jpeg",
     "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg",
+    "https://www.unicesar.edu.co/wp-content/uploads/2025/06/66_11zon.webp",
+    "https://www.unicesar.edu.co/wp-content/uploads/2025/06/Registro-4._11zon-980x653.webp",
   ];
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [correo, setCorreo] = useState("");
-  const [contraseña, setContraseña] = useState("");
-  const [errores, setErrores] = useState({});
-  const [mostrarContraseña, setMostrarContraseña] = useState(false);
-  const [recordarme, setRecordarme] = useState(false);
 
-  // Carrusel automático
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex === images.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 5000);
+    const interval = setInterval(
+      () =>
+        setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1)),
+      5000
+    );
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, []);
 
-  // Cargar correo guardado
+  // Estados del login
+  const [correo, setCorreo] = useState("");
+  const [password, setPassword] = useState("");
+  const [recordarme, setRecordarme] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Si ya está autenticado
   useEffect(() => {
-    const correoGuardado = localStorage.getItem("correoRecordado");
-    if (correoGuardado) {
-      setCorreo(correoGuardado);
-      setRecordarme(true);
+    if (AuthService.isAuthenticated()) {
+      const role = AuthService.getUserRole();
+      redirigirSegunRol(role);
     }
   }, []);
 
-  // Validar campos
-  const validarCampo = (nombre, valor) => {
-    let error = "";
-    const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-
-    if (nombre === "correo") {
-      if (!valor.trim()) {
-        error = "El correo electrónico es obligatorio.";
-      } 
-    }
-
-    if (nombre === "contraseña") {
-      if (!valor.trim()) {
-        error = "La contraseña es obligatoria.";
-      }
-    }
-
-    setErrores((prev) => ({ ...prev, [nombre]: error }));
-    return error === "";
-  };
-
-  const validarCampos = () => {
-    const correoValido = validarCampo("correo", correo);
-    const contraseñaValida = validarCampo("contraseña", contraseña);
-    return correoValido && contraseñaValida;
-  };
-
-  // Guardar o eliminar "Recordarme"
-  const manejarRecordarme = (checked) => {
-    setRecordarme(checked);
-    if (checked) {
-      localStorage.setItem("correoRecordado", correo);
-    } else {
-      localStorage.removeItem("correoRecordado");
+  const redirigirSegunRol = (role) => {
+    switch (role) {
+      case "admin":
+        navigate("/admin/dash");
+        break;
+      case "docente":
+        navigate("/teacher/dashboard");
+        break;
+      case "estudiante":
+        navigate("/student/dashboard");
+        break;
+      default:
+        navigate("/");
     }
   };
 
-  // Envío del formulario
-  const manejarSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (!validarCampos()) return;
+    if (!correo || !password) {
+      setError("Por favor complete todos los campos");
+      return;
+    }
 
-    alert(`✅ Inicio de sesión exitoso para: ${correo}`);
+    if (!AuthService.validarCorreo(correo)) {
+      setError("Por favor ingrese un correo válido");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const resultado = await AuthService.login({ correo, password });
+      if (resultado.success) {
+        const role = AuthService.getUserRole();
+        redirigirSegunRol(role);
+      }
+    } catch (err) {
+      setError(err.message || "Error al iniciar sesión");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Fondo */}
-      {images.map((img, index) => (
+    <main className="min-h-screen flex items-center justify-center relative overflow-hidden bg-green-50">
+      {/* Fondo animado */}
+      {images.map((img, i) => (
         <div
-          key={index}
+          key={i}
           className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out ${
-            index === currentImageIndex
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-105"
+            i === currentImageIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
           }`}
           style={{ backgroundImage: `url(${img})` }}
         ></div>
       ))}
-
       <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-green-50/85"></div>
 
-      {/* Contenido */}
+      {/* Contenedor */}
       <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden relative z-10">
-        {/* Panel informativo */}
-        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center relative overflow-hidden">
-          <header className="mb-6 relative z-10">
+        {/* Panel Izquierdo */}
+        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center">
+          <header className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                 <span className="text-2xl font-bold">&lt;/&gt;</span>
@@ -111,155 +112,113 @@ function LoginPage() {
             <div className="h-1 w-20 bg-white rounded-full"></div>
           </header>
 
-          <article className="relative z-10">
-            <p className="text-lg mb-3 leading-relaxed">
-              Descubre los proyectos más innovadores desarrollados por
-              estudiantes y profesores.
-            </p>
-            <p className="text-sm mb-10 text-green-100">
-              Una vitrina digital de talento tecnológico y creatividad académica.
-            </p>
-          </article>
+          <p className="text-lg leading-relaxed">
+            Descubre los proyectos más innovadores desarrollados por estudiantes y profesores.
+          </p>
+          <p className="text-sm mt-2 text-green-100">
+            Una vitrina digital de talento tecnológico y creatividad académica.
+          </p>
 
-          <footer className="flex gap-8 mt-auto relative z-10">
-            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
-              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
-                <Leaf size={28} />
-              </div>
-              <p className="text-2xl font-bold">150+</p>
-              <p className="text-sm text-green-100">Proyectos</p>
+          <footer className="flex gap-8 mt-10">
+            <div className="text-center">
+              <Leaf size={30} className="mx-auto mb-2" />
+              <p className="font-bold text-2xl">150+</p>
+              <p className="text-sm">Proyectos</p>
             </div>
-            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
-              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
-                <Users size={28} />
-              </div>
-              <p className="text-2xl font-bold">500+</p>
-              <p className="text-sm text-green-100">Participantes</p>
+            <div className="text-center">
+              <Users size={30} className="mx-auto mb-2" />
+              <p className="font-bold text-2xl">500+</p>
+              <p className="text-sm">Participantes</p>
             </div>
-            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
-              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
-                <Trophy size={28} />
-              </div>
-              <p className="text-2xl font-bold">15</p>
-              <p className="text-sm text-green-100">Premios</p>
+            <div className="text-center">
+              <Trophy size={30} className="mx-auto mb-2" />
+              <p className="font-bold text-2xl">15</p>
+              <p className="text-sm">Premios</p>
             </div>
           </footer>
         </aside>
 
-        {/* Panel de login */}
+        {/* Panel Derecho */}
         <section className="w-1/2 p-10 flex flex-col justify-center">
-          <header className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">¡Bienvenido!</h2>
-            <p className="text-gray-500">Inicia sesión para continuar</p>
-          </header>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Iniciar Sesión</h2>
+          <p className="text-gray-500 mb-4">Bienvenido a Exposoftware</p>
 
-          <form className="space-y-5" onSubmit={manejarSubmit}>
-            {/* CORREO */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                Correo Electrónico
-              </label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Correo</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
                   type="email"
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-green-500"
+                  placeholder="usuario@unicesar.edu.co"
                   value={correo}
-                  onChange={(e) => {
-                    setCorreo(e.target.value);
-                    validarCampo("correo", e.target.value);
-                  }}
-                  placeholder="tu@email.com"
-                  className={`w-full border ${
-                    errores.correo ? "border-red-500" : "border-gray-300"
-                  } rounded-lg pl-11 pr-4 py-3 focus:outline-none focus:ring-2 ${
-                    errores.correo ? "focus:ring-red-500" : "focus:ring-green-500"
-                  } transition-all`}
+                  onChange={(e) => setCorreo(e.target.value)}
+                  disabled={loading}
                 />
               </div>
-              {errores.correo && (
-                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle size={14} />
-                  {errores.correo}
-                </p>
-              )}
             </div>
 
-            {/* CONTRASEÑA */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-700">
-                Contraseña
-              </label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
-                  type={mostrarContraseña ? "text" : "password"}
-                  value={contraseña}
-                  onChange={(e) => {
-                    setContraseña(e.target.value);
-                    validarCampo("contraseña", e.target.value);
-                  }}
-                  placeholder="••••••••"
-                  className={`w-full border ${
-                    errores.contraseña ? "border-red-500" : "border-gray-300"
-                  } rounded-lg pl-11 pr-11 py-3 focus:outline-none focus:ring-2 ${
-                    errores.contraseña ? "focus:ring-red-500" : "focus:ring-green-500"
-                  } transition-all`}
+                  type={showPassword ? "text" : "password"}
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-2 focus:ring-2 focus:ring-green-500"
+                  placeholder="********"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
                 <button
                   type="button"
-                  onClick={() => setMostrarContraseña(!mostrarContraseña)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                 >
-                  {mostrarContraseña ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
-              {errores.contraseña && (
-                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                  <AlertCircle size={14} />
-                  {errores.contraseña}
-                </p>
-              )}
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={recordarme}
-                  onChange={(e) => manejarRecordarme(e.target.checked)}
-                  className="w-4 h-4 accent-green-600"
+                  onChange={(e) => setRecordarme(e.target.checked)}
+                  className="accent-green-600"
                 />
-                <span className="text-gray-600">Recordarme</span>
+                Recordarme
               </label>
-              <a
-                href="#"
-                className="text-green-700 hover:text-green-800 font-medium hover:underline"
-              >
+              <a href="#" className="text-green-700 hover:underline">
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 rounded-lg transition-all shadow-md hover:shadow-lg"
+              disabled={loading}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
-              Iniciar Sesión
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </form>
 
-          <footer className="text-sm text-center mt-6 text-gray-600">
+          <p className="text-sm text-gray-600 text-center mt-6">
             ¿No tienes una cuenta?{" "}
-            <Link
-              to="/register"
-              className="text-green-700 font-semibold hover:text-green-800 hover:underline"
-            >
+            <Link to="/register" className="text-green-700 font-semibold hover:underline">
               Regístrate aquí
             </Link>
-          </footer>
+          </p>
         </section>
       </section>
     </main>
   );
 }
-
-export default LoginPage;

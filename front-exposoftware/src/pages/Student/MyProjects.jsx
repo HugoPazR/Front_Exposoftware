@@ -65,7 +65,7 @@ export default function MyProjects() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4" style={{ borderColor: 'rgba(12, 183, 106, 1)', borderTopColor: 'transparent' }}></div>
           <p className="text-gray-600">Cargando...</p>
         </div>
       </div>
@@ -89,8 +89,8 @@ export default function MyProjects() {
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">{getInitials()}</span>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-lg" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
                 </div>
                 <div className="hidden md:block">
                   <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
@@ -123,7 +123,7 @@ export default function MyProjects() {
                   <i className="pi pi-home text-base"></i>
                   Dashboard
                 </Link>
-                <Link to="/student/proyectos" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700">
+                <Link to="/student/proyectos" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
@@ -143,8 +143,8 @@ export default function MyProjects() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-600 font-bold text-2xl">{getInitials()}</span>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-2xl" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
                 </div>
                 <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
                 <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
@@ -166,9 +166,9 @@ export default function MyProjects() {
           {/* Main content */}
           <main className="lg:col-span-3">
             {/* Información del estudiante */}
-            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="border rounded-lg p-4 mb-6" style={{ background: 'linear-gradient(to right, rgba(12, 183, 106, 0.05), rgba(12, 183, 106, 0.1))', borderColor: 'rgba(12, 183, 106, 0.3)' }}>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
                   <span className="text-white font-bold text-xl">{getInitials()}</span>
                 </div>
                 <div className="flex-1">
@@ -189,7 +189,7 @@ export default function MyProjects() {
                   </div>
                 </div>
                 <div className="hidden sm:block">
-                  <span className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  <span className="inline-flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
                     <i className="pi pi-check-circle"></i>
                     Estudiante Activo
                   </span>
@@ -209,7 +209,7 @@ export default function MyProjects() {
                     <div className="flex items-center gap-2"><i className="pi pi-book"></i><span>{p.group}</span></div>
                   </div>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">{p.status}</span>
+                    <span className="px-3 py-1 rounded-full text-sm font-semibold" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>{p.status}</span>
                     <button 
                       onClick={() => handleViewDetails(p)}
                       className="border border-gray-200 px-4 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
@@ -225,7 +225,7 @@ export default function MyProjects() {
                 <div className="text-4xl text-gray-400 mb-4">+</div>
                 <h4 className="font-semibold text-gray-900 mb-2">Postular Nuevo Proyecto</h4>
                 <p className="text-gray-500 text-sm mb-4 text-center">Haga clic para iniciar una nueva postulación.</p>
-                <Link to="/student/register-project" className="bg-green-600 text-white px-4 py-2 rounded-lg">Postular</Link>
+                <Link to="/student/register-project" className="text-white px-4 py-2 rounded-lg" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>Postular</Link>
               </div>
             </div>
           </main>
@@ -279,7 +279,7 @@ export default function MyProjects() {
               {/* Descripción */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <i className="pi pi-align-left text-green-600"></i>
+                  <i className="pi pi-align-left" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                   Descripción del Proyecto
                 </h5>
                 <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
@@ -291,7 +291,7 @@ export default function MyProjects() {
                 {/* Información del Proyecto */}
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-info-circle text-green-600"></i>
+                    <i className="pi pi-info-circle" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                     Información del Proyecto
                   </h5>
 
@@ -314,7 +314,7 @@ export default function MyProjects() {
                 {/* Líneas de Investigación */}
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-sitemap text-green-600"></i>
+                    <i className="pi pi-sitemap" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                     Líneas de Investigación
                   </h5>
 
@@ -338,17 +338,18 @@ export default function MyProjects() {
               {/* Participantes */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-users text-green-600"></i>
+                  <i className="pi pi-users" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                   Participantes
                 </h5>
                 <div className="flex flex-wrap gap-2">
                   {selectedProject.participants.map((participant, idx) => (
                     <span 
                       key={idx}
-                      className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-3 py-2 rounded-full text-sm font-medium"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium"
+                      style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
                     >
-                      <div className="w-6 h-6 bg-green-200 rounded-full flex items-center justify-center">
-                        <span className="text-green-800 font-bold text-xs">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.3)' }}>
+                        <span className="font-bold text-xs" style={{ color: 'rgba(12, 183, 106, 1)' }}>
                           {participant.split(' ').map(n => n[0]).join('')}
                         </span>
                       </div>
@@ -361,7 +362,7 @@ export default function MyProjects() {
               {/* Archivos Adjuntos */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-paperclip text-green-600"></i>
+                  <i className="pi pi-paperclip" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                   Archivos Adjuntos
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -386,7 +387,7 @@ export default function MyProjects() {
                       <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.slides}</p>
                       <p className="text-xs text-gray-500">Presentación</p>
                     </div>
-                    <button className="text-green-600 hover:text-green-700">
+                    <button style={{ color: 'rgba(12, 183, 106, 1)' }} className="hover:opacity-80">
                       <i className="pi pi-download"></i>
                     </button>
                   </div>
@@ -402,7 +403,7 @@ export default function MyProjects() {
               >
                 Cerrar
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
                 Editar Proyecto
               </button>
             </div>
