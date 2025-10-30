@@ -10,7 +10,6 @@ import AsistenciaForm from "./pages/public/AttendanceForm.jsx";
 import StudentDashboard from "./pages/Student/Dashboard";
 import TeacherDashboard from "./pages/Teacher/Dashboard";
 import StudentProjects from "./pages/Teacher/StudentProjects";
-import AttenceStudent from "./pages/Student/AttendanceStudent";
 import TeacherProfile from "./pages/Teacher/Profile";
 import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
@@ -55,7 +54,6 @@ function App() {
     "/student/dashboard",
     "/student/profile",
     "/student/proyectos",
-    "/student/asistencia",
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
