@@ -6,6 +6,7 @@ import Home from "./pages/Home/Home";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import AsistenciaForm from "./pages/public/AttendanceForm.jsx";
 import StudentDashboard from "./pages/Student/Dashboard";
 import TeacherDashboard from "./pages/Teacher/Dashboard";
 import StudentProjects from "./pages/Teacher/StudentProjects";
@@ -85,6 +86,7 @@ function App() {
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/asistencia" element={<AsistenciaForm />} />
           {/* <Route path="/projects" element={<Proyects />} /> */}
 
           {/* Estudiantes */}
@@ -92,7 +94,6 @@ function App() {
           <Route path="/student/proyectos" element={<MyProjects />} />
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/register-project" element={<RegisterProject />} />
-          <Route path="/student/asistencia" element={<AttenceStudent />} />
 
           {/* Profesores */}
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />

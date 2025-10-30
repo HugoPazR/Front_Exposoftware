@@ -145,7 +145,7 @@ export default function AttendanceAdmin() {
       const validoHasta = new Date(today.setHours(23, 59, 59)).toISOString();
 
       // URL a la que apuntará el QR (puedes cambiarla luego)
-      const qrUrlData = `https://tusitio.com/asistencia?id_sesion=${idSesion}`;
+      const qrUrlData = `http://localhost:5173/asistencia?id_sesion=${idSesion}`;
 
       const qrInfo = {
         evento: "Expo-Software 2025",
