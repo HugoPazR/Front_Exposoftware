@@ -6,10 +6,10 @@ import Home from "./pages/Home/Home";
 
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import AsistenciaForm from "./pages/public/AttendanceForm.jsx";
 import StudentDashboard from "./pages/Student/Dashboard";
 import TeacherDashboard from "./pages/Teacher/Dashboard";
 import StudentProjects from "./pages/Teacher/StudentProjects";
-import AttenceStudent from "./pages/Student/AttendanceStudent";
 import TeacherProfile from "./pages/Teacher/Profile";
 import Profile from "./pages/Student/Profile";
 import RegisterProject from "./pages/Student/RegisterProject";
@@ -55,7 +55,6 @@ function App() {
     "/student/dashboard",
     "/student/profile",
     "/student/proyectos",
-    "/student/asistencia",
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
@@ -87,13 +86,14 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/asistencia" element={<AsistenciaForm />} />
+          {/* <Route path="/projects" element={<Proyects />} /> */}
 
           {/* Estudiantes */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/proyectos" element={<MyProjects />} />
           <Route path="/student/profile" element={<Profile />} />
           <Route path="/student/register-project" element={<RegisterProject />} />
-          <Route path="/student/asistencia" element={<AttenceStudent />} />
 
           {/* Profesores */}
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />

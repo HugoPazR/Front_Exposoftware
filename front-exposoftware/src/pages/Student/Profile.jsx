@@ -25,7 +25,7 @@ export default function Profile() {
     identidadSexual: "Masculino",
     fechaNacimiento: "2003-03-22",
     telefono: "3201234567",
-    
+
     // Ubicación y residencia
     pais: "CO",
     nacionalidad: "CO",
@@ -35,7 +35,7 @@ export default function Profile() {
     departamento: "Cesar",
     municipio: "Valledupar",
     ciudad: "Valledupar",
-    
+
     // Información académica
     correo: "crguzman@unicesar.edu.co", // ❌ NO EDITABLE
     codigoPrograma: "12345", // ❌ NO EDITABLE - Programa del estudiante
@@ -43,7 +43,7 @@ export default function Profile() {
     fechaIngreso: "2022-02-01", // ❌ NO EDITABLE
     anioIngreso: "2022",
     periodo: "2022-1",
-    
+
     // Estado
     rol: "Estudiante"
   });
@@ -133,7 +133,7 @@ export default function Profile() {
 
   const handleSavePassword = (e) => {
     e.preventDefault();
-    
+
     // Validaciones
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
       alert("Por favor completa todos los campos");
@@ -177,7 +177,7 @@ export default function Profile() {
                 </div>
               </div>
 
-                 <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -200,13 +200,6 @@ export default function Profile() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
-                                <Link
-                  to="/student/asistencia"
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}
-                >
-                  <i className="pi pi-qrcode text-base"></i>
-                  Registrar Asistencia
-                </Link>
                 <Link to="/student/configuracion" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-gray-50">
                   <i className="pi pi-cog text-base"></i>
                   Configuración
@@ -221,7 +214,7 @@ export default function Profile() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
                 {!isEditing && (
-                  <button 
+                  <button
                     onClick={handleEdit}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                   >
@@ -253,16 +246,16 @@ export default function Profile() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Contraseña
                     </label>
-                    <input 
-                      type="password" 
-                      defaultValue="********" 
+                    <input
+                      type="password"
+                      defaultValue="********"
                       disabled
                       className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 text-gray-500"
                     />
                   </div>
 
                   <div>
-                    <button 
+                    <button
                       onClick={handleOpenPasswordModal}
                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                     >
@@ -275,13 +268,13 @@ export default function Profile() {
               {/* Botones de acción */}
               {isEditing && (
                 <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                  <button 
+                  <button
                     onClick={handleCancel}
                     className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                   >
                     Cancelar
                   </button>
-                  <button 
+                  <button
                     onClick={handleSave}
                     className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
                   >
@@ -300,7 +293,7 @@ export default function Profile() {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">Cambiar Contraseña</h3>
-              <button 
+              <button
                 onClick={handleClosePasswordModal}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -313,7 +306,7 @@ export default function Profile() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Contraseña Actual <span className="text-red-500">*</span>
                 </label>
-                <input 
+                <input
                   type="password"
                   name="currentPassword"
                   value={passwordForm.currentPassword}
@@ -327,7 +320,7 @@ export default function Profile() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nueva Contraseña <span className="text-red-500">*</span>
                 </label>
-                <input 
+                <input
                   type="password"
                   name="newPassword"
                   value={passwordForm.newPassword}
@@ -343,7 +336,7 @@ export default function Profile() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Confirmar Nueva Contraseña <span className="text-red-500">*</span>
                 </label>
-                <input 
+                <input
                   type="password"
                   name="confirmPassword"
                   value={passwordForm.confirmPassword}
@@ -354,14 +347,14 @@ export default function Profile() {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button 
+                <button
                   type="button"
                   onClick={handleClosePasswordModal}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
                 >
