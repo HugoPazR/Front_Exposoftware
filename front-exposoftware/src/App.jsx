@@ -29,6 +29,7 @@ import GuestDashboard from "./pages/Guest/Dashboard.jsx";
 import GuestProjects from "./pages/Guest/Proyects";
 import GuestProfile from "./pages/Guest/Profile";
 import Projects from "./pages/Home/Projects";
+import Contact from "./pages/Contact/Contact";
 
 
 
@@ -81,6 +82,7 @@ function App() {
           {/* Página principal */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
