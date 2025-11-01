@@ -1,123 +1,59 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { getTeacherProjects, updateProjectStatus } from "../../Services/ProjectsService.jsx";
 import logo from "../../assets/Logo-unicesar.png";
 
-// Mock data para proyectos estudiantiles
-const MOCK_PROJECTS = [
-  {
-    id: 1,
-    title: "Sistema de Gestión de Bibliotecas con IA",
-    student: "Sofía Martínez",
-    group: "Grupo A / Programación Avanzada",
-    status: "Aprobado",
-    description: "Sistema inteligente para gestión automatizada de bibliotecas universitarias utilizando técnicas de IA para recomendaciones personalizadas y búsqueda avanzada.",
-    participants: ["Sofía Martínez", "Pedro López", "Ana García"],
-    subject: "Programación Avanzada",
-    groupName: "Grupo A",
-    professor: "Dr. Pérez",
-    line: "Inteligencia Artificial",
-    subline: "Aprendizaje Automático",
-    area: "Ciencias de la computación",
-    poster: "poster_biblioteca_ia.jpg",
-    slides: "presentacion_biblioteca_ia.pptx",
-  },
-  {
-    id: 2,
-    title: "Plataforma de E-learning Adaptativo",
-    student: "Juan Pérez",
-    group: "Grupo B / Bases de Datos",
-    status: "Pendiente",
-    description: "Plataforma educativa que se adapta al ritmo de aprendizaje de cada estudiante mediante análisis de datos y personalización de contenidos.",
-    participants: ["Juan Pérez", "María Rodríguez"],
-    subject: "Bases de Datos",
-    groupName: "Grupo B",
-    professor: "Dra. Ramírez",
-    line: "Ingeniería de Software",
-    subline: "Metodologías Ágiles",
-    area: "Tecnologías de la información",
-    poster: "poster_elearning.jpg",
-    slides: "presentacion_elearning.pptx",
-  },
-  {
-    id: 3,
-    title: "Análisis de Sentimientos en Redes Sociales",
-    student: "María García",
-    group: "Grupo A / Inteligencia Artificial",
-    status: "Aprobado",
-    description: "Herramienta de análisis de sentimientos en tiempo real para redes sociales usando procesamiento de lenguaje natural.",
-    participants: ["María García", "Carlos Méndez", "Laura Torres"],
-    subject: "Inteligencia Artificial",
-    groupName: "Grupo A",
-    professor: "Dr. Salas",
-    line: "Inteligencia Artificial",
-    subline: "Visión por Computador",
-    area: "Inteligencia artificial",
-    poster: "poster_sentimientos.jpg",
-    slides: "presentacion_sentimientos.pptx",
-  },
-  {
-    id: 4,
-    title: "Desarrollo de App Móvil para Control de Gastos",
-    student: "Carlos Ruiz",
-    group: "Grupo C / Programación Avanzada",
-    status: "Rechazado",
-    description: "Aplicación móvil multiplataforma para gestión personal de finanzas con reportes y análisis de gastos.",
-    participants: ["Carlos Ruiz", "Diana Vargas"],
-    subject: "Programación Avanzada",
-    groupName: "Grupo C",
-    professor: "Ing. Morales",
-    line: "Ingeniería de Software",
-    subline: "Pruebas y Calidad",
-    area: "Ingeniería de software",
-    poster: "poster_gastos.jpg",
-    slides: "presentacion_gastos.pptx",
-  },
-  {
-    id: 5,
-    title: "Optimización de Rutas con Algoritmos Genéticos",
-    student: "Laura Fernández",
-    group: "Grupo B / Inteligencia Artificial",
-    status: "Aprobado",
-    description: "Sistema de optimización de rutas logísticas mediante algoritmos genéticos para reducir costos de transporte.",
-    participants: ["Laura Fernández", "Jorge Castro"],
-    subject: "Inteligencia Artificial",
-    groupName: "Grupo B",
-    professor: "Dr. Torres",
-    line: "Ciencias de la Computación",
-    subline: "Algoritmos y Complejidad",
-    area: "Ciencias de la computación",
-    poster: "poster_rutas.jpg",
-    slides: "presentacion_rutas.pptx",
-  },
-  {
-    id: 6,
-    title: "Visualización de Datos para la Bolsa de Valores",
-    student: "Pedro Sánchez",
-    group: "Grupo C / Bases de Datos",
-    status: "Pendiente",
-    description: "Dashboard interactivo para visualización en tiempo real de datos del mercado bursátil con análisis predictivo.",
-    participants: ["Pedro Sánchez", "Elena Martínez", "Roberto Silva"],
-    subject: "Bases de Datos",
-    groupName: "Grupo C",
-    professor: "Dra. Gómez",
-    line: "Ciencias de la Computación",
-    subline: "Sistemas Distribuidos",
-    area: "Tecnologías de la información",
-    poster: "poster_bolsa.jpg",
-    slides: "presentacion_bolsa.pptx",
-  },
-];
-
 export default function StudentProjects() {
-  const [viewMode, setViewMode] = useState("grid"); // "grid" o "table"
+  const { user, getFullName, getInitials, logout } = useAuth();
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState("grid");
   const [selectedGroup, setSelectedGroup] = useState("Filtrar por grupo");
   const [selectedMateria, setSelectedMateria] = useState("Filtrar por materia");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Cargar proyectos del backend al montar el componente
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getTeacherProjects();
+        // Si la respuesta es un array, usarla directamente; si es un objeto con una propiedad, extraerla
+        const projectsList = Array.isArray(data) ? data : data?.data || data?.projects || [];
+        setProjects(projectsList);
+        console.log('📊 Proyectos cargados:', projectsList);
+      } catch (err) {
+        console.error('Error al cargar proyectos:', err);
+        setError(err.message);
+        // Fallback a array vacío si hay error
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, []);
+
+  // Handler para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      navigate('/login');
+    }
+  };
 
   // Filtrar proyectos según búsqueda
-  const filteredProjects = MOCK_PROJECTS.filter(project => 
+  const filteredProjects = projects.filter(project => 
     project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     project.student.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -151,11 +87,18 @@ export default function StudentProjects() {
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                  <span className="text-emerald-600 font-bold text-lg">M</span>
+                  <span className="text-emerald-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Docente'}</p>
                 </div>
               </div>
 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -197,8 +140,17 @@ export default function StudentProjects() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">María</h3>
-                <p className="text-sm text-gray-500">Profesora</p>
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-emerald-600 font-bold text-2xl">{getInitials()}</span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Docente'}</p>
+                {user?.categoria_docente && (
+                  <p className="text-xs text-gray-400 mt-1">Categoría: {user.categoria_docente}</p>
+                )}
+                {user?.codigo_programa && (
+                  <p className="text-xs text-gray-400">Código: {user.codigo_programa}</p>
+                )}
               </div>
             </div>
           </aside>
@@ -288,42 +240,64 @@ export default function StudentProjects() {
 
             {/* Vista de Tarjetas (Grid) */}
             {viewMode === "grid" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredProjects.map(project => (
-                  <div key={project.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{project.title}</h3>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <i className="pi pi-user"></i>
-                        <span>{project.student}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <i className="pi pi-book"></i>
-                        <span>{project.group}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        project.status === "Aprobado" 
-                          ? "bg-emerald-100 text-emerald-800"
-                          : project.status === "Pendiente"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}>
-                        {project.status}
-                      </span>
-                      <button 
-                        onClick={() => handleViewDetails(project)}
-                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-green-600 transition-colors"
-                      >
-                        <i className="pi pi-eye"></i>
-                        Ver detalles
-                      </button>
-                    </div>
+              <div>
+                {loading ? (
+                  <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                    <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando proyectos...</p>
                   </div>
-                ))}
+                ) : error ? (
+                  <div className="bg-white rounded-lg border border-red-200 p-6 text-center bg-red-50">
+                    <p className="text-red-600 font-medium">Error al cargar proyectos</p>
+                    <p className="text-sm text-red-500 mt-1">{error}</p>
+                  </div>
+                ) : filteredProjects.length === 0 ? (
+                  <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <i className="pi pi-search text-4xl text-gray-400"></i>
+                    </div>
+                    <p className="text-gray-600 mb-2">No se encontraron proyectos</p>
+                    <p className="text-sm text-gray-500">Intenta con otros términos de búsqueda</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredProjects.map(project => (
+                      <div key={project.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{project.title}</h3>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <i className="pi pi-user"></i>
+                            <span>{project.student}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <i className="pi pi-book"></i>
+                            <span>{project.group}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            project.status === "Aprobado" 
+                              ? "bg-emerald-100 text-emerald-800"
+                              : project.status === "Pendiente"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}>
+                            {project.status}
+                          </span>
+                          <button 
+                            onClick={() => handleViewDetails(project)}
+                            className="flex items-center gap-2 text-sm text-gray-700 hover:text-green-600 transition-colors"
+                          >
+                            <i className="pi pi-eye"></i>
+                            Ver detalles
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

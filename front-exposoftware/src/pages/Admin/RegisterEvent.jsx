@@ -2,8 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+<<<<<<< HEAD
 import { API_ENDPOINTS } from "../../utils/constants";
 import * as AuthService from "../../Services/AuthService";
+=======
+import * as AuthService from "../../Services/AuthService";
+import EventosService from "../../Services/EventosService";
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
 
 export default function RegisterAttendance() {
   const navigate = useNavigate();
@@ -46,6 +51,11 @@ export default function RegisterAttendance() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [lugarEvento, setLugarEvento] = useState("");
+<<<<<<< HEAD
+=======
+  const [cupoMaximo, setCupoMaximo] = useState("");
+  const [cargandoEvento, setCargandoEvento] = useState(false);
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
 
   // Estados para listar eventos
   const [eventos, setEventos] = useState([]);
@@ -70,6 +80,7 @@ export default function RegisterAttendance() {
   const cargarEventos = async () => {
     setLoadingEventos(true);
     try {
+<<<<<<< HEAD
       const response = await fetch(API_ENDPOINTS.EVENTOS);
       if (response.ok) {
         const data = await response.json();
@@ -80,6 +91,14 @@ export default function RegisterAttendance() {
       }
     } catch (error) {
       console.error("❌ Error de conexión al cargar eventos:", error);
+=======
+      const data = await EventosService.obtenerEventos();
+      setEventos(data);
+      console.log("✅ Eventos cargados:", data.length);
+    } catch (error) {
+      console.error("❌ Error al cargar eventos:", error);
+      setEventos([]);
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
     } finally {
       setLoadingEventos(false);
     }
@@ -89,17 +108,37 @@ export default function RegisterAttendance() {
   const handleCrearEvento = async (e) => {
     e.preventDefault();
 
+<<<<<<< HEAD
     if (!nombreEvento || !descripcion || !fechaInicio || !fechaFin || !lugarEvento) {
       alert("Por favor completa todos los campos del evento");
       return;
     }
 
+=======
+    // Validar campos requeridos: nombre_evento, fecha_inicio, fecha_fin
+    if (!nombreEvento || !fechaInicio || !fechaFin) {
+      alert("Por favor completa los campos requeridos: Nombre, Fecha Inicio y Fecha Fin");
+      return;
+    }
+
+    // Validar que cupo_maximo sea un número válido (si se proporciona)
+    let cupo = null;
+    if (cupoMaximo) {
+      cupo = parseInt(cupoMaximo);
+      if (isNaN(cupo) || cupo < 1) {
+        alert("El cupo máximo debe ser un número mayor a 0");
+        return;
+      }
+    }
+
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
     // Validar que fecha_fin >= fecha_inicio
     if (new Date(fechaFin) < new Date(fechaInicio)) {
       alert("La fecha de fin no puede ser anterior a la fecha de inicio");
       return;
     }
 
+<<<<<<< HEAD
     // Generar código QR automáticamente
     const nuevoCodigoQR = generarCodigoAlfanumerico();
 
@@ -142,6 +181,54 @@ export default function RegisterAttendance() {
     } catch (error) {
       console.error("❌ Error al crear evento:", error);
       alert("❌ Error de conexión al crear el evento");
+=======
+    // Convertir fechas datetime-local a YYYY-MM-DD (formato requerido por el API)
+    const convertirFechaAPI = (dateString) => {
+      // dateString viene en formato "YYYY-MM-DDTHH:mm" de input datetime-local
+      // Lo convertimos a formato de fecha: "YYYY-MM-DD"
+      const fecha = new Date(dateString);
+      return fecha.toISOString().split('T')[0];
+    };
+
+    const payload = {
+      nombre_evento: nombreEvento,
+      fecha_inicio: convertirFechaAPI(fechaInicio),
+      fecha_fin: convertirFechaAPI(fechaFin)
+    };
+
+    // Agregar campos opcionales solo si tienen valores válidos
+    if (descripcion && descripcion.trim()) {
+      payload.descripcion = descripcion.trim();
+    }
+    
+    if (lugarEvento && lugarEvento.trim()) {
+      payload.lugar = lugarEvento.trim();
+    }
+    
+    // Agregar cupo_maximo si se validó correctamente
+    if (cupo !== null && cupo > 0) {
+      payload.cupo_maximo = cupo;
+      console.log(`✅ Cupo máximo incluido en payload: ${cupo} (tipo: ${typeof cupo})`);
+    }
+
+    console.log("📤 Creando evento:", payload);
+
+    setCargandoEvento(true);
+    try {
+      await EventosService.crearEvento(payload);
+      alert("✅ Evento creado exitosamente");
+      
+      // Limpiar formulario
+      limpiarFormularioEvento();
+
+      // Recargar lista de eventos
+      cargarEventos();
+    } catch (error) {
+      console.error("❌ Error al crear evento:", error);
+      alert(`❌ Error al crear evento: ${error.message}`);
+    } finally {
+      setCargandoEvento(false);
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
     }
   };
 
@@ -152,6 +239,10 @@ export default function RegisterAttendance() {
     setFechaInicio("");
     setFechaFin("");
     setLugarEvento("");
+<<<<<<< HEAD
+=======
+    setCupoMaximo("");
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
   };
 
   return (
@@ -226,7 +317,11 @@ export default function RegisterAttendance() {
                   {/* Lugar del Evento */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+<<<<<<< HEAD
                       Lugar del Evento <span className="text-red-500">*</span>
+=======
+                      Lugar del Evento <span className="text-gray-500">(Opcional)</span>
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
                     </label>
                     <input
                       type="text"
@@ -234,7 +329,25 @@ export default function RegisterAttendance() {
                       onChange={(e) => setLugarEvento(e.target.value)}
                       placeholder="Ej: Auditorio Principal"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+<<<<<<< HEAD
                       required
+=======
+                    />
+                  </div>
+
+                  {/* Cupo Máximo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Cupo Máximo <span className="text-gray-500">(Opcional)</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={cupoMaximo}
+                      onChange={(e) => setCupoMaximo(e.target.value)}
+                      placeholder="Ej: 100"
+                      min="1"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
                     />
                   </div>
 
@@ -269,7 +382,11 @@ export default function RegisterAttendance() {
                   {/* Descripción del Evento */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+<<<<<<< HEAD
                       Descripción <span className="text-red-500">*</span>
+=======
+                      Descripción <span className="text-gray-500">(Opcional)</span>
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
                     </label>
                     <textarea
                       value={descripcion}
@@ -277,7 +394,10 @@ export default function RegisterAttendance() {
                       placeholder="Describe el evento..."
                       rows={3}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+<<<<<<< HEAD
                       required
+=======
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
                     />
                   </div>
                 </div>
@@ -286,9 +406,27 @@ export default function RegisterAttendance() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
+<<<<<<< HEAD
                     className="px-6 py-3 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition shadow-md"
                   >
                     🎫 Crear Evento
+=======
+                    disabled={cargandoEvento}
+                    className={`px-6 py-3 text-white rounded-lg font-semibold transition shadow-md ${
+                      cargandoEvento
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-teal-600 hover:bg-teal-700'
+                    }`}
+                  >
+                    {cargandoEvento ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+                        Creando...
+                      </span>
+                    ) : (
+                      '🎫 Crear Evento'
+                    )}
+>>>>>>> 8f3ec67 (Administrador casi listo y proyecto al 70 %)
                   </button>
                 </div>
               </form>

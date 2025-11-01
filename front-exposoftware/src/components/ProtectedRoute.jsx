@@ -32,6 +32,10 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
         return <Navigate to="/teacher/dashboard" replace />;
       case 'estudiante':
         return <Navigate to="/student/dashboard" replace />;
+      case 'egresado':
+        return <Navigate to="/graduate/dashboard" replace />;
+      case 'invitado':
+        return <Navigate to="/guest/dashboard" replace />;
       default:
         return <Navigate to="/login" replace />;
     }
@@ -61,4 +65,18 @@ export const DocenteRoute = ({ children }) => {
  */
 export const EstudianteRoute = ({ children }) => {
   return <ProtectedRoute requiredRole="estudiante">{children}</ProtectedRoute>;
+};
+
+/**
+ * Componente para proteger rutas de egresado
+ */
+export const EgresadoRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole="egresado">{children}</ProtectedRoute>;
+};
+
+/**
+ * Componente para proteger rutas de invitado
+ */
+export const InvitadoRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole="invitado">{children}</ProtectedRoute>;
 };

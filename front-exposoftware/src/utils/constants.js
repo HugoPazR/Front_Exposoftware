@@ -25,9 +25,9 @@ export const API_ENDPOINTS = {
   GRUPO_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/grupos/${id}`,
   
   // Docentes/Profesores
-  DOCENTES: `${API_BASE_URL}/api/v1/admin/profesores`,
+  DOCENTES: `${API_BASE_URL}/api/v1/docentes`,
   PROFESORES: `${API_BASE_URL}/api/v1/admin/profesores`,
-  DOCENTE_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/profesores/${id}`,
+  DOCENTE_BY_ID: (id) => `${API_BASE_URL}/api/v1/docentes/${id}`,
   PROFESOR_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/profesores/${id}`,
   
   // Asignaciones Docente-Materia (para asociar grupos con materias)
@@ -62,4 +62,13 @@ export const API_ENDPOINTS = {
   // Eventos
   EVENTOS: `${API_BASE_URL}/eventos`,
   EVENTO_BY_ID: (id) => `${API_BASE_URL}/eventos/${id}`,
+
+  // Facultades (Admin) - Gestión de facultades académicas
+  FACULTADES: `${API_BASE_URL}/api/v1/admin/academico/facultades`,
+  FACULTAD_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/academico/facultades/${id}`,
+  
+  // Programas Académicos (Admin) - Asociados a Facultades
+  PROGRAMAS_BY_FACULTAD: (facultadId) => `${API_BASE_URL}/api/v1/admin/academico/facultades/${facultadId}/programas`,
+  PROGRAMA_BY_ID: (facultadId, codigoPrograma) => `${API_BASE_URL}/api/v1/admin/academico/facultades/${facultadId}/programas/${codigoPrograma}`,
+  PROGRAMAS: `${API_BASE_URL}/api/v1/admin/academico/programas`, // Endpoint para listar todos los programas
 };

@@ -19,11 +19,18 @@ import CreateSubject from "./pages/Admin/CreateSubject";
 import CreateTeacher from "./pages/Admin/CreateTeacher";
 import AdminCreatelines from "./pages/Admin/CreateLines";
 import RegisterEvent from "./pages/Admin/RegisterEvent";
+import ManageEvents from "./pages/Admin/ManageEvents";
+import CrearFacultades from "./pages/Admin/CrearFacultades";
+import CreatePrograms from "./pages/Admin/CreatePrograms";
 import GraduateDashboard from "./pages/Graduate/Dashboard";
 import GraduateProfile from "./pages/Graduate/Profile";
 import GraduateProjects from "./pages/Graduate/Proyects";
 import Proyects from "./pages/Home/Projects";
-import { AdminRoute, DocenteRoute, EstudianteRoute } from "./components/ProtectedRoute";
+import GuestDashboard from "./pages/Guest/Dashboard";
+import GuestProfile from "./pages/Guest/Profile";
+import GuestProjects from "./pages/Guest/Proyects";
+import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute} from "./components/ProtectedRoute";
+
 
 
 
@@ -50,9 +57,15 @@ function App() {
     "/admin/crear-profesor",
     "/admin/lineas-investigacion",
     "/admin/registrar-eventos",
+    "/admin/gestionar-eventos",
+    "/admin/facultades",
+    "/admin/programas",
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
+    "/guest/dashboard",
+    "/guest/profile",
+    "/guest/proyectos",
   ];
 
   return (
@@ -89,14 +102,20 @@ function App() {
           <Route path="/admin/crear-profesor" element={<AdminRoute><CreateTeacher /></AdminRoute>} />
           <Route path="/admin/lineas-investigacion" element={<AdminRoute><AdminCreatelines /></AdminRoute>} />
           <Route path="/admin/registrar-eventos" element={<AdminRoute><RegisterEvent /></AdminRoute>} />
-
-          {/* ✅ Egresados */}
-          <Route path="/graduate/dashboard" element={<GraduateDashboard />} />
-          <Route path="/graduate/profile" element={<GraduateProfile />} />
-          <Route path="/graduate/proyectos" element={<GraduateProjects />} />
+          <Route path="/admin/gestionar-eventos" element={<AdminRoute><ManageEvents /></AdminRoute>} />
+          <Route path="/admin/crear-facultad" element={<AdminRoute><CrearFacultades /></AdminRoute>} />
+          <Route path="/admin/crear-programa" element={<AdminRoute><CreatePrograms /></AdminRoute>} />
 
 
+          {/* ✅ Egresados - RUTAS PROTEGIDAS */}
+          <Route path="/graduate/dashboard" element={<EgresadoRoute><GraduateDashboard /></EgresadoRoute>} />
+          <Route path="/graduate/profile" element={<EgresadoRoute><GraduateProfile /></EgresadoRoute>} />
+          <Route path="/graduate/proyectos" element={<EgresadoRoute><GraduateProjects /></EgresadoRoute>} />
 
+          {/* ✅ Invitados - RUTAS PROTEGIDAS */}
+          <Route path="/guest/dashboard" element={<InvitadoRoute><GuestDashboard /></InvitadoRoute>} />
+          <Route path="/guest/profile" element={<InvitadoRoute><GuestProfile /></InvitadoRoute>} />
+          <Route path="/guest/proyectos" element={<InvitadoRoute><GuestProjects /></InvitadoRoute>} />
 
           <Route
             path="*"

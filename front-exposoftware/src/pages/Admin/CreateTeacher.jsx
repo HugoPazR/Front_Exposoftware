@@ -24,6 +24,9 @@ export default function CreateTeacher() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   
+  // Estado para mostrar mensaje de éxito
+  const [successMessage, setSuccessMessage] = useState("");
+  
   // Cargar datos del usuario autenticado
   useEffect(() => {
     const user = AuthService.getUserData();
@@ -119,6 +122,8 @@ export default function CreateTeacher() {
     // Estados de edición
     isEditing,
     showEditModal,
+  loading,
+  serverError,
     // Funciones
     handleSubmit,
     handleEdit,
@@ -127,6 +132,7 @@ export default function CreateTeacher() {
     handleDelete,
     handleCancel,
   } = useTeacherManagement();
+  
 
   // Función para manejar cambios con validación
   const handleInputChange = (fieldName, value, setter) => {
@@ -216,8 +222,12 @@ export default function CreateTeacher() {
       return;
     }
 
-    // Si no hay errores, proceder con el envío
-    handleSubmit(e);
+    // Si no hay errores, proceder con el envío con callback de éxito
+    handleSubmit(e, (message) => {
+      setSuccessMessage(message);
+      // Auto-ocultar el mensaje después de 4 segundos
+      setTimeout(() => setSuccessMessage(""), 4000);
+    });
     setErrors({});
   };
 
@@ -305,6 +315,23 @@ export default function CreateTeacher() {
 
               {/* Formulario */}
               <form onSubmit={handleFormSubmit} className="space-y-6">
+                {/* Mensaje de éxito del servidor */}
+                {successMessage && (
+                  <div className="p-4 mb-4 rounded-lg bg-green-50 border border-green-200 text-green-700 flex items-start gap-3">
+                    <i className="pi pi-check-circle flex-shrink-0 mt-0.5 text-lg"></i>
+                    <div>
+                      <strong className="block font-medium">¡Éxito!</strong>
+                      <p className="text-sm">{successMessage}</p>
+                    </div>
+                  </div>
+                )}
+                {/* Mensaje de error del servidor */}
+                {serverError && (
+                  <div className="p-3 mb-4 rounded bg-red-50 border border-red-200 text-red-700">
+                    <strong className="block font-medium">Error:</strong>
+                    <p className="text-sm">{serverError}</p>
+                  </div>
+                )}
                 {/* Información Personal */}
                 <div className="border-b pb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Información Personal</h3>
@@ -818,9 +845,10 @@ export default function CreateTeacher() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 transition-all shadow-md hover:shadow-lg"
+                    disabled={loading}
+                    className={`flex-1 bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg ${loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-teal-700'}`}
                   >
-                    Registrar Profesor
+                    {loading ? 'Registrando...' : 'Registrar Profesor'}
                   </button>
                 </div>
               </form>
@@ -909,7 +937,7 @@ export default function CreateTeacher() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
-                              {profesor?.usuario?.primer_nombre || profesor?.primer_nombre || ''} {profesor?.usuario?.segundo_nombre || profesor?.segundo_nombre || ''} {profesor?.usuario?.primer_apellido || profesor?.primer_apellido || ''} {profesor?.usuario?.segundo_apellido || profesor?.segundo_apellido || ''}
+                              {profesor?.usuario?.nombres || profesor?.nombres || 'N/A'}
                             </div>
                           </td>
                           <td className="px-6 py-4">

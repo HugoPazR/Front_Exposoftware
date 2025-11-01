@@ -66,6 +66,7 @@ export default function CreateLines() {
     setIdLineaParaSublinea,
     sublineas,
     sublineasFiltradas,
+    sublineasPorLinea,
     searchTermSublinea,
     setSearchTermSublinea,
     showEditSublineaModal,
@@ -79,6 +80,7 @@ export default function CreateLines() {
     setIdSublineaParaArea,
     areas,
     areasFiltradas,
+    areasPorSublinea,
     searchTermArea,
     setSearchTermArea,
     showEditAreaModal,
@@ -277,8 +279,8 @@ export default function CreateLines() {
                             </td>
                           </tr>
                         ) : (
-                          lineasFiltradas.map((linea) => (
-                            <tr key={linea.id} className="hover:bg-gray-50 transition">
+                          lineasFiltradas.map((linea, idx) => (
+                            <tr key={`linea-${linea.codigo_linea || idx}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-teal-100 text-teal-800">
                                   {linea.codigo_linea}
@@ -344,8 +346,8 @@ export default function CreateLines() {
                       required
                     >
                       <option value="">Selecciona una línea</option>
-                      {lineas.map((linea) => (
-                        <option key={linea.id} value={linea.id}>
+                      {lineas.map((linea, idx) => (
+                        <option key={`linea-${linea.codigo_linea || idx}`} value={String(linea.codigo_linea)}>
                           {linea.codigo_linea} - {linea.nombre_linea}
                         </option>
                       ))}
@@ -432,7 +434,7 @@ export default function CreateLines() {
                           </tr>
                         ) : (
                           sublineasFiltradas.map((sublinea) => (
-                            <tr key={sublinea.id} className="hover:bg-gray-50 transition">
+                            <tr key={`sublinea-${sublinea.codigo_sublinea || sublinea.id}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                                   {sublinea.codigo_sublinea}
@@ -492,24 +494,52 @@ export default function CreateLines() {
                 {/* Formulario Área */}
                 <form onSubmit={handleSubmitArea} className="space-y-6 max-w-2xl">
                   <div>
+                    <label htmlFor="lineaParaArea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Línea de Investigación (Paso 1) <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="lineaParaArea"
+                      value={idLineaParaSublinea}
+                      onChange={(e) => setIdLineaParaSublinea(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      required
+                    >
+                      <option value="">Selecciona una línea</option>
+                      {lineas.map((linea, idx) => (
+                        <option key={`linea-${linea.codigo_linea || idx}`} value={String(linea.codigo_linea)}>
+                          {linea.codigo_linea} - {linea.nombre_linea}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">Primero selecciona una línea para cargar sus sublíneas</p>
+                  </div>
+
+                  <div>
                     <label htmlFor="idSublineaParaArea" className="block text-sm font-medium text-gray-700 mb-2">
-                      Sublínea de Investigación <span className="text-red-500">*</span>
+                      Sublínea de Investigación (Paso 2) <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="idSublineaParaArea"
                       value={idSublineaParaArea}
                       onChange={(e) => setIdSublineaParaArea(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
                       required
+                      disabled={!idLineaParaSublinea}
                     >
-                      <option value="">Selecciona una sublínea</option>
-                      {sublineas.map((sublinea) => (
-                        <option key={sublinea.id} value={sublinea.id}>
-                          {sublinea.codigo_sublinea} - {sublinea.nombre_sublinea} ({getLineaNombre(sublinea.id_linea)})
+                      <option value="">
+                        {idLineaParaSublinea 
+                          ? (sublineasPorLinea.length > 0 
+                            ? 'Selecciona una sublínea' 
+                            : 'Cargando sublíneas...')
+                          : 'Primero selecciona una línea'}
+                      </option>
+                      {sublineasPorLinea.map((sublinea, idx) => (
+                        <option key={`sublinea-${sublinea.codigo_sublinea || idx}`} value={String(sublinea.codigo_sublinea)}>
+                          {sublinea.codigo_sublinea} - {sublinea.nombre_sublinea}
                         </option>
                       ))}
                     </select>
-                    <p className="mt-1 text-xs text-gray-500">La sublínea a la que pertenece esta área</p>
+                    <p className="mt-1 text-xs text-gray-500">Las sublíneas se cargarán automáticamente al seleccionar una línea</p>
                   </div>
 
                   <div>
@@ -531,10 +561,22 @@ export default function CreateLines() {
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={!idSublineaParaArea}
                     >
                       Crear Área Temática
                     </button>
+                  </div>
+
+                  {/* Debug Info */}
+                  <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-300">
+                    <p className="text-xs text-gray-600 font-mono">
+                      <strong>Debug:</strong><br/>
+                      Línea seleccionada: {idLineaParaSublinea || 'Ninguna'}<br/>
+                      Sublíneas cargadas: {sublineasPorLinea.length}<br/>
+                      Sublínea seleccionada: {idSublineaParaArea || 'Ninguna'}<br/>
+                      Estado botón: {!idSublineaParaArea ? 'Deshabilitado' : 'Habilitado'}
+                    </p>
                   </div>
                 </form>
 
@@ -591,7 +633,7 @@ export default function CreateLines() {
                           </tr>
                         ) : (
                           areasFiltradas.map((area) => (
-                            <tr key={area.id} className="hover:bg-gray-50 transition">
+                            <tr key={`area-${area.codigo_area || area.id}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
                                   {area.codigo_area}

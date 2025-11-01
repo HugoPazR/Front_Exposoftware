@@ -106,8 +106,8 @@ export function EditSublineaModal({
               required
             >
               <option value="">Selecciona una línea</option>
-              {lineas.map((linea) => (
-                <option key={linea.id} value={linea.id}>
+              {lineas.map((linea, idx) => (
+                <option key={`linea-${linea.codigo_linea || idx}`} value={String(linea.codigo_linea || linea.id)}>
                   {linea.codigo_linea} - {linea.nombre_linea}
                 </option>
               ))}
@@ -201,8 +201,8 @@ export function EditAreaModal({
               required
             >
               <option value="">Selecciona una sublínea</option>
-              {sublineas.map((sublinea) => (
-                <option key={sublinea.id} value={sublinea.id}>
+              {sublineas.map((sublinea, idx) => (
+                <option key={`sublinea-${sublinea.codigo_sublinea || idx}`} value={String(sublinea.codigo_sublinea || sublinea.id)}>
                   {sublinea.codigo_sublinea} - {sublinea.nombre_sublinea} ({getLineaNombre(sublinea.id_linea)})
                 </option>
               ))}

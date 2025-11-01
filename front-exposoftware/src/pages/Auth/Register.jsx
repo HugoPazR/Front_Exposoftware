@@ -36,8 +36,15 @@ function RegisterPage() {
     confirmar_contraseña: "",
     codigo_programa: "",
     semestre: "",
+    sector: "",
+    institucionOrigen: "",
+    nombreEmpresa: "",
+    idSector: "",
     periodo: "",
-    anio_ingreso: new Date().getFullYear()
+    titulado: "",
+    tituloObtenido: "",
+    contraseña: "",
+    confirmarcontraseña: "",
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,36 +74,78 @@ function RegisterPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      correo: "",
+      programa: "",
+      facultad: "",
+      semestre: "",
+      sector: "",
+      nombreEmpresa: "",
+      periodo: "",
+      titulado: "",
+      fechaIngreso: "",
+      fechaFinalizacion: "",
+      institucionOrigen: "",
+      idSector: "",
+      tituloObtenido: "",
     }));
+    
+    const camposRol = [
+      "correo", "programa", "facultad", "semestre", 
+      "sector", "nombreEmpresa", "periodo", "titulado",
+      "fechaIngreso", "fechaFinalizacion", "institucionOrigen", "idSector", "tituloObtenido"
+    ];
+    
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      camposRol.forEach(campo => delete newErrors[campo]);
+      return newErrors;
+    });
+    
+    setSuccessFields((prev) => {
+      const newSuccess = { ...prev };
+      camposRol.forEach(campo => delete newSuccess[campo]);
+      return newSuccess;
+    });
+  }, [rol]);
+
+  // Desactivar Departamento y Municipio si el país no es Colombia
+  useEffect(() => {
+    if (formData.nacionalidad !== "CO") {
+      setFormData((prev) => ({
+        ...prev,
+        departamentoResidencia: "",
+        ciudadResidencia: "",
+      }));
+      setciudades([]);
+    }
+  }, [formData.nacionalidad]);
+
+  // Handlers
+  const handleChange = (e) => {
+    handleChangeUtil(e, formData, setFormData, setErrors, setSuccessFields, rol, setrol);
+    if (e.target.name === "rol") {
+      setrol(e.target.value);
+    }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    console.log(" Iniciando registro...");
-    
-    const validacion = RegisterService.validarDatosRegistro(formData);
-    if (!validacion.valido) {
-      alert(" Por favor complete todos los campos requeridos:\n\n" + validacion.errores.join("\n"));
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const resultado = await RegisterService.registrarEstudiante(formData);
-      
-      if (resultado.success) {
-        alert(" ¡Registro exitoso!\n\nYa puedes iniciar sesión con tu correo y contraseña.");
-        navigate("/login");
-      }
-    } catch (error) {
-      console.error(" Error en registro:", error);
-      alert(" Error al registrarse:\n\n" + error.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSelectChange = (name, option) => {
+    handleSelectChangeUtil(name, option, formData, setFormData, setErrors, setSuccessFields, rol);
+  };
+
+  const handlePhoneChange = (value) => {
+    handlePhoneChangeUtil(value, formData, setFormData, setErrors, setSuccessFields, rol);
+  };
+
+  const handleDepartamentoChange = (e) => {
+    handleDepartamentoChangeUtil(e, formData, setFormData, setciudades, setErrors, setSuccessFields, rol, colombia);
+  };
+
+  const handleSubmit = (e) => {
+    handleSubmitUtil(e, formData, rol, setCargando, setMensajeExito, setMensajeError, setErrors, validateAllFields, hasErrors);
+  };
+
+  const getInputClassName = (fieldName) => {
+    return getInputClassNameUtil(fieldName, errors, successFields, cargando);
   };
 
   return (

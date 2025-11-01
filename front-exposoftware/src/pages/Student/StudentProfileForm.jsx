@@ -10,7 +10,6 @@ export default function StudentProfileForm({
   colombiaData,
   handleInputChange 
 }) {
-  
   return (
     <>
       {/* Información Personal */}
@@ -18,7 +17,6 @@ export default function StudentProfileForm({
         <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
           <span>📋</span> Información Personal
         </h3>
-
 
         {/* Grid 2 columnas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,7 +133,7 @@ export default function StudentProfileForm({
             </label>
             <input
               type="date"
-              value={profileData.fechaNacimiento}
+              value={profileData.fechaNacimiento || ''}
               onChange={(e) => handleInputChange('fechaNacimiento', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
@@ -176,8 +174,8 @@ export default function StudentProfileForm({
             </label>
             <Select
               options={opcionesPaises}
-              value={opcionesPaises.find(op => op.value === profileData.pais)}
-              onChange={(selectedOption) => handleInputChange('pais', selectedOption?.value || '')}
+              value={opcionesPaises.find(op => op.value === profileData.pais) || null}
+              onChange={(selectedOption) => handleInputChange('pais', selectedOption ? selectedOption.value : '')}
               isDisabled={!isEditing}
               placeholder="Seleccionar país"
               className="text-sm"
@@ -198,8 +196,8 @@ export default function StudentProfileForm({
             </label>
             <Select
               options={opcionesPaises}
-              value={opcionesPaises.find(op => op.value === profileData.nacionalidad)}
-              onChange={(selectedOption) => handleInputChange('nacionalidad', selectedOption?.value || '')}
+              value={opcionesPaises.find(op => op.value === profileData.nacionalidad) || null}
+              onChange={(selectedOption) => handleInputChange('nacionalidad', selectedOption ? selectedOption.value : '')}
               isDisabled={!isEditing}
               placeholder="Seleccionar nacionalidad"
               className="text-sm"
@@ -231,7 +229,7 @@ export default function StudentProfileForm({
             >
               <option value="">Seleccionar departamento</option>
               {colombiaData.map((dept) => (
-                <option key={dept.id} value={dept.departamento}>
+                <option key={dept.departamento} value={dept.departamento}>
                   {dept.departamento}
                 </option>
               ))}
@@ -256,8 +254,8 @@ export default function StudentProfileForm({
                   ? 'Selecciona departamento primero' 
                   : 'Seleccionar ciudad'}
               </option>
-              {ciudadesResidencia.map((ciudad, idx) => (
-                <option key={idx} value={ciudad}>
+              {ciudadesResidencia.map((ciudad) => (
+                <option key={ciudad} value={ciudad}>
                   {ciudad}
                 </option>
               ))}
@@ -299,7 +297,7 @@ export default function StudentProfileForm({
             >
               <option value="">Seleccionar departamento</option>
               {colombiaData.map((dept) => (
-                <option key={dept.id} value={dept.departamento}>
+                <option key={dept.departamento} value={dept.departamento}>
                   {dept.departamento}
                 </option>
               ))}
@@ -324,8 +322,8 @@ export default function StudentProfileForm({
                   ? 'Selecciona departamento primero' 
                   : 'Seleccionar municipio'}
               </option>
-              {municipios.map((municipio, idx) => (
-                <option key={idx} value={municipio}>
+              {municipios.map((municipio) => (
+                <option key={municipio} value={municipio}>
                   {municipio}
                 </option>
               ))}
@@ -416,7 +414,7 @@ export default function StudentProfileForm({
             </label>
             <input
               type="date"
-              value={profileData.fechaIngreso}
+              value={profileData.fechaIngreso || ''}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
               disabled
             />

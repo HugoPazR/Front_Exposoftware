@@ -1,5 +1,20 @@
 import { useState, useEffect } from "react";
-import ResearchLinesService from "../../Services/ResearchLinesService";
+import {
+  obtenerLineas,
+  obtenerSublineas,
+  obtenerAreas,
+  obtenerTodasSublineas,
+  obtenerTodasAreas,
+  crearLinea,
+  crearSublinea,
+  crearArea,
+  actualizarLinea,
+  actualizarSublinea,
+  actualizarArea,
+  eliminarLinea,
+  eliminarSublinea,
+  eliminarArea
+} from "../../Services/ResearchLineService";
 
 export function useResearchLinesManagement() {
   const [codigoLinea, setCodigoLinea] = useState("");
@@ -13,6 +28,7 @@ export function useResearchLinesManagement() {
   const [nombreSublinea, setNombreSublinea] = useState("");
   const [idLineaParaSublinea, setIdLineaParaSublinea] = useState("");
   const [sublineas, setSublineas] = useState([]);
+  const [sublineasPorLinea, setSublineasPorLinea] = useState([]);
   const [editingSublineaCodigo, setEditingSublineaCodigo] = useState(null);
   const [editingSublineaLineaCodigo, setEditingSublineaLineaCodigo] = useState(null);
   const [showEditSublineaModal, setShowEditSublineaModal] = useState(false);
@@ -22,6 +38,7 @@ export function useResearchLinesManagement() {
   const [nombreArea, setNombreArea] = useState("");
   const [idSublineaParaArea, setIdSublineaParaArea] = useState("");
   const [areas, setAreas] = useState([]);
+  const [areasPorSublinea, setAreasPorSublinea] = useState([]);
   const [editingAreaCodigo, setEditingAreaCodigo] = useState(null);
   const [editingAreaSublineaCodigo, setEditingAreaSublineaCodigo] = useState(null);
   const [editingAreaLineaCodigo, setEditingAreaLineaCodigo] = useState(null);
@@ -30,13 +47,71 @@ export function useResearchLinesManagement() {
 
   useEffect(() => {
     cargarLineas();
-    cargarTodasSublineas();
-    cargarTodasAreas();
   }, []);
+
+  // Cargar sublíneas de una línea específica cuando se selecciona
+  useEffect(() => {
+    if (idLineaParaSublinea) {
+      cargarSublineasPorLinea(parseInt(idLineaParaSublinea));
+    } else {
+      setSublineasPorLinea([]);
+    }
+  }, [idLineaParaSublinea]);
+
+  // Cargar áreas de una sublínea específica cuando se selecciona
+  useEffect(() => {
+    if (idSublineaParaArea) {
+      cargarAreasPorSublinea(parseInt(idSublineaParaArea));
+    } else {
+      setAreasPorSublinea([]);
+    }
+  }, [idSublineaParaArea]);
+
+  const cargarSublineasPorLinea = async (codigoLinea) => {
+    try {
+      console.log(`📥 Cargando sublíneas para línea ${codigoLinea}...`);
+      const data = await obtenerSublineas(codigoLinea);
+      setSublineasPorLinea(data);
+      console.log(`✅ ${data.length} sublíneas cargadas para línea ${codigoLinea}`);
+      
+      // Si aún no hemos cargado TODAS las sublíneas, hacerlo solo una vez
+      if (sublineas.length === 0) {
+        console.log(`📥 Cargando TODAS las sublíneas (por primera vez)...`);
+        const todasSublineas = await obtenerTodasSublineas();
+        setSublineas(todasSublineas);
+        console.log(`✅ ${todasSublineas.length} sublíneas totales cargadas`);
+      }
+    } catch (error) {
+      console.error(`Error al cargar sublíneas de línea ${codigoLinea}:`, error);
+      setSublineasPorLinea([]);
+    }
+  };
+
+  const cargarAreasPorSublinea = async (codigoSublinea) => {
+    try {
+      console.log(`📥 Cargando áreas para sublínea ${codigoSublinea}...`);
+      // Aquí necesitamos obtener las áreas de la sublínea correcta
+      // Como no tenemos un endpoint específico, extraemos del árbol completo
+      const todasAreas = await obtenerTodasAreas();
+      const areasFiltradas = todasAreas.filter(a => a.codigo_sublinea === codigoSublinea);
+      setAreasPorSublinea(areasFiltradas);
+      console.log(`✅ ${areasFiltradas.length} áreas cargadas para sublínea ${codigoSublinea}`);
+      
+      // Si aún no hemos cargado TODAS las áreas, hacerlo solo una vez
+      if (areas.length === 0) {
+        console.log(`📥 Cargando TODAS las áreas (por primera vez)...`);
+        setAreas(todasAreas);
+        console.log(`✅ ${todasAreas.length} áreas totales cargadas`);
+      }
+    } catch (error) {
+      console.error(`Error al cargar áreas de sublínea ${codigoSublinea}:`, error);
+      setAreasPorSublinea([]);
+    }
+  };
 
   const cargarLineas = async () => {
     try {
-      const data = await ResearchLinesService.obtenerLineas();
+      const data = await obtenerLineas();
       setLineas(data);
     } catch (error) {
       console.error(error);
@@ -46,7 +121,7 @@ export function useResearchLinesManagement() {
 
   const cargarTodasSublineas = async () => {
     try {
-      const data = await ResearchLinesService.obtenerTodasSublineas();
+      const data = await obtenerTodasSublineas();
       setSublineas(data);
     } catch (error) {
       console.error(error);
@@ -56,7 +131,7 @@ export function useResearchLinesManagement() {
 
   const cargarTodasAreas = async () => {
     try {
-      const data = await ResearchLinesService.obtenerTodasAreas();
+      const data = await obtenerTodasAreas();
       setAreas(data);
     } catch (error) {
       console.error(error);
@@ -97,7 +172,7 @@ export function useResearchLinesManagement() {
       return;
     }
     try {
-      await ResearchLinesService.crearLinea({ nombre_linea: nombreLinea });
+      await crearLinea({ nombre_linea: nombreLinea });
       alert("Línea creada exitosamente");
       setNombreLinea("");
       await cargarLineas();
@@ -119,7 +194,7 @@ export function useResearchLinesManagement() {
       return;
     }
     try {
-      await ResearchLinesService.actualizarLinea(editingLineaCodigo, { nombre_linea: nombreLinea });
+      await actualizarLinea(editingLineaCodigo, { nombre_linea: nombreLinea });
       alert("Línea actualizada");
       setShowEditLineaModal(false);
       setEditingLineaCodigo(null);
@@ -139,7 +214,7 @@ export function useResearchLinesManagement() {
   const handleDeleteLinea = async (codigoLinea) => {
     if (!confirm("¿Eliminar línea?")) return;
     try {
-      await ResearchLinesService.eliminarLinea(codigoLinea);
+      await eliminarLinea(codigoLinea);
       alert("Línea eliminada");
       await cargarLineas();
       await cargarTodasSublineas();
@@ -156,7 +231,10 @@ export function useResearchLinesManagement() {
       return;
     }
     try {
-      await ResearchLinesService.crearSublinea(idLineaParaSublinea, { nombre_sublinea: nombreSublinea });
+      // Convertir a número si es string
+      const codigoLinea = typeof idLineaParaSublinea === 'string' ? parseInt(idLineaParaSublinea) : idLineaParaSublinea;
+      console.log(`📤 Creando sublínea en línea ${codigoLinea}:`, { nombre_sublinea: nombreSublinea });
+      await crearSublinea(codigoLinea, { nombre_sublinea: nombreSublinea });
       alert("Sublínea creada");
       setNombreSublinea("");
       setIdLineaParaSublinea("");
@@ -181,7 +259,11 @@ export function useResearchLinesManagement() {
       return;
     }
     try {
-      await ResearchLinesService.actualizarSublinea(editingSublineaLineaCodigo, editingSublineaCodigo, { nombre_sublinea: nombreSublinea });
+      // Convertir a números si son strings
+      const codigoLinea = typeof editingSublineaLineaCodigo === 'string' ? parseInt(editingSublineaLineaCodigo) : editingSublineaLineaCodigo;
+      const codigoSublinea = typeof editingSublineaCodigo === 'string' ? parseInt(editingSublineaCodigo) : editingSublineaCodigo;
+      console.log(`📝 Actualizando sublínea en línea ${codigoLinea}: ${codigoSublinea}`);
+      await actualizarSublinea(codigoLinea, codigoSublinea, { nombre_sublinea: nombreSublinea });
       alert("Sublínea actualizada");
       setShowEditSublineaModal(false);
       setEditingSublineaCodigo(null);
@@ -207,7 +289,11 @@ export function useResearchLinesManagement() {
     try {
       const sublinea = sublineas.find(s => s.codigo_sublinea === codigoSublinea);
       if (!sublinea) throw new Error("No encontrada");
-      await ResearchLinesService.eliminarSublinea(sublinea.codigo_linea, codigoSublinea);
+      // Convertir a números si son strings
+      const codigoLinea = typeof sublinea.codigo_linea === 'string' ? parseInt(sublinea.codigo_linea) : sublinea.codigo_linea;
+      const codigoSub = typeof codigoSublinea === 'string' ? parseInt(codigoSublinea) : codigoSublinea;
+      console.log(`🗑️ Eliminando sublínea ${codigoSub} de línea ${codigoLinea}`);
+      await eliminarSublinea(codigoLinea, codigoSub);
       alert("Sublínea eliminada");
       await cargarTodasSublineas();
       await cargarTodasAreas();
@@ -223,9 +309,28 @@ export function useResearchLinesManagement() {
       return;
     }
     try {
-      const sublinea = sublineas.find(s => s.codigo_sublinea === parseInt(idSublineaParaArea));
-      if (!sublinea) throw new Error("Sublínea no encontrada");
-      await ResearchLinesService.crearArea(sublinea.codigo_linea, idSublineaParaArea, { nombre_area: nombreArea });
+      const codigoSublinea = typeof idSublineaParaArea === 'string' ? parseInt(idSublineaParaArea) : idSublineaParaArea;
+      
+      // Buscar primero en sublineasPorLinea (que es lo que se mostró en el dropdown)
+      let sublinea = sublineasPorLinea.find(s => s.codigo_sublinea === codigoSublinea);
+      
+      // Si no está en sublineasPorLinea, buscar en sublineas global
+      if (!sublinea) {
+        sublinea = sublineas.find(s => s.codigo_sublinea === codigoSublinea);
+      }
+      
+      if (!sublinea) {
+        console.error(`❌ Sublínea ${codigoSublinea} no encontrada en:`, {
+          sublineasPorLinea: sublineasPorLinea.map(s => s.codigo_sublinea),
+          sublineas: sublineas.map(s => s.codigo_sublinea)
+        });
+        throw new Error("Sublínea no encontrada");
+      }
+      
+      // Convertir a números
+      const codigoLinea = typeof sublinea.codigo_linea === 'string' ? parseInt(sublinea.codigo_linea) : sublinea.codigo_linea;
+      console.log(`📤 Creando área en sublínea ${codigoSublinea} de línea ${codigoLinea}:`, { nombre_area: nombreArea });
+      await crearArea(codigoLinea, codigoSublinea, { nombre_area: nombreArea });
       alert("Área creada");
       setNombreArea("");
       setIdSublineaParaArea("");
@@ -251,7 +356,12 @@ export function useResearchLinesManagement() {
       return;
     }
     try {
-      await ResearchLinesService.actualizarArea(editingAreaLineaCodigo, editingAreaSublineaCodigo, editingAreaCodigo, { nombre_area: nombreArea });
+      // Convertir a números si son strings
+      const codigoLinea = typeof editingAreaLineaCodigo === 'string' ? parseInt(editingAreaLineaCodigo) : editingAreaLineaCodigo;
+      const codigoSublinea = typeof editingAreaSublineaCodigo === 'string' ? parseInt(editingAreaSublineaCodigo) : editingAreaSublineaCodigo;
+      const codigoArea = typeof editingAreaCodigo === 'string' ? parseInt(editingAreaCodigo) : editingAreaCodigo;
+      console.log(`📝 Actualizando área ${codigoArea} en sublínea ${codigoSublinea} de línea ${codigoLinea}`);
+      await actualizarArea(codigoLinea, codigoSublinea, codigoArea, { nombre_area: nombreArea });
       alert("Área actualizada");
       setShowEditAreaModal(false);
       setEditingAreaCodigo(null);
@@ -279,7 +389,12 @@ export function useResearchLinesManagement() {
     try {
       const area = areas.find(a => a.codigo_area === codigoArea);
       if (!area) throw new Error("No encontrada");
-      await ResearchLinesService.eliminarArea(area.codigo_linea, area.codigo_sublinea, codigoArea);
+      // Convertir a números si son strings
+      const codigoLinea = typeof area.codigo_linea === 'string' ? parseInt(area.codigo_linea) : area.codigo_linea;
+      const codigoSublinea = typeof area.codigo_sublinea === 'string' ? parseInt(area.codigo_sublinea) : area.codigo_sublinea;
+      const codigoAreaDelete = typeof codigoArea === 'string' ? parseInt(codigoArea) : codigoArea;
+      console.log(`🗑️ Eliminando área ${codigoAreaDelete} de sublínea ${codigoSublinea} de línea ${codigoLinea}`);
+      await eliminarArea(codigoLinea, codigoSublinea, codigoAreaDelete);
       alert("Área eliminada");
       await cargarTodasAreas();
     } catch (error) {
@@ -289,8 +404,8 @@ export function useResearchLinesManagement() {
 
   return {
     codigoLinea, setCodigoLinea, nombreLinea, setNombreLinea, lineas, lineasFiltradas, searchTermLinea, setSearchTermLinea, showEditLineaModal,
-    codigoSublinea, setCodigoSublinea, nombreSublinea, setNombreSublinea, idLineaParaSublinea, setIdLineaParaSublinea, sublineas, sublineasFiltradas, searchTermSublinea, setSearchTermSublinea, showEditSublineaModal,
-    codigoArea, setCodigoArea, nombreArea, setNombreArea, idSublineaParaArea, setIdSublineaParaArea, areas, areasFiltradas, searchTermArea, setSearchTermArea, showEditAreaModal,
+    codigoSublinea, setCodigoSublinea, nombreSublinea, setNombreSublinea, idLineaParaSublinea, setIdLineaParaSublinea, sublineas, sublineasFiltradas, sublineasPorLinea, searchTermSublinea, setSearchTermSublinea, showEditSublineaModal,
+    codigoArea, setCodigoArea, nombreArea, setNombreArea, idSublineaParaArea, setIdSublineaParaArea, areas, areasFiltradas, areasPorSublinea, searchTermArea, setSearchTermArea, showEditAreaModal,
     getLineaNombre, getSublineaNombre, getSublineasPorLinea,
     handleSubmitLinea, handleEditLinea, handleSaveEditLinea, handleCancelEditLinea, handleDeleteLinea,
     handleSubmitSublinea, handleEditSublinea, handleSaveEditSublinea, handleCancelEditSublinea, handleDeleteSublinea,

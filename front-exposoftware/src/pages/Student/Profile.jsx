@@ -85,6 +85,17 @@ export default function Profile() {
         console.log('📝 Nombre dividido:', { nombres, apellidos });
       }
       
+      const normalizeDateForInput = (raw) => {
+        if (!raw) return "";
+        try {
+          const d = new Date(raw);
+          if (isNaN(d)) return "";
+          return d.toISOString().slice(0, 10); // yyyy-mm-dd
+        } catch (e) {
+          return "";
+        }
+      };
+
       setProfileData({
         tipoDocumento: datosUsuario.tipo_documento || user.tipo_documento || "",
         identificacion: datosUsuario.identificacion || user.identificacion || user.id_usuario || "",
@@ -92,10 +103,10 @@ export default function Profile() {
         apellidos: apellidos,
         genero: datosUsuario.genero || datosUsuario.sexo || user.sexo || user.genero || "",
         identidadSexual: datosUsuario.identidad_sexual || user.identidad_sexual || "",
-        fechaNacimiento: datosUsuario.fecha_nacimiento || user.fecha_nacimiento || "",
+        fechaNacimiento: normalizeDateForInput(datosUsuario.fecha_nacimiento || user.fecha_nacimiento || ""),
         telefono: datosUsuario.telefono || user.telefono || "",
-        pais: datosUsuario.pais_residencia || user.pais_residencia || "CO",
-        nacionalidad: datosUsuario.nacionalidad || user.nacionalidad || "CO",
+  pais: datosUsuario.pais_residencia || user.pais_residencia || "",
+  nacionalidad: datosUsuario.nacionalidad || user.nacionalidad || "",
         departamentoResidencia: datosUsuario.departamento || user.departamento || "",
         ciudadResidencia: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
         direccionResidencia: datosUsuario.direccion_residencia || user.direccion_residencia || "",
@@ -103,8 +114,9 @@ export default function Profile() {
         municipio: datosUsuario.municipio || user.municipio || "",
         ciudad: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
         correo: datosUsuario.correo || user.correo || "",
-        codigoPrograma: user.codigo_programa || "",
-        semestre: user.semestre || 0,
+  codigoPrograma: user.codigo_programa || "",
+  semestre: (user.semestre !== undefined && user.semestre !== null) ? user.semestre : "",
+        fechaIngreso: normalizeDateForInput(datosUsuario.fecha_ingreso || user.fecha_ingreso || ""),
         anioIngreso: user.anio_ingreso || "",
         periodo: user.periodo || "",
         rol: datosUsuario.rol || user.rol || "Estudiante"

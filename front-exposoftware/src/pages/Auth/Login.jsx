@@ -16,91 +16,69 @@ function LoginPage() {
 
   // Verificar si ya está autenticado al cargar la página
   useEffect(() => {
-    if (AuthService.isAuthenticated()) {
-      const role = AuthService.getUserRole();
-      console.log('✅ Usuario ya autenticado como:', role);
-      redirigirSegunRol(role);
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  // Cargar correo guardado
+  useEffect(() => {
+    const correoGuardado = localStorage.getItem("correoRecordado");
+    if (correoGuardado) {
+      setCorreo(correoGuardado);
+      setRecordarme(true);
     }
   }, []);
 
-  /**
-   * Redirigir según el rol del usuario
-   */
-  const redirigirSegunRol = (role) => {
-    switch (role) {
-      case 'admin':
-        navigate('/admin/dash');
-        break;
-      case 'docente':
-        navigate('/teacher/dashboard');
-        break;
-      case 'estudiante':
-        navigate('/student/dashboard');
-        break;
-      default:
-        navigate('/');
+  // Validar campos
+  const validarCampo = (nombre, valor) => {
+    let error = "";
+    const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+
+    if (nombre === "correo") {
+      if (!valor.trim()) {
+        error = "El correo electrónico es obligatorio.";
+      } 
+    }
+
+    if (nombre === "contraseña") {
+      if (!valor.trim()) {
+        error = "La contraseña es obligatoria.";
+      }
+    }
+
+    setErrores((prev) => ({ ...prev, [nombre]: error }));
+    return error === "";
+  };
+
+  const validarCampos = () => {
+    const correoValido = validarCampo("correo", correo);
+    const contraseñaValida = validarCampo("contraseña", contraseña);
+    return correoValido && contraseñaValida;
+  };
+
+  // Guardar o eliminar "Recordarme"
+  const manejarRecordarme = (checked) => {
+    setRecordarme(checked);
+    if (checked) {
+      localStorage.setItem("correoRecordado", correo);
+    } else {
+      localStorage.removeItem("correoRecordado");
     }
   };
 
-  /**
-   * Manejar envío del formulario
-   */
-  const handleSubmit = async (e) => {
+  // Envío del formulario
+  const manejarSubmit = (e) => {
     e.preventDefault();
-    setError("");
-    
-    // Validaciones básicas
-    if (!correo || !password) {
-      setError("Por favor complete todos los campos");
-      return;
-    }
 
-    if (!AuthService.validarCorreo(correo)) {
-      setError("Por favor ingrese un correo válido");
-      return;
-    }
+    if (!validarCampos()) return;
 
-    setLoading(true);
-
-    try {
-      console.log('🔐 Intentando login con:', { correo, password: '***' });
-      
-      // Usar el endpoint universal que detecta automáticamente el rol
-      const resultado = await AuthService.login({ correo, password });
-
-      if (resultado.success) {
-        console.log('✅ Login exitoso!');
-        console.log('📦 Datos recibidos:', resultado.data);
-        
-        // Obtener el rol detectado por el backend
-        const role = AuthService.getUserRole();
-        console.log('👤 Rol detectado automáticamente:', role);
-        
-        // Pequeño delay para mostrar éxito
-        setTimeout(() => {
-          redirigirSegunRol(role);
-        }, 500);
-      }
-    } catch (error) {
-      console.error('❌ Error en login:', error);
-      
-      // Mostrar mensaje más específico según el tipo de error
-      let mensajeError = error.message || "Error al iniciar sesión. Verifique sus credenciales.";
-      
-      if (error.message.includes('servidor no está disponible') || 
-          error.message.includes('502') || 
-          error.message.includes('503') ||
-          error.message.includes('Bad Gateway')) {
-        mensajeError = "⚠️ El servidor está temporalmente fuera de servicio. Por favor, intenta más tarde.";
-      } else if (error.message.includes('No se puede conectar')) {
-        mensajeError = "🌐 No hay conexión con el servidor. Verifica tu conexión a internet.";
-      }
-      
-      setError(mensajeError);
-    } finally {
-      setLoading(false);
-    }
+    alert(`✅ Inicio de sesión exitoso para: ${correo}`);
   };
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-green-50">
       <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">

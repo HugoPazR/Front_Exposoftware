@@ -42,10 +42,26 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Gestión de Líneas de Investigación"
     },
     {
-      to: "/admin/registrar-eventos",
-      icon: "pi-check-circle",
-      label: "Registrar Eventos"
+      to: "/admin/crear-facultad",
+      icon: "pi-building",
+      label: "Gestión de Facultades"
     },
+    {
+      to: "/admin/crear-programa",
+      icon: "pi-book",
+      label: "Gestión de Programas"
+    },
+        {
+      to: "/admin/registrar-eventos",
+      icon: "pi-calendar",
+      label: "Registrar  Eventos"
+    },
+    {
+      to: "/admin/gestionar-eventos",
+      icon: "pi-calendar",
+      label: "Gestión de Eventos"
+    },
+
     {
       to: "/admin/profile",
       icon: "pi-cog",
