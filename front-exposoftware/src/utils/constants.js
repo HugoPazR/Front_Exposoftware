@@ -11,6 +11,8 @@ export const API_ENDPOINTS = {
   
   // Registro público
   REGISTRO_ESTUDIANTE: `${API_BASE_URL}/api/v1/estudiantes/registro`,
+  REGISTRO_EGRESADO: `${API_BASE_URL}/api/v1/egresados/registro`,
+  REGISTRO_INVITADO: `${API_BASE_URL}/api/v1/invitados/registro`,
   
   // Usuarios
   USUARIOS: `${API_BASE_URL}/api/v1/usuarios`,

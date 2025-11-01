@@ -59,6 +59,8 @@ function App() {
     "/admin/registrar-eventos",
     "/admin/gestionar-eventos",
     "/admin/facultades",
+    "/admin/crear-facultad",
+    "/admin/crear-programa",
     "/admin/programas",
     "/graduate/dashboard",
     "/graduate/profile",

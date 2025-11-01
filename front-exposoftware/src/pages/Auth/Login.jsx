@@ -16,13 +16,35 @@ function LoginPage() {
 
   // Verificar si ya está autenticado al cargar la página
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex === images.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [images.length]);
+    const token = AuthService.getToken();
+    if (token) {
+      const userData = AuthService.getUserData();
+      if (userData && userData.rol) {
+        // Redirigir según el rol
+        switch(userData.rol.toLowerCase()) {
+          case 'estudiante':
+            navigate('/student/dashboard');
+            break;
+          case 'docente':
+          case 'profesor':
+            navigate('/teacher/dashboard');
+            break;
+          case 'administrador':
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'egresado':
+            navigate('/graduate/dashboard');
+            break;
+          case 'invitado':
+            navigate('/guest/dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      }
+    }
+  }, [navigate]);
 
   // Cargar correo guardado
   useEffect(() => {
@@ -33,50 +55,96 @@ function LoginPage() {
     }
   }, []);
 
-  // Validar campos
-  const validarCampo = (nombre, valor) => {
-    let error = "";
-    const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-
-    if (nombre === "correo") {
-      if (!valor.trim()) {
-        error = "El correo electrónico es obligatorio.";
-      } 
-    }
-
-    if (nombre === "contraseña") {
-      if (!valor.trim()) {
-        error = "La contraseña es obligatoria.";
-      }
-    }
-
-    setErrores((prev) => ({ ...prev, [nombre]: error }));
-    return error === "";
-  };
-
-  const validarCampos = () => {
-    const correoValido = validarCampo("correo", correo);
-    const contraseñaValida = validarCampo("contraseña", contraseña);
-    return correoValido && contraseñaValida;
-  };
-
-  // Guardar o eliminar "Recordarme"
-  const manejarRecordarme = (checked) => {
-    setRecordarme(checked);
-    if (checked) {
-      localStorage.setItem("correoRecordado", correo);
-    } else {
-      localStorage.removeItem("correoRecordado");
-    }
-  };
-
-  // Envío del formulario
-  const manejarSubmit = (e) => {
+  // Manejar submit del formulario
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validaciones básicas
+    if (!correo.trim()) {
+      setError("El correo electrónico es obligatorio");
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError("La contraseña es obligatoria");
+      return;
+    }
 
-    if (!validarCampos()) return;
+    setLoading(true);
+    setError("");
 
-    alert(`✅ Inicio de sesión exitoso para: ${correo}`);
+    try {
+      console.log("📤 Intentando iniciar sesión con:", correo);
+      
+      // Llamar al servicio de autenticación con el formato correcto
+      const response = await AuthService.login({
+        correo: correo,
+        password: password
+      });
+      
+      console.log("✅ Login exitoso:", response);
+
+      // Guardar correo si "Recordarme" está activado
+      if (recordarme) {
+        localStorage.setItem("correoRecordado", correo);
+      } else {
+        localStorage.removeItem("correoRecordado");
+      }
+
+      // Obtener datos del usuario
+      const userData = AuthService.getUserData();
+      const userRole = AuthService.getUserRole();
+      
+      console.log("📦 userData obtenido:", userData);
+      console.log("👤 userRole obtenido:", userRole);
+      
+      if (!userRole) {
+        throw new Error("No se pudo obtener el rol del usuario");
+      }
+
+      // Redirigir según el rol
+      const rol = userRole.toLowerCase();
+      console.log("🔀 Redirigiendo usuario con rol:", rol);
+
+      switch(rol) {
+        case 'estudiante':
+          navigate('/student/dashboard');
+          break;
+        case 'docente':
+        case 'profesor':
+          navigate('/teacher/dashboard');
+          break;
+        case 'administrador':
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'egresado':
+          navigate('/graduate/dashboard');
+          break;
+        case 'invitado':
+          navigate('/guest/dashboard');
+          break;
+        default:
+          console.warn("⚠️ Rol no reconocido:", rol);
+          navigate('/');
+      }
+
+    } catch (err) {
+      console.error("❌ Error en login:", err);
+      
+      // Manejar diferentes tipos de errores
+      if (err.message.includes('502') || err.message.includes('503')) {
+        setError("⚠️ El servidor no está disponible temporalmente. Por favor, intenta más tarde.");
+      } else if (err.message.includes('conexión') || err.message.includes('network')) {
+        setError("🌐 Error de conexión. Verifica tu conexión a internet.");
+      } else if (err.message.includes('401') || err.message.includes('credenciales')) {
+        setError("❌ Correo o contraseña incorrectos. Por favor, verifica tus datos.");
+      } else {
+        setError(err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
