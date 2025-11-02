@@ -46,8 +46,8 @@ export default function ManageEvents() {
   }, []);
 
   const getUserName = () => {
-    if (!userData) return 'Admin';
-    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Admin';
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
   };
 
   const getUserInitials = () => {

@@ -19,17 +19,17 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
     {
       to: "/admin/dash",
       icon: "pi-home",
-      label: "Dashboard"
+      label: "Dashboard Admin"
     },
     {
       to: "/admin/crear-materia",
       icon: "pi-book",
-      label: "Crear Materia"
+      label: "Gestión de Materias"
     },
     {
       to: "/admin/crear-grupo",
       icon: "pi-users",
-      label: "Crear Grupo"
+      label: "Gestión de Grupos"
     },
     {
       to: "/admin/crear-profesor",
@@ -56,17 +56,16 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       icon: "pi-book",
       label: "Gestión de Programas"
     },
-        {
-      to: "/admin/registrar-eventos",
-      icon: "pi-calendar",
-      label: "Registrar  Eventos"
-    },
     {
-      to: "/admin/gestionar-eventos",
+      to: "/admin/registrar-eventos",
       icon: "pi-calendar",
       label: "Gestión de Eventos"
     },
-
+    {
+      to: "/admin/gestionar-eventos",
+      icon: "pi-calendar-plus",
+      label: "Administrar Eventos"
+    },
     {
       to: "/admin/profile",
       icon: "pi-cog",

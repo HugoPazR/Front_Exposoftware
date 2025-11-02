@@ -80,19 +80,26 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
+      console.log('🔐 AuthContext - Iniciando login...');
+      
       // Usar AuthService para hacer login
       const resultado = await AuthService.login(credentials);
       
       if (resultado.success && resultado.data) {
         const userRole = AuthService.getUserRole();
         
-        // 🚀 CARGAR DATOS INMEDIATAMENTE desde el login
-        console.log('⚡ Cargando datos inmediatamente tras login');
+        console.log('✅ AuthContext - Login exitoso, rol:', userRole);
+        console.log('📦 AuthContext - Datos del usuario:', resultado.data);
+        
+        // 🚀 ACTUALIZAR EL ESTADO INMEDIATAMENTE
         setUser(resultado.data);
+        setLoading(false);
+        
+        console.log('✅ AuthContext - Estado de usuario actualizado');
         
         // Si es estudiante, cargar perfil completo en SEGUNDO PLANO
         if (userRole === 'estudiante') {
-          console.log('📚 Actualizando perfil completo en segundo plano tras login...');
+          console.log('📚 AuthContext - Actualizando perfil completo en segundo plano tras login...');
           
           // Esta llamada NO bloquea la UI
           StudentProfileService.obtenerMiPerfil()
@@ -102,27 +109,24 @@ export const AuthProvider = ({ children }) => {
                 setUser(perfilProcesado);
                 // Guardar en localStorage para próximas cargas
                 localStorage.setItem('user_data', JSON.stringify(perfilProcesado));
-                console.log('✅ Perfil completo actualizado y guardado tras login');
+                console.log('✅ AuthContext - Perfil completo actualizado y guardado tras login');
               }
             })
             .catch(error => {
-              console.error('❌ Error al cargar perfil tras login:', error.message);
-              console.log('✅ Manteniendo datos básicos del login');
+              console.error('❌ AuthContext - Error al cargar perfil tras login:', error.message);
+              console.log('✅ AuthContext - Manteniendo datos básicos del login');
             });
-          
-          return { success: true, user: resultado.data };
-        } else {
-          // Para otros roles, usar datos del login
-          return { success: true, user: resultado.data };
         }
+        
+        return { success: true, user: resultado.data };
       }
       
+      setLoading(false);
       return { success: false, error: 'Error en el login' };
     } catch (error) {
-      console.error('❌ Error en login:', error);
-      return { success: false, error: error.message };
-    } finally {
+      console.error('❌ AuthContext - Error en login:', error);
       setLoading(false);
+      return { success: false, error: error.message };
     }
   };
 

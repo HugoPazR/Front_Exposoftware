@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle } from "lucide-react";
+import SECTORES from "../../../data/sectores";
 
 function InformacionInvitado({
   formData,
@@ -72,11 +73,11 @@ function InformacionInvitado({
           className={getInputClassName("sector")}
         >
           <option value="">Selecciona Sector</option>
-          <option value="educativo">Educativo</option>
-          <option value="empresarial">Empresarial</option>
-          <option value="social">Social</option>
-          <option value="gubernamental">Gubernamental</option>
-          <option value="agricola">Agrícola</option>
+          {SECTORES.map(sector => (
+            <option key={sector.id} value={sector.id}>
+              {sector.nombre}
+            </option>
+          ))}
         </select>
         {errors.sector && (
           <p className="text-red-500 text-sm mt-1 flex items-center gap-1">

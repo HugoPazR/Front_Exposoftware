@@ -20,8 +20,8 @@ export default function CreateSubject() {
 
   // Obtener nombre del usuario
   const getUserName = () => {
-    if (!userData) return 'Usuario';
-    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
   };
 
   const getUserInitials = () => {
@@ -84,7 +84,27 @@ export default function CreateSubject() {
     handleCancelEdit,
     handleDelete,
     handleCancel,
+    
+    // Funciones de carga
+    cargarMaterias,
+    cargarGrupos,
+    cargarProfesores,
   } = useSubjectManagement();
+
+  // Cargar datos iniciales al montar el componente
+  useEffect(() => {
+    const cargarDatosIniciales = async () => {
+      console.log('🔄 Cargando datos iniciales...');
+      await Promise.all([
+        cargarMaterias(),
+        cargarGrupos(),
+        cargarProfesores()
+      ]);
+      console.log('✅ Datos iniciales cargados');
+    };
+    
+    cargarDatosIniciales();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -357,21 +377,29 @@ export default function CreateSubject() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1">
-                              {materia?.grupos_con_docentes && Array.isArray(materia.grupos_con_docentes) && materia.grupos_con_docentes.length > 0 ? (
-                                materia.grupos_con_docentes.map((grupo, idx) => (
-                                  <div key={idx} className="group relative">
-                                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
-                                      Grupo {grupo?.codigo_grupo || 'N/A'}
-                                    </span>
-                                    {/* Tooltip con nombre del docente */}
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                                      {getDocenteNombre(grupo?.id_docente)}
-                                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                                        <div className="border-4 border-transparent border-t-gray-900"></div>
-                                      </div>
+                              {materia?.grupos_asignados && Array.isArray(materia.grupos_asignados) && materia.grupos_asignados.length > 0 ? (
+                                materia.grupos_asignados.map((codigoGrupo, idx) => {
+                                  // Buscar el grupo completo en gruposDisponibles
+                                  const grupoCompleto = gruposDisponibles.find(g => String(g.codigo_grupo) === String(codigoGrupo));
+                                  const idDocente = grupoCompleto?.id_docente;
+                                  
+                                  return (
+                                    <div key={idx} className="group relative">
+                                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
+                                        Grupo {codigoGrupo}
+                                      </span>
+                                      {/* Tooltip con nombre del docente */}
+                                      {idDocente && (
+                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                          {getDocenteNombre(idDocente)}
+                                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                                            <div className="border-4 border-transparent border-t-gray-900"></div>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
-                                  </div>
-                                ))
+                                  );
+                                })
                               ) : (
                                 <span className="text-xs text-gray-400 italic">Sin grupos</span>
                               )}

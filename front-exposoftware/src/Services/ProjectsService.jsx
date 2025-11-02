@@ -39,6 +39,59 @@ export const obtenerProyectos = async () => {
 };
 
 /**
+ * Obtener proyectos del usuario actual (estudiante)
+ * 
+ * ⚠️ TEMPORAL: El backend NO devuelve id_usuario_creador en GET /proyectos
+ * Por ahora devuelve TODOS los proyectos. 
+ * 
+ * TODO: Cuando el backend agregue id_usuario_creador a la respuesta,
+ * descomentar el filtro para mostrar solo los proyectos del usuario.
+ */
+export const obtenerMisProyectos = async (idUsuario) => {
+  try {
+    console.log('📊 Obteniendo mis proyectos...', { idUsuario });
+    
+    const response = await fetch(`${API_URL}/api/v1/proyectos`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const todosProyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
+    
+    console.log('📋 Total de proyectos recibidos:', todosProyectos.length);
+    console.log('🔍 Filtrando proyectos donde usuario es participante:', idUsuario);
+    
+    // Filtrar proyectos donde el usuario aparece en id_estudiantes
+    const misProyectos = todosProyectos.filter(proyecto => {
+      // Verificar si el usuario está en el array de estudiantes
+      const esParticipante = proyecto.id_estudiantes?.some(est => {
+        // Manejar ambos casos: objeto {id_estudiante: "..."} o string directo
+        const estudianteId = typeof est === 'string' ? est : est.id_estudiante;
+        return estudianteId === idUsuario;
+      });
+      
+      if (esParticipante) {
+        console.log('   ✅ Proyecto del usuario:', proyecto.titulo_proyecto);
+      }
+      
+      return esParticipante;
+    });
+    
+    console.log('✅ Mis proyectos filtrados:', misProyectos.length);
+    return misProyectos;
+    
+  } catch (error) {
+    console.error('❌ Error obteniendo proyectos:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtener proyecto por ID
  */
 export const obtenerProyectoPorId = async (projectId) => {
@@ -122,13 +175,13 @@ export const actualizarProyecto = async (projectId, projectData) => {
 
 /**
  * Obtener proyectos del docente
+ * Filtra por id_docente (proyectos asignados al docente)
  */
 export const getTeacherProjects = async (teacherId) => {
   try {
-    console.log(`👨‍🏫 Obteniendo proyectos del docente ${teacherId}...`);
+    console.log(`👨‍🏫 Obteniendo proyectos del docente...`, { teacherId });
     
-    // Endpoint correcto según OpenAPI: /api/v1/teachers/{teacher_id}/projects
-    const response = await fetch(`${API_URL}/api/v1/teachers/${teacherId}/projects`, {
+    const response = await fetch(`${API_URL}/api/v1/proyectos`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
@@ -138,9 +191,25 @@ export const getTeacherProjects = async (teacherId) => {
     }
 
     const data = await response.json();
-    console.log('✅ Proyectos del docente obtenidos:', data);
+    const todosProyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
     
-    return Array.isArray(data) ? data : (data.data || data.proyectos || []);
+    console.log('📋 Total de proyectos recibidos:', todosProyectos.length);
+    console.log('🔍 Filtrando proyectos del docente:', teacherId);
+    
+    // Filtrar proyectos donde el docente está asignado
+    const proyectosDocente = todosProyectos.filter(proyecto => {
+      const esDelDocente = proyecto.id_docente === teacherId;
+      
+      if (esDelDocente) {
+        console.log('   ✅ Proyecto del docente:', proyecto.titulo_proyecto);
+      }
+      
+      return esDelDocente;
+    });
+    
+    console.log('✅ Proyectos del docente filtrados:', proyectosDocente.length);
+    return proyectosDocente;
+    
   } catch (error) {
     console.error('❌ Error obteniendo proyectos del docente:', error);
     throw error;

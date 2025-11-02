@@ -243,7 +243,7 @@ export const registrarInvitado = async (guestData) => {
     // Campos específicos del invitado
     ...(guestData.intitucionOrigen && { institucion_origen: guestData.intitucionOrigen }),
     ...(guestData.nombreEmpresa && { nombre_empresa: guestData.nombreEmpresa }),
-    ...(guestData.sector && { id_sector: parseInt(guestData.sector) })
+    ...(guestData.sector && { id_sector: guestData.sector }) // ✅ Ya viene como número (1, 2, 3, 4)
   };
 
   console.log('👤 Registrando INVITADO:', {

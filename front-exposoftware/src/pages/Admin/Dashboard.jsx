@@ -52,8 +52,8 @@ export default function AdminDashboard() {
 
   // Obtener nombre e iniciales del usuario
   const getUserName = () => {
-    if (!userData) return 'Usuario';
-    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
   };
 
   const getUserInitials = () => {

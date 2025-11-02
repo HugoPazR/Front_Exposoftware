@@ -20,8 +20,8 @@ export default function CreateLines() {
 
   // Obtener nombre del usuario
   const getUserName = () => {
-    if (!userData) return 'Usuario';
-    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
   };
 
   const getUserInitials = () => {
@@ -434,7 +434,7 @@ export default function CreateLines() {
                           </tr>
                         ) : (
                           sublineasFiltradas.map((sublinea) => (
-                            <tr key={`sublinea-${sublinea.codigo_sublinea || sublinea.id}`} className="hover:bg-gray-50 transition">
+                            <tr key={`sublinea-${sublinea.codigo_linea}-${sublinea.codigo_sublinea}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                                   {sublinea.codigo_sublinea}
@@ -445,7 +445,7 @@ export default function CreateLines() {
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                                  {getLineaNombre(sublinea.id_linea)}
+                                  {getLineaNombre(sublinea.codigo_linea)}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -461,7 +461,7 @@ export default function CreateLines() {
                                     <i className="pi pi-pencil"></i>
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteSublinea(sublinea.id)}
+                                    onClick={() => handleDeleteSublinea(sublinea.codigo_sublinea)}
                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                     title="Eliminar"
                                   >
@@ -633,7 +633,7 @@ export default function CreateLines() {
                           </tr>
                         ) : (
                           areasFiltradas.map((area) => (
-                            <tr key={`area-${area.codigo_area || area.id}`} className="hover:bg-gray-50 transition">
+                            <tr key={`area-${area.codigo_linea}-${area.codigo_sublinea}-${area.codigo_area}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
                                   {area.codigo_area}
@@ -644,7 +644,7 @@ export default function CreateLines() {
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                  {getSublineaNombre(area.id_sublinea)}
+                                  {getSublineaNombre(area.codigo_sublinea)}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -660,7 +660,7 @@ export default function CreateLines() {
                                     <i className="pi pi-pencil"></i>
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteArea(area.id)}
+                                    onClick={() => handleDeleteArea(area.codigo_area)}
                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                     title="Eliminar"
                                   >

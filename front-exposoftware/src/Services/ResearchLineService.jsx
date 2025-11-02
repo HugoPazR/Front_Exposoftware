@@ -24,6 +24,16 @@ const limpiarCacheSiExpiro = () => {
 };
 
 /**
+ * Invalidar caché manualmente (después de crear/actualizar/eliminar)
+ */
+export const invalidarCache = () => {
+  console.log('🔄 Invalidando caché del árbol completo...');
+  cache.arbolCompleto = null;
+  cache.arbolCompletoTime = 0;
+  arbolCompletoPromise = null;
+};
+
+/**
  * Obtener el árbol completo con deduplicación de solicitudes
  */
 const obtenerArbolCompletoConDedup = async () => {
@@ -55,7 +65,13 @@ const obtenerArbolCompletoConDedup = async () => {
       }
 
       const data = await response.json();
-      const arbol = Array.isArray(data) ? data : (data.lineas || []);
+      console.log('📦 Respuesta RAW árbol completo:', data);
+      console.log('📦 Tipo de data:', Array.isArray(data) ? 'Array' : typeof data);
+      console.log('📦 data.lineas:', data.lineas);
+      
+      const arbol = Array.isArray(data) ? data : (data.lineas || data.data || []);
+      console.log('📦 Árbol procesado:', arbol);
+      console.log('📦 Cantidad de líneas en árbol:', arbol.length);
       
       // Almacenar en caché
       cache.arbolCompleto = arbol;
@@ -356,10 +372,19 @@ export const obtenerTodasSublineas = async () => {
     
     // Usar el árbol completo cacheado con deduplicación
     const arbol = await obtenerArbolCompletoConDedup();
+    console.log('📦 Árbol recibido para sublíneas:', arbol);
+    console.log('📦 Cantidad de líneas en árbol:', arbol.length);
     
     // Extraer todas las sublíneas
     const sublineas = [];
-    arbol.forEach(linea => {
+    arbol.forEach((linea, index) => {
+      console.log(`📦 Línea ${index}:`, {
+        codigo_linea: linea.codigo_linea,
+        nombre_linea: linea.nombre_linea,
+        tiene_sublineas: !!linea.sublineas,
+        cantidad_sublineas: linea.sublineas?.length || 0
+      });
+      
       if (linea.sublineas && Array.isArray(linea.sublineas)) {
         linea.sublineas.forEach(sublinea => {
           sublineas.push({
@@ -372,6 +397,7 @@ export const obtenerTodasSublineas = async () => {
     });
     
     console.log(`✅ ${sublineas.length} sublíneas extraídas del árbol`);
+    console.log('📦 Sublíneas extraídas:', sublineas);
     return sublineas;
     
   } catch (error) {

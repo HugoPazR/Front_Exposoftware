@@ -25,39 +25,20 @@ export default function StudentProjects() {
         setLoading(true);
         setError(null);
         
-        // Obtener datos del usuario autenticado
-        const userData = AuthService.getUserData();
-        console.log('👤 Datos del usuario:', userData);
-        
-        if (!userData) {
-          throw new Error('No hay sesión activa');
+        // Obtener el ID del usuario logueado
+        if (!user || !user.id_usuario) {
+          console.log('⏳ Esperando datos del usuario...');
+          return;
         }
         
-        // El ID del docente puede estar en diferentes propiedades
-        // Priorizar user.id_usuario que es donde está en Firebase Auth
-        const docenteId = userData.user?.id_usuario || 
-                         userData.user?.identificacion || 
-                         userData.id_usuario || 
-                         userData.id || 
-                         userData.identificacion || 
-                         userData.usuario?.identificacion;
+        console.log('� Usuario logueado:', user.id_usuario);
         
-        console.log('🔍 ID del docente:', docenteId);
-        console.log('🔍 user object:', userData.user);
-        
-        if (!docenteId) {
-          throw new Error('No se encontró el ID del docente');
-        }
-        
-        const data = await getTeacherProjects(docenteId);
-        // Si la respuesta es un array, usarla directamente; si es un objeto con una propiedad, extraerla
-        const projectsList = Array.isArray(data) ? data : data?.data || data?.projects || [];
-        setProjects(projectsList);
-        console.log('📊 Proyectos cargados:', projectsList);
+        const data = await getTeacherProjects(user.id_usuario);
+        setProjects(data);
+        console.log('📊 Proyectos del docente cargados:', data.length);
       } catch (err) {
-        console.error('Error al cargar proyectos:', err);
+        console.error('❌ Error al cargar proyectos:', err);
         setError(err.message);
-        // Fallback a array vacío si hay error
         setProjects([]);
       } finally {
         setLoading(false);
@@ -65,7 +46,7 @@ export default function StudentProjects() {
     };
 
     loadProjects();
-  }, []);
+  }, [user?.id_usuario]);
 
   // Handler para cerrar sesión
   const handleLogout = async () => {
@@ -79,10 +60,14 @@ export default function StudentProjects() {
   };
 
   // Filtrar proyectos según búsqueda
-  const filteredProjects = projects.filter(project => 
-    project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.student.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = projects.filter(project => {
+    const titulo = project.titulo_proyecto?.toLowerCase() || '';
+    const materia = project.codigo_materia?.toLowerCase() || '';
+    const query = searchQuery.toLowerCase();
+    
+    // Buscar en título o código de materia
+    return titulo.includes(query) || materia.includes(query);
+  });
 
   const handleViewDetails = (project) => {
     setSelectedProject(project);
@@ -288,29 +273,29 @@ export default function StudentProjects() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredProjects.map(project => (
-                      <div key={project.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{project.title}</h3>
+                      <div key={project.id_proyecto} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{project.titulo_proyecto || 'Sin título'}</h3>
                         
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <i className="pi pi-user"></i>
-                            <span>{project.student}</span>
+                            <i className="pi pi-users"></i>
+                            <span>{project.id_estudiantes?.length || 0} estudiante(s)</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <i className="pi pi-book"></i>
-                            <span>{project.group}</span>
+                            <span>{project.codigo_materia || 'Sin materia'} - Grupo {project.id_grupo || 'N/A'}</span>
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            project.status === "Aprobado" 
+                            project.calificacion 
                               ? "bg-emerald-100 text-emerald-800"
-                              : project.status === "Pendiente"
+                              : project.activo
                               ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
                           }`}>
-                            {project.status}
+                            {project.calificacion ? `Calificado: ${project.calificacion}` : project.activo ? 'Pendiente' : 'Inactivo'}
                           </span>
                           <button 
                             onClick={() => handleViewDetails(project)}
@@ -343,32 +328,30 @@ export default function StudentProjects() {
                     </thead>
                     <tbody>
                       {filteredProjects.map((project) => (
-                        <tr key={project.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <tr key={project.id_proyecto} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                           <td className="py-3 px-4">
-                            <span className="text-sm font-medium text-gray-900">{project.title}</span>
+                            <span className="text-sm font-medium text-gray-900">{project.titulo_proyecto || 'Sin título'}</span>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                                <span className="text-emerald-600 font-bold text-xs">
-                                  {project.student.split(' ').map(n => n[0]).join('')}
-                                </span>
+                                <i className="pi pi-users text-emerald-600 text-xs"></i>
                               </div>
-                              <span className="text-sm text-gray-900">{project.student}</span>
+                              <span className="text-sm text-gray-900">{project.id_estudiantes?.length || 0} estudiante(s)</span>
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600">{project.group}</span>
+                            <span className="text-sm text-gray-600">{project.codigo_materia || 'N/A'} - Grupo {project.id_grupo || 'N/A'}</span>
                           </td>
                           <td className="py-3 px-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              project.status === "Aprobado" 
+                              project.calificacion 
                                 ? "bg-emerald-100 text-emerald-800"
-                                : project.status === "Pendiente"
+                                : project.activo
                                 ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}>
-                              {project.status}
+                              {project.calificacion ? `Calificado: ${project.calificacion}` : project.activo ? 'Pendiente' : 'Inactivo'}
                             </span>
                           </td>
                           <td className="py-3 px-4">
@@ -422,27 +405,27 @@ export default function StudentProjects() {
               {/* Título y Estado */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.title}</h4>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.titulo_proyecto || 'Sin título'}</h4>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <span className="flex items-center gap-1">
-                      <i className="pi pi-user"></i>
-                      {selectedProject.student}
+                      <i className="pi pi-users"></i>
+                      {selectedProject.id_estudiantes?.length || 0} estudiante(s)
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <i className="pi pi-book"></i>
-                      {selectedProject.group}
+                      {selectedProject.codigo_materia || 'N/A'} - Grupo {selectedProject.id_grupo || 'N/A'}
                     </span>
                   </div>
                 </div>
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
-                  selectedProject.status === "Aprobado" 
+                  selectedProject.calificacion 
                     ? "bg-emerald-100 text-emerald-800"
-                    : selectedProject.status === "Pendiente"
+                    : selectedProject.activo
                     ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
+                    : "bg-gray-100 text-gray-800"
                 }`}>
-                  {selectedProject.status}
+                  {selectedProject.calificacion ? `Calificado: ${selectedProject.calificacion}` : selectedProject.activo ? 'Pendiente' : 'Inactivo'}
                 </span>
               </div>
 
@@ -450,11 +433,17 @@ export default function StudentProjects() {
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
                   <i className="pi pi-align-left text-emerald-600"></i>
-                  Descripción del Proyecto
+                  Información del Proyecto
                 </h5>
-                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
-                  {selectedProject.description}
-                </p>
+                <div className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg space-y-2">
+                  <p><span className="font-medium">Tipo de Actividad:</span> {
+                    selectedProject.tipo_actividad === 1 ? 'Proyecto (Exposoftware)' :
+                    selectedProject.tipo_actividad === 2 ? 'Taller' :
+                    selectedProject.tipo_actividad === 3 ? 'Ponencia' :
+                    selectedProject.tipo_actividad === 4 ? 'Conferencia' : 'No especificado'
+                  }</p>
+                  <p><span className="font-medium">Fecha de Subida:</span> {selectedProject.fecha_subida ? new Date(selectedProject.fecha_subida).toLocaleDateString('es-ES') : 'No disponible'}</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -462,21 +451,21 @@ export default function StudentProjects() {
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <i className="pi pi-info-circle text-emerald-600"></i>
-                    Información del Proyecto
+                    Información Adicional
                   </h5>
 
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Materia Asignada</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.subject}</p>
+                      <p className="text-xs text-gray-500 mb-1">Materia</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_materia || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Grupo</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.groupName}</p>
+                      <p className="text-sm font-medium text-gray-900">Grupo {selectedProject.id_grupo || 'N/A'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Profesor</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.professor}</p>
+                      <p className="text-xs text-gray-500 mb-1">Evento</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.id_evento || 'No asignado'}</p>
                     </div>
                   </div>
                 </div>
@@ -491,15 +480,15 @@ export default function StudentProjects() {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Línea de Investigación</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.line}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_linea || 'No asignada'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Sublínea</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.subline}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_sublinea || 'No asignada'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Área Temática</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.area}</p>
+                      <p className="text-xs text-gray-500 mb-1">Área</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_area || 'No asignada'}</p>
                     </div>
                   </div>
                 </div>
@@ -509,22 +498,28 @@ export default function StudentProjects() {
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <i className="pi pi-users text-emerald-600"></i>
-                  Participantes
+                  Estudiantes Participantes
                 </h5>
                 <div className="flex flex-wrap gap-2">
-                  {selectedProject.participants.map((participant, idx) => (
-                    <span 
-                      key={idx}
-                      className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 px-3 py-2 rounded-full text-sm font-medium"
-                    >
-                        <div className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center">
-                          <span className="text-emerald-800 font-bold text-xs">
-                            {participant.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                      {participant}
-                    </span>
-                  ))}
+                  {selectedProject.id_estudiantes && selectedProject.id_estudiantes.length > 0 ? (
+                    selectedProject.id_estudiantes.map((estudiante, idx) => {
+                      const nombreEstudiante = typeof estudiante === 'object' ? estudiante.nombre : `Estudiante ${idx + 1}`;
+                      const idEstudiante = typeof estudiante === 'object' ? estudiante.id_estudiante : estudiante;
+                      return (
+                        <span 
+                          key={idx}
+                          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 px-3 py-2 rounded-full text-sm font-medium"
+                        >
+                          <div className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center">
+                            <i className="pi pi-user text-emerald-800 text-xs"></i>
+                          </div>
+                          {nombreEstudiante}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="text-sm text-gray-500">No hay estudiantes asignados</span>
+                  )}
                 </div>
               </div>
 
@@ -534,33 +529,29 @@ export default function StudentProjects() {
                   <i className="pi pi-paperclip text-emerald-600"></i>
                   Archivos Adjuntos
                 </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                    <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-                      <i className="pi pi-image text-blue-600 text-lg"></i>
+                {selectedProject.archivo_pdf ? (
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                      <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center flex-shrink-0">
+                        <i className="pi pi-file-pdf text-red-600 text-lg"></i>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">Documento del Proyecto</p>
+                        <p className="text-xs text-gray-500">PDF</p>
+                      </div>
+                      <a 
+                        href={selectedProject.archivo_pdf} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-emerald-600 hover:text-emerald-700"
+                      >
+                        <i className="pi pi-external-link"></i>
+                      </a>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.poster}</p>
-                      <p className="text-xs text-gray-500">Poster del proyecto</p>
-                    </div>
-                    <button className="text-emerald-600 hover:text-emerald-700">
-                      <i className="pi pi-download"></i>
-                    </button>
                   </div>
-
-                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                    <div className="w-10 h-10 bg-orange-100 rounded flex items-center justify-center flex-shrink-0">
-                      <i className="pi pi-file text-orange-600 text-lg"></i>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.slides}</p>
-                      <p className="text-xs text-gray-500">Presentación</p>
-                    </div>
-                    <button className="text-emerald-600 hover:text-emerald-700">
-                      <i className="pi pi-download"></i>
-                    </button>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">No hay archivos adjuntos</p>
+                )}
               </div>
             </div>
 

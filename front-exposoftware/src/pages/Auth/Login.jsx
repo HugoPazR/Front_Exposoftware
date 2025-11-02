@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import * as AuthService from "../../Services/AuthService";
+import { useAuth } from "../../contexts/AuthContext";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { login: loginContext } = useAuth();
   
   // Estados del formulario
   const [correo, setCorreo] = useState("");
@@ -76,13 +78,17 @@ function LoginPage() {
     try {
       console.log("📤 Intentando iniciar sesión con:", correo);
       
-      // Llamar al servicio de autenticación con el formato correcto
-      const response = await AuthService.login({
+      // ✅ Usar el contexto de autenticación para hacer login
+      const resultado = await loginContext({
         correo: correo,
         password: password
       });
       
-      console.log("✅ Login exitoso:", response);
+      console.log("✅ Login exitoso:", resultado);
+
+      if (!resultado.success) {
+        throw new Error(resultado.error || "Error al iniciar sesión");
+      }
 
       // Guardar correo si "Recordarme" está activado
       if (recordarme) {
@@ -91,16 +97,17 @@ function LoginPage() {
         localStorage.removeItem("correoRecordado");
       }
 
-      // Obtener datos del usuario
-      const userData = AuthService.getUserData();
+      // Obtener rol del usuario
       const userRole = AuthService.getUserRole();
       
-      console.log("📦 userData obtenido:", userData);
-      console.log("👤 userRole obtenido:", userRole);
+      console.log(" userRole obtenido:", userRole);
       
       if (!userRole) {
         throw new Error("No se pudo obtener el rol del usuario");
       }
+
+      // ⏱️ Pequeño delay para asegurar que el estado se propagó
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       // Redirigir según el rol
       const rol = userRole.toLowerCase();

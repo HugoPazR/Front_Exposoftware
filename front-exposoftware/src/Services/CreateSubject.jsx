@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from "../utils/constants";
+import { API_ENDPOINTS, API_BASE_URL } from "../utils/constants";
 import * as AuthService from "./AuthService";
 
 
@@ -126,20 +126,20 @@ export const obtenerGrupos = async () => {
 
 
 /**
- * Obtener todos los docentes desde el backend
- * @returns {Promise<Array>} Lista de docentes
+ * Obtener todos los profesores desde el backend
+ * @returns {Promise<Array>} Lista de profesores con estructura anidada {docente, usuario}
  */
 export const obtenerDocentes = async () => {
   try {
-    const response = await fetch(API_ENDPOINTS.DOCENTES, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/admin/profesores`, {
       method: 'GET',
       headers: AuthService.getAuthHeaders()
     });
     const resultado = await procesarRespuesta(response);
-    console.log('📥 Docentes cargados desde backend:', resultado.data?.length || 0);
-    return resultado.data || [];
+    console.log('📥 Profesores cargados desde backend:', resultado.data?.length || 0);
+    return resultado.data;
   } catch (error) {
-    console.error('❌ Error al cargar docentes:', error.message);
+    console.error('❌ Error al cargar profesores:', error.message);
     throw error;
   }
 };
@@ -345,6 +345,68 @@ export const eliminarMateria = async (id) => {
     return resultado;
   } catch (error) {
     console.error('❌ Error al eliminar materia:', error.message);
+    throw error;
+  }
+};
+
+
+/**
+ * Agregar un grupo a una materia
+ * Usa el endpoint: POST /api/v1/admin/materias/{subject_code}/grupos/{group_code}
+ * @param {string} codigoMateria - Código de la materia
+ * @param {string} codigoGrupo - Código del grupo
+ * @returns {Promise<Object>} Resultado de la operación
+ */
+export const agregarGrupoAMateria = async (codigoMateria, codigoGrupo) => {
+  // Obtener la URL base de las constantes
+  const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
+  const url = `${API_BASE_URL}/api/v1/admin/materias/${codigoMateria}/grupos/${codigoGrupo}`;
+  
+  console.log(`📤 Agregando grupo ${codigoGrupo} a materia ${codigoMateria}`);
+  console.log(`🔗 URL: ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: AuthService.getAuthHeaders()
+    });
+
+    const resultado = await procesarRespuesta(response);
+    console.log(`✅ Grupo ${codigoGrupo} agregado exitosamente a materia ${codigoMateria}`);
+    return resultado;
+  } catch (error) {
+    console.error(`❌ Error al agregar grupo ${codigoGrupo} a materia ${codigoMateria}:`, error.message);
+    throw error;
+  }
+};
+
+
+/**
+ * Eliminar un grupo de una materia
+ * Usa el endpoint: DELETE /api/v1/admin/materias/{subject_code}/grupos/{group_code}
+ * @param {string} codigoMateria - Código de la materia
+ * @param {string} codigoGrupo - Código del grupo
+ * @returns {Promise<Object>} Resultado de la operación
+ */
+export const eliminarGrupoDeMateria = async (codigoMateria, codigoGrupo) => {
+  // Obtener la URL base de las constantes
+  const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
+  const url = `${API_BASE_URL}/api/v1/admin/materias/${codigoMateria}/grupos/${codigoGrupo}`;
+  
+  console.log(`🗑️ Eliminando grupo ${codigoGrupo} de materia ${codigoMateria}`);
+  console.log(`🔗 URL: ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: AuthService.getAuthHeaders()
+    });
+
+    const resultado = await procesarRespuesta(response);
+    console.log(`✅ Grupo ${codigoGrupo} eliminado exitosamente de materia ${codigoMateria}`);
+    return resultado;
+  } catch (error) {
+    console.error(`❌ Error al eliminar grupo ${codigoGrupo} de materia ${codigoMateria}:`, error.message);
     throw error;
   }
 };

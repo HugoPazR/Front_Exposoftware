@@ -13,7 +13,8 @@ import {
   actualizarArea,
   eliminarLinea,
   eliminarSublinea,
-  eliminarArea
+  eliminarArea,
+  invalidarCache
 } from "../../Services/ResearchLineService";
 
 export function useResearchLinesManagement() {
@@ -175,7 +176,11 @@ export function useResearchLinesManagement() {
       await crearLinea({ nombre_linea: nombreLinea });
       alert("Línea creada exitosamente");
       setNombreLinea("");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarLineas();
+      await cargarTodasSublineas();
+      await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al crear");
     }
@@ -199,7 +204,11 @@ export function useResearchLinesManagement() {
       setShowEditLineaModal(false);
       setEditingLineaCodigo(null);
       setNombreLinea("");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarLineas();
+      await cargarTodasSublineas();
+      await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al actualizar");
     }
@@ -216,6 +225,8 @@ export function useResearchLinesManagement() {
     try {
       await eliminarLinea(codigoLinea);
       alert("Línea eliminada");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarLineas();
       await cargarTodasSublineas();
       await cargarTodasAreas();
@@ -238,7 +249,10 @@ export function useResearchLinesManagement() {
       alert("Sublínea creada");
       setNombreSublinea("");
       setIdLineaParaSublinea("");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarTodasSublineas();
+      await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al crear");
     }
@@ -270,7 +284,10 @@ export function useResearchLinesManagement() {
       setEditingSublineaLineaCodigo(null);
       setNombreSublinea("");
       setIdLineaParaSublinea("");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarTodasSublineas();
+      await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al actualizar");
     }
@@ -295,6 +312,8 @@ export function useResearchLinesManagement() {
       console.log(`🗑️ Eliminando sublínea ${codigoSub} de línea ${codigoLinea}`);
       await eliminarSublinea(codigoLinea, codigoSub);
       alert("Sublínea eliminada");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarTodasSublineas();
       await cargarTodasAreas();
     } catch (error) {
@@ -334,6 +353,8 @@ export function useResearchLinesManagement() {
       alert("Área creada");
       setNombreArea("");
       setIdSublineaParaArea("");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al crear");
@@ -369,6 +390,8 @@ export function useResearchLinesManagement() {
       setEditingAreaLineaCodigo(null);
       setNombreArea("");
       setIdSublineaParaArea("");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al actualizar");
@@ -396,6 +419,8 @@ export function useResearchLinesManagement() {
       console.log(`🗑️ Eliminando área ${codigoAreaDelete} de sublínea ${codigoSublinea} de línea ${codigoLinea}`);
       await eliminarArea(codigoLinea, codigoSublinea, codigoAreaDelete);
       alert("Área eliminada");
+      // Invalidar caché y recargar
+      invalidarCache();
       await cargarTodasAreas();
     } catch (error) {
       alert(error.message || "Error al eliminar");
