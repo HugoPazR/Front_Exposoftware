@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+import * as AuthService from "../../Services/AuthService";
 import {
   BarChart,
   Bar,
@@ -15,42 +16,50 @@ import {
   Line,
   Area,
   AreaChart,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 
 // Main Dashboard Component
 export default function AdminDashboard() {
-  // Datos para "Estudiantes Participantes por Materia"
-  const estudiantesPorMateriaData = [
-    { name: "Prog. Software", estudiantes: 45 },
-    { name: "Móvil", estudiantes: 32 },
-    { name: "Web", estudiantes: 28 },
-    { name: "Prog. Básica", estudiantes: 52 },
-  ];
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
 
-  // Datos para "Tendencia de Visitantes" - ÁreaChart
-  const visitantesData = [
-    { mes: "Ene", visitantes: 850 },
-    { mes: "Feb", visitantes: 1200 },
-    { mes: "Mar", visitantes: 1050 },
-    { mes: "Abr", visitantes: 1400 },
-    { mes: "May", visitantes: 1800 },
-    { mes: "Jun", visitantes: 1650 },
-  ];
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+      console.log('👤 Usuario autenticado:', user);
+    } else {
+      console.warn('⚠️ No hay usuario autenticado');
+      navigate('/login');
+    }
+  }, [navigate]);
 
-  // Datos para "Profesores por Departamento" - Stacked Bar
-  const profesoresPorDepartamentoData = [
-    { departamento: "Matemáticas", profesores: 25, profesoras: 18 },
-    { departamento: "Ciencias", profesores: 30, profesoras: 25 },
-    { departamento: "Humanidades", profesores: 20, profesoras: 22 },
-    { departamento: "Artes", profesores: 15, profesoras: 20 },
-  ];
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+      }
+    }
+  };
 
-  // Datos para "Proyectos Recientes"
-  const proyectosRecientes = [
-    { id: "PRJ001", nombre: "Sistema de Gestión de Aula Virtual", estado: "Activo", fecha: "2025-01-15", profesor: "Dr. Alejandro José Meriño" },
-    { id: "PRJ002", nombre: "Investigación de IA", estado: "Completado", fecha: "2025-03-01", profesor: "Ing. Sofía Benítez" },
-    { id: "PRJ003", nombre: "Diseño Curricular", estado: "Completado", fecha: "2022-11-20", profesor: "Lic. Carla Ruíz" },
-  ];
+  // Obtener nombre e iniciales del usuario
+  const getUserName = () => {
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -69,13 +78,16 @@ export default function AdminDashboard() {
             {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -88,25 +100,28 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar 
+            userName={getUserName()} 
+            userRole="Administrador" 
+          />
 
           {/* Main Content */}
           <main className="lg:col-span-3">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               {/* Card 1 - Total Proyectos Registrados */}
-              <div className="bg-gradient-to-br from-green-50 to-white rounded-lg border border-gray-200 p-6">
+              <div className="bg-gradient-to-br from-teal-50 to-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Total Proyectos Registrados</p>
                     <h3 className="text-3xl font-bold text-gray-900">50</h3>
                     <div className="flex items-center gap-1 mt-2">
-                      <i className="pi pi-arrow-up text-xs text-green-600"></i>
-                      <span className="text-xs text-green-600 font-medium">1,890 Proyectos Activos</span>
+                      <i className="pi pi-arrow-up text-xs text-teal-600"></i>
+                      <span className="text-xs text-teal-600 font-medium">1,890 Proyectos Activos</span>
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <i className="pi pi-chart-line text-xl text-green-600"></i>
+                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                    <i className="pi pi-chart-line text-xl text-teal-600"></i>
                   </div>
                 </div>
               </div>
@@ -144,133 +159,49 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Charts Row */}
+            {/* Charts Row - Datos reales del backend */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Estudiantes Participantes por Materia */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Estudiantes Participantes por Materia
                 </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={estudiantesPorMateriaData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="estudiantes" 
-                      fill="#16a34a" 
-                      radius={[8, 8, 0, 0]}
-                      name="Estudiantes"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <i className="pi pi-chart-pie text-4xl mb-3 text-gray-400"></i>
+                    <p>Datos en tiempo real próximamente</p>
+                    <p className="text-sm">Se cargarán desde el backend</p>
+                  </div>
+                </div>
               </div>
 
-              {/* Profesores por Departamento - Stacked */}
+              {/* Profesores por Departamento */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Profesores por Departamento
                 </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={profesoresPorDepartamentoData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="departamento" 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Legend 
-                      wrapperStyle={{ fontSize: '12px' }}
-                      iconType="circle"
-                    />
-                    <Bar 
-                      dataKey="profesores" 
-                      stackId="a" 
-                      fill="#16a34a" 
-                      radius={[0, 0, 0, 0]}
-                      name="Profesores"
-                    />
-                    <Bar 
-                      dataKey="profesoras" 
-                      stackId="a" 
-                      fill="#4ade80" 
-                      radius={[8, 8, 0, 0]}
-                      name="Profesoras"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  <div className="text-center">
+                    <i className="pi pi-users text-4xl mb-3 text-gray-400"></i>
+                    <p>Datos en tiempo real próximamente</p>
+                    <p className="text-sm">Se cargarán desde el backend</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Tendencia de Visitantes - Area Chart */}
+            {/* Tendencia de Visitantes */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Tendencia de Visitantes
               </h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={visitantesData}>
-                  <defs>
-                    <linearGradient id="colorVisitantes" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#16a34a" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#16a34a" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="mes" 
-                    tick={{ fontSize: 12 }}
-                    stroke="#6b7280"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    stroke="#6b7280"
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="visitantes" 
-                    stroke="#16a34a" 
-                    strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorVisitantes)"
-                    name="Visitantes"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <i className="pi pi-chart-line text-4xl mb-3 text-gray-400"></i>
+                  <p>Datos en tiempo real próximamente</p>
+                  <p className="text-sm">Se cargarán desde el backend</p>
+                </div>
+              </div>
             </div>
 
             {/* Proyectos Recientes */}
@@ -278,38 +209,12 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-semibold text-gray-900 mb-6">
                 Proyectos Recientes
               </h3>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">ID Proyecto</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Nombre</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Estado</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Fecha de Inicio</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Profesor Asignado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {proyectosRecientes.map((proyecto) => (
-                      <tr key={proyecto.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-4 text-sm text-gray-900 font-medium">{proyecto.id}</td>
-                        <td className="py-3 px-4 text-sm text-gray-900">{proyecto.nombre}</td>
-                        <td className="py-3 px-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            proyecto.estado === "Activo" 
-                              ? "bg-green-100 text-green-800" 
-                              : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {proyecto.estado}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{proyecto.fecha}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">{proyecto.profesor}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex items-center justify-center h-64 text-gray-500">
+                <div className="text-center">
+                  <i className="pi pi-folder text-4xl mb-3 text-gray-400"></i>
+                  <p>No hay proyectos recientes para mostrar</p>
+                  <p className="text-sm">Los proyectos se cargarán desde el backend</p>
+                </div>
               </div>
             </div>
           </main>

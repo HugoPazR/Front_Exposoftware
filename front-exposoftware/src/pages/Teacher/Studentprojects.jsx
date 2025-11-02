@@ -1,126 +1,73 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { getTeacherProjects, updateProjectStatus } from "../../Services/ProjectsService.jsx";
+import * as AuthService from "../../Services/AuthService";
 import logo from "../../assets/Logo-unicesar.png";
 
-// Mock data para proyectos estudiantiles
-const MOCK_PROJECTS = [
-  {
-    id: 1,
-    title: "Sistema de Gestión de Bibliotecas con IA",
-    student: "Sofía Martínez",
-    group: "Grupo A / Programación Avanzada",
-    status: "Aprobado",
-    description: "Sistema inteligente para gestión automatizada de bibliotecas universitarias utilizando técnicas de IA para recomendaciones personalizadas y búsqueda avanzada.",
-    participants: ["Sofía Martínez", "Pedro López", "Ana García"],
-    subject: "Programación Avanzada",
-    groupName: "Grupo A",
-    professor: "Dr. Pérez",
-    line: "Inteligencia Artificial",
-    subline: "Aprendizaje Automático",
-    area: "Ciencias de la computación",
-    poster: "poster_biblioteca_ia.jpg",
-    slides: "presentacion_biblioteca_ia.pptx",
-  },
-  {
-    id: 2,
-    title: "Plataforma de E-learning Adaptativo",
-    student: "Juan Pérez",
-    group: "Grupo B / Bases de Datos",
-    status: "Pendiente",
-    description: "Plataforma educativa que se adapta al ritmo de aprendizaje de cada estudiante mediante análisis de datos y personalización de contenidos.",
-    participants: ["Juan Pérez", "María Rodríguez"],
-    subject: "Bases de Datos",
-    groupName: "Grupo B",
-    professor: "Dra. Ramírez",
-    line: "Ingeniería de Software",
-    subline: "Metodologías Ágiles",
-    area: "Tecnologías de la información",
-    poster: "poster_elearning.jpg",
-    slides: "presentacion_elearning.pptx",
-  },
-  {
-    id: 3,
-    title: "Análisis de Sentimientos en Redes Sociales",
-    student: "María García",
-    group: "Grupo A / Inteligencia Artificial",
-    status: "Aprobado",
-    description: "Herramienta de análisis de sentimientos en tiempo real para redes sociales usando procesamiento de lenguaje natural.",
-    participants: ["María García", "Carlos Méndez", "Laura Torres"],
-    subject: "Inteligencia Artificial",
-    groupName: "Grupo A",
-    professor: "Dr. Salas",
-    line: "Inteligencia Artificial",
-    subline: "Visión por Computador",
-    area: "Inteligencia artificial",
-    poster: "poster_sentimientos.jpg",
-    slides: "presentacion_sentimientos.pptx",
-  },
-  {
-    id: 4,
-    title: "Desarrollo de App Móvil para Control de Gastos",
-    student: "Carlos Ruiz",
-    group: "Grupo C / Programación Avanzada",
-    status: "Rechazado",
-    description: "Aplicación móvil multiplataforma para gestión personal de finanzas con reportes y análisis de gastos.",
-    participants: ["Carlos Ruiz", "Diana Vargas"],
-    subject: "Programación Avanzada",
-    groupName: "Grupo C",
-    professor: "Ing. Morales",
-    line: "Ingeniería de Software",
-    subline: "Pruebas y Calidad",
-    area: "Ingeniería de software",
-    poster: "poster_gastos.jpg",
-    slides: "presentacion_gastos.pptx",
-  },
-  {
-    id: 5,
-    title: "Optimización de Rutas con Algoritmos Genéticos",
-    student: "Laura Fernández",
-    group: "Grupo B / Inteligencia Artificial",
-    status: "Aprobado",
-    description: "Sistema de optimización de rutas logísticas mediante algoritmos genéticos para reducir costos de transporte.",
-    participants: ["Laura Fernández", "Jorge Castro"],
-    subject: "Inteligencia Artificial",
-    groupName: "Grupo B",
-    professor: "Dr. Torres",
-    line: "Ciencias de la Computación",
-    subline: "Algoritmos y Complejidad",
-    area: "Ciencias de la computación",
-    poster: "poster_rutas.jpg",
-    slides: "presentacion_rutas.pptx",
-  },
-  {
-    id: 6,
-    title: "Visualización de Datos para la Bolsa de Valores",
-    student: "Pedro Sánchez",
-    group: "Grupo C / Bases de Datos",
-    status: "Pendiente",
-    description: "Dashboard interactivo para visualización en tiempo real de datos del mercado bursátil con análisis predictivo.",
-    participants: ["Pedro Sánchez", "Elena Martínez", "Roberto Silva"],
-    subject: "Bases de Datos",
-    groupName: "Grupo C",
-    professor: "Dra. Gómez",
-    line: "Ciencias de la Computación",
-    subline: "Sistemas Distribuidos",
-    area: "Tecnologías de la información",
-    poster: "poster_bolsa.jpg",
-    slides: "presentacion_bolsa.pptx",
-  },
-];
-
 export default function StudentProjects() {
-  const [viewMode, setViewMode] = useState("grid"); // "grid" o "table"
+  const { user, getFullName, getInitials, logout } = useAuth();
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState("grid");
   const [selectedGroup, setSelectedGroup] = useState("Filtrar por grupo");
   const [selectedMateria, setSelectedMateria] = useState("Filtrar por materia");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Cargar proyectos del backend al montar el componente
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Obtener el ID del usuario logueado
+        if (!user || !user.id_usuario) {
+          console.log('⏳ Esperando datos del usuario...');
+          return;
+        }
+        
+        console.log('� Usuario logueado:', user.id_usuario);
+        
+        const data = await getTeacherProjects(user.id_usuario);
+        setProjects(data);
+        console.log('📊 Proyectos del docente cargados:', data.length);
+      } catch (err) {
+        console.error('❌ Error al cargar proyectos:', err);
+        setError(err.message);
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, [user?.id_usuario]);
+
+  // Handler para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      navigate('/login');
+    }
+  };
 
   // Filtrar proyectos según búsqueda
-  const filteredProjects = MOCK_PROJECTS.filter(project => 
-    project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.student.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = projects.filter(project => {
+    const titulo = project.titulo_proyecto?.toLowerCase() || '';
+    const materia = project.codigo_materia?.toLowerCase() || '';
+    const query = searchQuery.toLowerCase();
+    
+    // Buscar en título o código de materia
+    return titulo.includes(query) || materia.includes(query);
+  });
 
   const handleViewDetails = (project) => {
     setSelectedProject(project);
@@ -150,12 +97,19 @@ export default function StudentProjects() {
             <div className="flex items-center gap-4">
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">M</span>
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-emerald-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Docente'}</p>
                 </div>
               </div>
 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -180,7 +134,7 @@ export default function StudentProjects() {
                 </Link>
                 <Link
                   to="/teacher/proyectos"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-emerald-50 text-emerald-700"
                 >
                   <i className="pi pi-book text-base"></i>
                   Proyectos Estudiantiles
@@ -197,8 +151,17 @@ export default function StudentProjects() {
 
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">María</h3>
-                <p className="text-sm text-gray-500">Profesora</p>
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-emerald-600 font-bold text-2xl">{getInitials()}</span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Docente'}</p>
+                {user?.categoria_docente && (
+                  <p className="text-xs text-gray-400 mt-1">Categoría: {user.categoria_docente}</p>
+                )}
+                {user?.codigo_programa && (
+                  <p className="text-xs text-gray-400">Código: {user.codigo_programa}</p>
+                )}
               </div>
             </div>
           </aside>
@@ -221,7 +184,7 @@ export default function StudentProjects() {
                     placeholder="Buscar por nombre, estudiante, o ID..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   {searchQuery && (
                     <button
@@ -238,7 +201,7 @@ export default function StudentProjects() {
                   <select 
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Filtrar por grupo">Filtrar por grupo</option>
                     <option value="Grupo A">Grupo A</option>
@@ -249,7 +212,7 @@ export default function StudentProjects() {
                   <select 
                     value={selectedMateria}
                     onChange={(e) => setSelectedMateria(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Filtrar por materia">Filtrar por materia</option>
                     <option value="Programación Avanzada">Programación Avanzada</option>
@@ -265,7 +228,7 @@ export default function StudentProjects() {
                   onClick={() => setViewMode("grid")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     viewMode === "grid"
-                      ? "bg-green-600 text-white"
+                      ? "bg-emerald-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -276,7 +239,7 @@ export default function StudentProjects() {
                   onClick={() => setViewMode("table")}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     viewMode === "table"
-                      ? "bg-green-600 text-white"
+                      ? "bg-emerald-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -288,42 +251,64 @@ export default function StudentProjects() {
 
             {/* Vista de Tarjetas (Grid) */}
             {viewMode === "grid" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredProjects.map(project => (
-                  <div key={project.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{project.title}</h3>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <i className="pi pi-user"></i>
-                        <span>{project.student}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <i className="pi pi-book"></i>
-                        <span>{project.group}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        project.status === "Aprobado" 
-                          ? "bg-green-100 text-green-800"
-                          : project.status === "Pendiente"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}>
-                        {project.status}
-                      </span>
-                      <button 
-                        onClick={() => handleViewDetails(project)}
-                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-green-600 transition-colors"
-                      >
-                        <i className="pi pi-eye"></i>
-                        Ver detalles
-                      </button>
-                    </div>
+              <div>
+                {loading ? (
+                  <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                    <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando proyectos...</p>
                   </div>
-                ))}
+                ) : error ? (
+                  <div className="bg-white rounded-lg border border-red-200 p-6 text-center bg-red-50">
+                    <p className="text-red-600 font-medium">Error al cargar proyectos</p>
+                    <p className="text-sm text-red-500 mt-1">{error}</p>
+                  </div>
+                ) : filteredProjects.length === 0 ? (
+                  <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <i className="pi pi-search text-4xl text-gray-400"></i>
+                    </div>
+                    <p className="text-gray-600 mb-2">No se encontraron proyectos</p>
+                    <p className="text-sm text-gray-500">Intenta con otros términos de búsqueda</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredProjects.map(project => (
+                      <div key={project.id_proyecto} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">{project.titulo_proyecto || 'Sin título'}</h3>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <i className="pi pi-users"></i>
+                            <span>{project.id_estudiantes?.length || 0} estudiante(s)</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <i className="pi pi-book"></i>
+                            <span>{project.codigo_materia || 'Sin materia'} - Grupo {project.id_grupo || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            project.calificacion 
+                              ? "bg-emerald-100 text-emerald-800"
+                              : project.activo
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}>
+                            {project.calificacion ? `Calificado: ${project.calificacion}` : project.activo ? 'Pendiente' : 'Inactivo'}
+                          </span>
+                          <button 
+                            onClick={() => handleViewDetails(project)}
+                            className="flex items-center gap-2 text-sm text-gray-700 hover:text-green-600 transition-colors"
+                          >
+                            <i className="pi pi-eye"></i>
+                            Ver detalles
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -343,32 +328,30 @@ export default function StudentProjects() {
                     </thead>
                     <tbody>
                       {filteredProjects.map((project) => (
-                        <tr key={project.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <tr key={project.id_proyecto} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                           <td className="py-3 px-4">
-                            <span className="text-sm font-medium text-gray-900">{project.title}</span>
+                            <span className="text-sm font-medium text-gray-900">{project.titulo_proyecto || 'Sin título'}</span>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <span className="text-green-600 font-bold text-xs">
-                                  {project.student.split(' ').map(n => n[0]).join('')}
-                                </span>
+                              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <i className="pi pi-users text-emerald-600 text-xs"></i>
                               </div>
-                              <span className="text-sm text-gray-900">{project.student}</span>
+                              <span className="text-sm text-gray-900">{project.id_estudiantes?.length || 0} estudiante(s)</span>
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600">{project.group}</span>
+                            <span className="text-sm text-gray-600">{project.codigo_materia || 'N/A'} - Grupo {project.id_grupo || 'N/A'}</span>
                           </td>
                           <td className="py-3 px-4">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              project.status === "Aprobado" 
-                                ? "bg-green-100 text-green-800"
-                                : project.status === "Pendiente"
+                              project.calificacion 
+                                ? "bg-emerald-100 text-emerald-800"
+                                : project.activo
                                 ? "bg-yellow-100 text-yellow-800"
-                                : "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}>
-                              {project.status}
+                              {project.calificacion ? `Calificado: ${project.calificacion}` : project.activo ? 'Pendiente' : 'Inactivo'}
                             </span>
                           </td>
                           <td className="py-3 px-4">
@@ -422,61 +405,67 @@ export default function StudentProjects() {
               {/* Título y Estado */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.title}</h4>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.titulo_proyecto || 'Sin título'}</h4>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <span className="flex items-center gap-1">
-                      <i className="pi pi-user"></i>
-                      {selectedProject.student}
+                      <i className="pi pi-users"></i>
+                      {selectedProject.id_estudiantes?.length || 0} estudiante(s)
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <i className="pi pi-book"></i>
-                      {selectedProject.group}
+                      {selectedProject.codigo_materia || 'N/A'} - Grupo {selectedProject.id_grupo || 'N/A'}
                     </span>
                   </div>
                 </div>
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
-                  selectedProject.status === "Aprobado" 
-                    ? "bg-green-100 text-green-800"
-                    : selectedProject.status === "Pendiente"
+                  selectedProject.calificacion 
+                    ? "bg-emerald-100 text-emerald-800"
+                    : selectedProject.activo
                     ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
+                    : "bg-gray-100 text-gray-800"
                 }`}>
-                  {selectedProject.status}
+                  {selectedProject.calificacion ? `Calificado: ${selectedProject.calificacion}` : selectedProject.activo ? 'Pendiente' : 'Inactivo'}
                 </span>
               </div>
 
               {/* Descripción */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <i className="pi pi-align-left text-green-600"></i>
-                  Descripción del Proyecto
+                  <i className="pi pi-align-left text-emerald-600"></i>
+                  Información del Proyecto
                 </h5>
-                <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
-                  {selectedProject.description}
-                </p>
+                <div className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg space-y-2">
+                  <p><span className="font-medium">Tipo de Actividad:</span> {
+                    selectedProject.tipo_actividad === 1 ? 'Proyecto (Exposoftware)' :
+                    selectedProject.tipo_actividad === 2 ? 'Taller' :
+                    selectedProject.tipo_actividad === 3 ? 'Ponencia' :
+                    selectedProject.tipo_actividad === 4 ? 'Conferencia' : 'No especificado'
+                  }</p>
+                  <p><span className="font-medium">Fecha de Subida:</span> {selectedProject.fecha_subida ? new Date(selectedProject.fecha_subida).toLocaleDateString('es-ES') : 'No disponible'}</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Información del Proyecto */}
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-info-circle text-green-600"></i>
-                    Información del Proyecto
+                    <i className="pi pi-info-circle text-emerald-600"></i>
+                    Información Adicional
                   </h5>
 
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Materia Asignada</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.subject}</p>
+                      <p className="text-xs text-gray-500 mb-1">Materia</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_materia || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Grupo</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.groupName}</p>
+                      <p className="text-sm font-medium text-gray-900">Grupo {selectedProject.id_grupo || 'N/A'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Profesor</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.professor}</p>
+                      <p className="text-xs text-gray-500 mb-1">Evento</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.id_evento || 'No asignado'}</p>
                     </div>
                   </div>
                 </div>
@@ -484,22 +473,22 @@ export default function StudentProjects() {
                 {/* Líneas de Investigación */}
                 <div className="space-y-4">
                   <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-sitemap text-green-600"></i>
+                    <i className="pi pi-sitemap text-emerald-600"></i>
                     Líneas de Investigación
                   </h5>
 
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Línea de Investigación</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.line}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_linea || 'No asignada'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Sublínea</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.subline}</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_sublinea || 'No asignada'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Área Temática</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.area}</p>
+                      <p className="text-xs text-gray-500 mb-1">Área</p>
+                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_area || 'No asignada'}</p>
                     </div>
                   </div>
                 </div>
@@ -508,59 +497,61 @@ export default function StudentProjects() {
               {/* Participantes */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-users text-green-600"></i>
-                  Participantes
+                  <i className="pi pi-users text-emerald-600"></i>
+                  Estudiantes Participantes
                 </h5>
                 <div className="flex flex-wrap gap-2">
-                  {selectedProject.participants.map((participant, idx) => (
-                    <span 
-                      key={idx}
-                      className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-3 py-2 rounded-full text-sm font-medium"
-                    >
-                      <div className="w-6 h-6 bg-green-200 rounded-full flex items-center justify-center">
-                        <span className="text-green-800 font-bold text-xs">
-                          {participant.split(' ').map(n => n[0]).join('')}
+                  {selectedProject.id_estudiantes && selectedProject.id_estudiantes.length > 0 ? (
+                    selectedProject.id_estudiantes.map((estudiante, idx) => {
+                      const nombreEstudiante = typeof estudiante === 'object' ? estudiante.nombre : `Estudiante ${idx + 1}`;
+                      const idEstudiante = typeof estudiante === 'object' ? estudiante.id_estudiante : estudiante;
+                      return (
+                        <span 
+                          key={idx}
+                          className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 px-3 py-2 rounded-full text-sm font-medium"
+                        >
+                          <div className="w-6 h-6 bg-emerald-200 rounded-full flex items-center justify-center">
+                            <i className="pi pi-user text-emerald-800 text-xs"></i>
+                          </div>
+                          {nombreEstudiante}
                         </span>
-                      </div>
-                      {participant}
-                    </span>
-                  ))}
+                      );
+                    })
+                  ) : (
+                    <span className="text-sm text-gray-500">No hay estudiantes asignados</span>
+                  )}
                 </div>
               </div>
 
               {/* Archivos Adjuntos */}
               <div>
                 <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-paperclip text-green-600"></i>
+                  <i className="pi pi-paperclip text-emerald-600"></i>
                   Archivos Adjuntos
                 </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                    <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-                      <i className="pi pi-image text-blue-600 text-lg"></i>
+                {selectedProject.archivo_pdf ? (
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                      <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center flex-shrink-0">
+                        <i className="pi pi-file-pdf text-red-600 text-lg"></i>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">Documento del Proyecto</p>
+                        <p className="text-xs text-gray-500">PDF</p>
+                      </div>
+                      <a 
+                        href={selectedProject.archivo_pdf} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-emerald-600 hover:text-emerald-700"
+                      >
+                        <i className="pi pi-external-link"></i>
+                      </a>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.poster}</p>
-                      <p className="text-xs text-gray-500">Poster del proyecto</p>
-                    </div>
-                    <button className="text-green-600 hover:text-green-700">
-                      <i className="pi pi-download"></i>
-                    </button>
                   </div>
-
-                  <div className="border border-gray-200 rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                    <div className="w-10 h-10 bg-orange-100 rounded flex items-center justify-center flex-shrink-0">
-                      <i className="pi pi-file text-orange-600 text-lg"></i>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{selectedProject.slides}</p>
-                      <p className="text-xs text-gray-500">Presentación</p>
-                    </div>
-                    <button className="text-green-600 hover:text-green-700">
-                      <i className="pi pi-download"></i>
-                    </button>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">No hay archivos adjuntos</p>
+                )}
               </div>
             </div>
 
@@ -572,7 +563,7 @@ export default function StudentProjects() {
               >
                 Cerrar
               </button>
-              <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
                 Editar Estado
               </button>
             </div>

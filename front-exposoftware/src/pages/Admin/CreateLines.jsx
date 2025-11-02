@@ -1,10 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
+import * as AuthService from "../../Services/AuthService";
 import { useResearchLinesManagement } from "./useResearchLinesManagement";
 import { EditLineaModal, EditSublineaModal, EditAreaModal } from "./EditResearchLinesModals";
 
 export default function CreateLines() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+      }
+    }
+  };
+
   // Estado para tabs
   const [activeTab, setActiveTab] = useState("lineas"); // lineas | sublineas | areas
 
@@ -30,6 +66,7 @@ export default function CreateLines() {
     setIdLineaParaSublinea,
     sublineas,
     sublineasFiltradas,
+    sublineasPorLinea,
     searchTermSublinea,
     setSearchTermSublinea,
     showEditSublineaModal,
@@ -43,6 +80,7 @@ export default function CreateLines() {
     setIdSublineaParaArea,
     areas,
     areasFiltradas,
+    areasPorSublinea,
     searchTermArea,
     setSearchTermArea,
     showEditAreaModal,
@@ -90,13 +128,16 @@ export default function CreateLines() {
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -109,7 +150,7 @@ export default function CreateLines() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3">
@@ -120,7 +161,7 @@ export default function CreateLines() {
                   onClick={() => setActiveTab("lineas")}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                     activeTab === "lineas"
-                      ? "bg-green-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -130,7 +171,7 @@ export default function CreateLines() {
                   onClick={() => setActiveTab("sublineas")}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                     activeTab === "sublineas"
-                      ? "bg-green-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -140,7 +181,7 @@ export default function CreateLines() {
                   onClick={() => setActiveTab("areas")}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
                     activeTab === "areas"
-                      ? "bg-green-600 text-white"
+                      ? "bg-teal-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -163,43 +204,26 @@ export default function CreateLines() {
 
                 {/* Formulario Línea */}
                 <form onSubmit={handleSubmitLinea} className="space-y-6 max-w-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="codigoLinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Código de Línea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="codigoLinea"
-                        value={codigoLinea}
-                        onChange={(e) => setCodigoLinea(e.target.value)}
-                        placeholder="Ej: LI-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="nombreLinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre de la Línea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="nombreLinea"
-                        value={nombreLinea}
-                        onChange={(e) => setNombreLinea(e.target.value)}
-                        placeholder="Ej: Inteligencia Artificial"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="nombreLinea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre de la Línea de Investigación <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nombreLinea"
+                      value={nombreLinea}
+                      onChange={(e) => setNombreLinea(e.target.value)}
+                      placeholder="Ej: Inteligencia Artificial"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
                   </div>
 
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                     >
                       Crear Línea de Investigación
                     </button>
@@ -222,7 +246,7 @@ export default function CreateLines() {
                         placeholder="Buscar líneas..."
                         value={searchTermLinea}
                         onChange={(e) => setSearchTermLinea(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                       <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -255,10 +279,10 @@ export default function CreateLines() {
                             </td>
                           </tr>
                         ) : (
-                          lineasFiltradas.map((linea) => (
-                            <tr key={linea.id} className="hover:bg-gray-50 transition">
+                          lineasFiltradas.map((linea, idx) => (
+                            <tr key={`linea-${linea.codigo_linea || idx}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-teal-100 text-teal-800">
                                   {linea.codigo_linea}
                                 </span>
                               </td>
@@ -318,12 +342,12 @@ export default function CreateLines() {
                       id="idLineaParaSublinea"
                       value={idLineaParaSublinea}
                       onChange={(e) => setIdLineaParaSublinea(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                       required
                     >
                       <option value="">Selecciona una línea</option>
-                      {lineas.map((linea) => (
-                        <option key={linea.id} value={linea.id}>
+                      {lineas.map((linea, idx) => (
+                        <option key={`linea-${linea.codigo_linea || idx}`} value={String(linea.codigo_linea)}>
                           {linea.codigo_linea} - {linea.nombre_linea}
                         </option>
                       ))}
@@ -331,43 +355,26 @@ export default function CreateLines() {
                     <p className="mt-1 text-xs text-gray-500">La línea principal a la que pertenece esta sublínea</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="codigoSublinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Código de Sublínea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="codigoSublinea"
-                        value={codigoSublinea}
-                        onChange={(e) => setCodigoSublinea(e.target.value)}
-                        placeholder="Ej: SL-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="nombreSublinea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre de la Sublínea <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="nombreSublinea"
-                        value={nombreSublinea}
-                        onChange={(e) => setNombreSublinea(e.target.value)}
-                        placeholder="Ej: Deep Learning"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="nombreSublinea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre de la Sublínea <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nombreSublinea"
+                      value={nombreSublinea}
+                      onChange={(e) => setNombreSublinea(e.target.value)}
+                      placeholder="Ej: Deep Learning"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
                   </div>
 
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                     >
                       Crear Sublínea
                     </button>
@@ -390,7 +397,7 @@ export default function CreateLines() {
                         placeholder="Buscar sublíneas..."
                         value={searchTermSublinea}
                         onChange={(e) => setSearchTermSublinea(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                       <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -427,7 +434,7 @@ export default function CreateLines() {
                           </tr>
                         ) : (
                           sublineasFiltradas.map((sublinea) => (
-                            <tr key={sublinea.id} className="hover:bg-gray-50 transition">
+                            <tr key={`sublinea-${sublinea.codigo_linea}-${sublinea.codigo_sublinea}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                                   {sublinea.codigo_sublinea}
@@ -438,7 +445,7 @@ export default function CreateLines() {
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                                  {getLineaNombre(sublinea.id_linea)}
+                                  {getLineaNombre(sublinea.codigo_linea)}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -454,7 +461,7 @@ export default function CreateLines() {
                                     <i className="pi pi-pencil"></i>
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteSublinea(sublinea.id)}
+                                    onClick={() => handleDeleteSublinea(sublinea.codigo_sublinea)}
                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                     title="Eliminar"
                                   >
@@ -487,66 +494,89 @@ export default function CreateLines() {
                 {/* Formulario Área */}
                 <form onSubmit={handleSubmitArea} className="space-y-6 max-w-2xl">
                   <div>
+                    <label htmlFor="lineaParaArea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Línea de Investigación (Paso 1) <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="lineaParaArea"
+                      value={idLineaParaSublinea}
+                      onChange={(e) => setIdLineaParaSublinea(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      required
+                    >
+                      <option value="">Selecciona una línea</option>
+                      {lineas.map((linea, idx) => (
+                        <option key={`linea-${linea.codigo_linea || idx}`} value={String(linea.codigo_linea)}>
+                          {linea.codigo_linea} - {linea.nombre_linea}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">Primero selecciona una línea para cargar sus sublíneas</p>
+                  </div>
+
+                  <div>
                     <label htmlFor="idSublineaParaArea" className="block text-sm font-medium text-gray-700 mb-2">
-                      Sublínea de Investigación <span className="text-red-500">*</span>
+                      Sublínea de Investigación (Paso 2) <span className="text-red-500">*</span>
                     </label>
                     <select
                       id="idSublineaParaArea"
                       value={idSublineaParaArea}
                       onChange={(e) => setIdSublineaParaArea(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
                       required
+                      disabled={!idLineaParaSublinea}
                     >
-                      <option value="">Selecciona una sublínea</option>
-                      {sublineas.map((sublinea) => (
-                        <option key={sublinea.id} value={sublinea.id}>
-                          {sublinea.codigo_sublinea} - {sublinea.nombre_sublinea} ({getLineaNombre(sublinea.id_linea)})
+                      <option value="">
+                        {idLineaParaSublinea 
+                          ? (sublineasPorLinea.length > 0 
+                            ? 'Selecciona una sublínea' 
+                            : 'Cargando sublíneas...')
+                          : 'Primero selecciona una línea'}
+                      </option>
+                      {sublineasPorLinea.map((sublinea, idx) => (
+                        <option key={`sublinea-${sublinea.codigo_sublinea || idx}`} value={String(sublinea.codigo_sublinea)}>
+                          {sublinea.codigo_sublinea} - {sublinea.nombre_sublinea}
                         </option>
                       ))}
                     </select>
-                    <p className="mt-1 text-xs text-gray-500">La sublínea a la que pertenece esta área</p>
+                    <p className="mt-1 text-xs text-gray-500">Las sublíneas se cargarán automáticamente al seleccionar una línea</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="codigoArea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Código de Área <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="codigoArea"
-                        value={codigoArea}
-                        onChange={(e) => setCodigoArea(e.target.value)}
-                        placeholder="Ej: AT-001"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                        required
-                      />
-                      <p className="mt-1 text-xs text-gray-500">Código único identificador</p>
-                    </div>
-
-                    <div>
-                      <label htmlFor="nombreArea" className="block text-sm font-medium text-gray-700 mb-2">
-                        Nombre del Área Temática <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="nombreArea"
-                        value={nombreArea}
-                        onChange={(e) => setNombreArea(e.target.value)}
-                        placeholder="Ej: Redes Neuronales"
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label htmlFor="nombreArea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre del Área Temática <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="nombreArea"
+                      value={nombreArea}
+                      onChange={(e) => setNombreArea(e.target.value)}
+                      placeholder="Ej: Redes Neuronales"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                    />
+                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
                   </div>
 
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                      className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={!idSublineaParaArea}
                     >
                       Crear Área Temática
                     </button>
+                  </div>
+
+                  {/* Debug Info */}
+                  <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-300">
+                    <p className="text-xs text-gray-600 font-mono">
+                      <strong>Debug:</strong><br/>
+                      Línea seleccionada: {idLineaParaSublinea || 'Ninguna'}<br/>
+                      Sublíneas cargadas: {sublineasPorLinea.length}<br/>
+                      Sublínea seleccionada: {idSublineaParaArea || 'Ninguna'}<br/>
+                      Estado botón: {!idSublineaParaArea ? 'Deshabilitado' : 'Habilitado'}
+                    </p>
                   </div>
                 </form>
 
@@ -566,7 +596,7 @@ export default function CreateLines() {
                         placeholder="Buscar áreas..."
                         value={searchTermArea}
                         onChange={(e) => setSearchTermArea(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                       <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -603,7 +633,7 @@ export default function CreateLines() {
                           </tr>
                         ) : (
                           areasFiltradas.map((area) => (
-                            <tr key={area.id} className="hover:bg-gray-50 transition">
+                            <tr key={`area-${area.codigo_linea}-${area.codigo_sublinea}-${area.codigo_area}`} className="hover:bg-gray-50 transition">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
                                   {area.codigo_area}
@@ -614,7 +644,7 @@ export default function CreateLines() {
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                  {getSublineaNombre(area.id_sublinea)}
+                                  {getSublineaNombre(area.codigo_sublinea)}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -630,7 +660,7 @@ export default function CreateLines() {
                                     <i className="pi pi-pencil"></i>
                                   </button>
                                   <button
-                                    onClick={() => handleDeleteArea(area.id)}
+                                    onClick={() => handleDeleteArea(area.codigo_area)}
                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                     title="Eliminar"
                                   >

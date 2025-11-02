@@ -17,7 +17,7 @@ El sistema de autenticación utiliza **React Context API** para gestionar el est
 ### Características principales:
 - ✅ Gestión centralizada del estado de autenticación
 - ✅ Persistencia en localStorage
-- ✅ Datos específicos por rol (estudiante, docente, administrador)
+- ✅ Datos específicos por rol (estudiante, docente, egresado, invitado  administrador)
 - ✅ Funciones helper para nombre completo, iniciales, etc.
 - ✅ Verificación de roles
 - ✅ Tokens de autenticación

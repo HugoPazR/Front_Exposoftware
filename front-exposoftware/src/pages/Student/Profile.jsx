@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import * as StudentProfileService from "../../Services/StudentProfileService";
 import countryList from 'react-select-country-list';
 import logo from "../../assets/Logo-unicesar.png";
 import colombiaData from "../../data/colombia.json";
 import StudentProfileForm from "./StudentProfileForm";
 
 export default function Profile() {
+  const { user, getFullName, getInitials, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -14,35 +19,35 @@ export default function Profile() {
     confirmPassword: ""
   });
 
-  // Datos del perfil del estudiante - Campos editables
+  // Datos del perfil del estudiante - Inicializados desde el contexto
   const [profileData, setProfileData] = useState({
     // Información personal (heredada de Usuarios)
-    tipoDocumento: "CC",
-    identificacion: "1098765432", // ❌ NO EDITABLE
-    nombres: "Cristian David",
-    apellidos: "Guzmán Torres",
-    genero: "Masculino",
-    identidadSexual: "Masculino",
-    fechaNacimiento: "2003-03-22",
-    telefono: "3201234567",
+    tipoDocumento: "",
+    identificacion: "",
+    nombres: "",
+    apellidos: "",
+    genero: "",
+    identidadSexual: "",
+    fechaNacimiento: "",
+    telefono: "",
     
     // Ubicación y residencia
-    pais: "CO",
-    nacionalidad: "CO",
-    departamentoResidencia: "Cesar",
-    ciudadResidencia: "Valledupar",
-    direccionResidencia: "Calle 20 # 15-30 Barrio Centro",
-    departamento: "Cesar",
-    municipio: "Valledupar",
-    ciudad: "Valledupar",
+    pais: "",
+    nacionalidad: "",
+    departamentoResidencia: "",
+    ciudadResidencia: "",
+    direccionResidencia: "",
+    departamento: "",
+    municipio: "",
+    ciudad: "",
     
     // Información académica
-    correo: "crguzman@unicesar.edu.co", // ❌ NO EDITABLE
-    codigoPrograma: "12345", // ❌ NO EDITABLE - Programa del estudiante
-    semestre: 5, // ❌ NO EDITABLE - Semestre actual
-    fechaIngreso: "2022-02-01", // ❌ NO EDITABLE
-    anioIngreso: "2022",
-    periodo: "2022-1",
+    correo: "",
+    codigoPrograma: "",
+    semestre: 0,
+    fechaIngreso: "",
+    anioIngreso: "",
+    periodo: "",
     
     // Estado
     rol: "Estudiante"
@@ -52,6 +57,72 @@ export default function Profile() {
   const [opcionesPaises, setOpcionesPaises] = useState([]);
   const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+
+  // Cargar datos del usuario desde el contexto al montar el componente
+  useEffect(() => {
+    if (user) {
+      console.log('📋 Cargando datos del usuario en el perfil:', user);
+      
+      // Extraer datos del usuario (puede venir directo o dentro de user.usuario)
+      const datosUsuario = user.usuario || user;
+      
+      // Si no tiene nombres/apellidos separados pero sí tiene nombre_completo, dividirlo
+      let nombres = datosUsuario.nombres || user.nombres || "";
+      let apellidos = datosUsuario.apellidos || user.apellidos || "";
+      
+      if (!nombres && !apellidos && (datosUsuario.nombre_completo || user.nombre_completo || user.name)) {
+        const nombreCompleto = datosUsuario.nombre_completo || user.nombre_completo || user.name || "";
+        const partes = nombreCompleto.trim().split(" ");
+        
+        // Asumir que las primeras 2 palabras son nombres y el resto apellidos
+        if (partes.length >= 2) {
+          nombres = partes.slice(0, 2).join(" ");
+          apellidos = partes.slice(2).join(" ");
+        } else if (partes.length === 1) {
+          nombres = partes[0];
+        }
+        
+        console.log('📝 Nombre dividido:', { nombres, apellidos });
+      }
+      
+      const normalizeDateForInput = (raw) => {
+        if (!raw) return "";
+        try {
+          const d = new Date(raw);
+          if (isNaN(d)) return "";
+          return d.toISOString().slice(0, 10); // yyyy-mm-dd
+        } catch (e) {
+          return "";
+        }
+      };
+
+      setProfileData({
+        tipoDocumento: datosUsuario.tipo_documento || user.tipo_documento || "",
+        identificacion: datosUsuario.identificacion || user.identificacion || user.id_usuario || "",
+        nombres: nombres,
+        apellidos: apellidos,
+        genero: datosUsuario.genero || datosUsuario.sexo || user.sexo || user.genero || "",
+        identidadSexual: datosUsuario.identidad_sexual || user.identidad_sexual || "",
+        fechaNacimiento: normalizeDateForInput(datosUsuario.fecha_nacimiento || user.fecha_nacimiento || ""),
+        telefono: datosUsuario.telefono || user.telefono || "",
+  pais: datosUsuario.pais_residencia || user.pais_residencia || "",
+  nacionalidad: datosUsuario.nacionalidad || user.nacionalidad || "",
+        departamentoResidencia: datosUsuario.departamento || user.departamento || "",
+        ciudadResidencia: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
+        direccionResidencia: datosUsuario.direccion_residencia || user.direccion_residencia || "",
+        departamento: datosUsuario.departamento || user.departamento || "",
+        municipio: datosUsuario.municipio || user.municipio || "",
+        ciudad: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
+        correo: datosUsuario.correo || user.correo || "",
+  codigoPrograma: user.codigo_programa || "",
+  semestre: (user.semestre !== undefined && user.semestre !== null) ? user.semestre : "",
+        fechaIngreso: normalizeDateForInput(datosUsuario.fecha_ingreso || user.fecha_ingreso || ""),
+        anioIngreso: user.anio_ingreso || "",
+        periodo: user.periodo || "",
+        rol: datosUsuario.rol || user.rol || "Estudiante"
+      });
+    }
+  }, [user]);
 
   // Inicializar opciones de países
   useEffect(() => {
@@ -87,16 +158,54 @@ export default function Profile() {
     setIsEditing(false);
   };
 
-  const handleSave = () => {
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 Cerrando sesión del estudiante...");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("❌ Error al cerrar sesión:", error);
+      alert("❌ Error al cerrar sesión");
+    }
+  };
+
+  const handleSave = async () => {
     // Validaciones básicas
     if (!profileData.nombres || !profileData.apellidos || !profileData.telefono) {
       alert("Por favor completa los campos obligatorios");
       return;
     }
 
-    console.log("📤 Datos del estudiante a guardar:", profileData);
-    setIsEditing(false);
-    alert("✅ Cambios guardados exitosamente");
+    setLoading(true);
+    
+    try {
+      console.log("📤 Actualizando perfil del estudiante...");
+      
+      // Preparar datos para enviar al backend (solo campos editables)
+      const datosActualizar = {
+        codigo_programa: profileData.codigoPrograma
+      };
+
+      const resultado = await StudentProfileService.actualizarMiPerfil(datosActualizar);
+      
+      if (resultado.success) {
+        console.log("✅ Perfil actualizado exitosamente");
+        
+        // Actualizar el contexto con los nuevos datos
+        if (resultado.data) {
+          const perfilProcesado = StudentProfileService.procesarDatosPerfil(resultado.data);
+          updateUser(perfilProcesado);
+        }
+        
+        setIsEditing(false);
+        alert("✅ Cambios guardados exitosamente");
+      }
+    } catch (error) {
+      console.error("❌ Error al guardar perfil:", error);
+      alert("❌ Error al guardar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -172,12 +281,19 @@ export default function Profile() {
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">CG</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500">Estudiante</p>
                 </div>
               </div>
 
-                 <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -200,7 +316,11 @@ export default function Profile() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
-                <Link to="/student/configuracion" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-gray-50">
+                <Link to="/student/asistencia" className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}>
+                  <i className="pi pi-qrcode text-base"></i>
+                  Registrar Asistencia
+                </Link>
+                <Link to="/student/configuracion" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-teal-50 text-teal-700">
                   <i className="pi pi-cog text-base"></i>
                   Configuración
                 </Link>
@@ -216,7 +336,7 @@ export default function Profile() {
                 {!isEditing && (
                   <button 
                     onClick={handleEdit}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
                   >
                     <i className="pi pi-pencil"></i>
                     Editar Perfil
@@ -276,7 +396,7 @@ export default function Profile() {
                   </button>
                   <button 
                     onClick={handleSave}
-                    className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors"
                   >
                     Guardar Cambios
                   </button>
@@ -311,7 +431,7 @@ export default function Profile() {
                   name="currentPassword"
                   value={passwordForm.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -325,7 +445,7 @@ export default function Profile() {
                   name="newPassword"
                   value={passwordForm.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                   minLength={6}
                 />
@@ -341,7 +461,7 @@ export default function Profile() {
                   name="confirmPassword"
                   value={passwordForm.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -356,7 +476,7 @@ export default function Profile() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
                 >
                   Guardar Contraseña
                 </button>

@@ -1,84 +1,26 @@
 import { useState, useEffect, useMemo } from "react";
-import { API_ENDPOINTS } from "../../utils/constants";
 import colombiaData from "../../data/colombia.json";
 import countryList from 'react-select-country-list';
+import {
+  obtenerDocentes,
+  crearDocente,
+  actualizarDocente,
+  eliminarDocente,
+  filtrarDocentes,
+  formatearDatosDocente,
+  TIPOS_DOCUMENTO,
+  GENEROS,
+  IDENTIDADES_SEXUALES,
+  CATEGORIAS_DOCENTE,
+  DEPARTAMENTOS_COLOMBIA
+} from "../../Services/CreateTeacher";
 
-// Opciones de tipo de documento
-export const TIPOS_DOCUMENTO = ["CC", "TI", "CE", "PEP", "Pasaporte"];
+// Re-exportar constantes para mantener compatibilidad
+export { TIPOS_DOCUMENTO, GENEROS, IDENTIDADES_SEXUALES, CATEGORIAS_DOCENTE, DEPARTAMENTOS_COLOMBIA };
 
-// Opciones de género
-export const GENEROS = ["Hombre", "Mujer","Hermafrodita"];
-
-// Opciones de identidad sexual
-export const IDENTIDADES_SEXUALES = [
-  "Heterosexual",
-  "Homosexual",
-  "Bisexual",
-  "Pansexual",
-  "Asexual",
-  "Demisexual",
-  "Sapiosexual",
-  "Queer",
-  "Graysexual",
-  "Omnisexual",
-  "Androsexual",
-  "Gynesexual",
-  "Polysexual"
-];
-
-// Opciones de categoría docente
-export const CATEGORIAS_DOCENTE = ["Interno", "Invitado", "Externo"];
-
-// Opciones de departamentos de Colombia
-export const DEPARTAMENTOS_COLOMBIA = [
-  "Amazonas", "Antioquia", "Arauca", "Atlántico", "Bolívar", "Boyacá",
-  "Caldas", "Caquetá", "Casanare", "Cauca", "Cesar", "Chocó", "Córdoba",
-  "Cundinamarca", "Guainía", "Guaviare", "Huila", "La Guajira", "Magdalena",
-  "Meta", "Nariño", "Norte de Santander", "Putumayo", "Quindío", "Risaralda",
-  "San Andrés y Providencia", "Santander", "Sucre", "Tolima", "Valle del Cauca",
-  "Vaupés", "Vichada"
-];
-
-// Opciones de países
 export const PAISES = [
   "Colombia", "Argentina", "Brasil", "Chile", "Ecuador", "México", "Perú",
   "Venezuela", "Estados Unidos", "España", "Otro"
-];
-
-// Mock data inicial de profesores
-const PROFESORES_INICIAL = [
-  {
-    id: "prof1",
-    categoria_docente: "Interno",
-    codigo_programa: "ING01",
-    activo: true,
-    usuario: {
-      tipo_documento: "CC",
-      identificacion: "1023456789",
-      nombres: "María José",
-      apellidos: "Pérez García",
-      genero: "Mujer",
-      correo: "maria.perez@unicesar.edu.co",
-      telefono: "+573001234567"
-    },
-    fechaCreacion: "2025-01-15"
-  },
-  {
-    id: "prof2",
-    categoria_docente: "Interno",
-    codigo_programa: "ING02",
-    activo: true,
-    usuario: {
-      tipo_documento: "CC",
-      identificacion: "1087654321",
-      nombres: "Carlos Alberto",
-      apellidos: "Mendoza López",
-      genero: "Hombre",
-      correo: "carlos.mendoza@unicesar.edu.co",
-      telefono: "+573009876543"
-    },
-    fechaCreacion: "2025-01-20"
-  },
 ];
 
 /**
@@ -91,21 +33,20 @@ export function useTeacherManagement() {
   // Estados para el formulario - Datos del Usuario (heredados)
   const [tipoDocumento, setTipoDocumento] = useState("");
   const [identificacion, setIdentificacion] = useState("");
-  const [nombres, setNombres] = useState("");
-  const [apellidos, setApellidos] = useState("");
+  // Nombres y apellidos separados según tabla DOCENTE
+  const [primerNombre, setPrimerNombre] = useState("");
+  const [segundoNombre, setSegundoNombre] = useState("");
+  const [primerApellido, setPrimerApellido] = useState("");
+  const [segundoApellido, setSegundoApellido] = useState("");
   const [genero, setGenero] = useState("");
   const [identidadSexual, setIdentidadSexual] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState("");
-  const [direccionResidencia, setDireccionResidencia] = useState("");
-  const [anioIngreso, setAnioIngreso] = useState("");
-  const [periodo, setPeriodo] = useState("");
-  const [ciudadResidencia, setCiudadResidencia] = useState("");
-  const [departamentoResidencia, setDepartamentoResidencia] = useState("");
+  const [nacionalidad, setNacionalidad] = useState("CO"); // Código ISO de Colombia
+  const [pais, setPais] = useState("CO"); // Código ISO de Colombia (pais_residencia en backend)
   const [departamento, setDepartamento] = useState("");
   const [municipio, setMunicipio] = useState("");
-  const [pais, setPais] = useState("CO"); // Código ISO de Colombia
-  const [nacionalidad, setNacionalidad] = useState("CO"); // Código ISO de Colombia
-  const [ciudad, setCiudad] = useState("");
+  const [ciudadResidencia, setCiudadResidencia] = useState("");
+  const [direccionResidencia, setDireccionResidencia] = useState("");
   const [telefono, setTelefono] = useState("");
   const [correo, setCorreo] = useState("");
   const [contraseña, setContraseña] = useState("");
@@ -115,8 +56,7 @@ export function useTeacherManagement() {
   const [codigoPrograma, setCodigoPrograma] = useState("");
   const [activo, setActivo] = useState(true);
 
-  // Estados para manejar ciudades dinámicas
-  const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
+  // Estados para manejar municipios dinámicos
   const [municipios, setMunicipios] = useState([]);
 
   // Limpiar código de programa cuando la categoría cambie a Invitado o Externo
@@ -125,17 +65,6 @@ export function useTeacherManagement() {
       setCodigoPrograma("");
     }
   }, [categoriaDocente]);
-
-  // Actualizar ciudades cuando cambie el departamento de residencia
-  useEffect(() => {
-    if (departamentoResidencia) {
-      const depto = colombiaData.find((d) => d.departamento === departamentoResidencia);
-      setCiudadesResidencia(depto && Array.isArray(depto.ciudades) ? depto.ciudades : []);
-    } else {
-      setCiudadesResidencia([]);
-      setCiudadResidencia("");
-    }
-  }, [departamentoResidencia]);
 
   // Actualizar municipios cuando cambie el departamento
   useEffect(() => {
@@ -149,7 +78,10 @@ export function useTeacherManagement() {
   }, [departamento]);
 
   // Estado para la lista de profesores
-  const [profesores, setProfesores] = useState(PROFESORES_INICIAL);
+  const [profesores, setProfesores] = useState([]);
+  // Estado de carga y mensaje de error del servidor
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
@@ -159,25 +91,42 @@ export function useTeacherManagement() {
   // Estado para búsqueda/filtro
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Cargar profesores al montar el componente
+  // Cargar profesores al montar el componente (evitar usar función antes de definirla)
   useEffect(() => {
-    cargarProfesores();
+    (async () => {
+      setLoading(true);
+      setServerError("");
+      try {
+        console.log('🔄 Iniciando carga de profesores...');
+        const data = await obtenerDocentes();
+        console.log('✅ Profesores cargados exitosamente:', data);
+        setProfesores(data);
+      } catch (error) {
+        console.error('❌ Error al cargar profesores:', error);
+        setProfesores([]);
+        setServerError(error.message || 'Error al cargar profesores');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  // Función para cargar profesores desde el backend
+  // Función para (re)cargar profesores desde el backend — usada por submit/edición/eliminación
   const cargarProfesores = async () => {
+    setLoading(true);
+    setServerError("");
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES);
-      if (response.ok) {
-        const data = await response.json();
-        setProfesores(data);
-        console.log('📥 Profesores cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar profesores:', response.statusText);
-      }
+      console.log('🔄 Iniciando carga de profesores...');
+      const data = await obtenerDocentes();
+      console.log('✅ Profesores cargados exitosamente:', data);
+      setProfesores(data);
+      setServerError("");
     } catch (error) {
-      console.error('❌ Error de conexión al cargar profesores:', error);
-      console.log('⚠️ Usando datos mock locales');
+      console.error('❌ Error al cargar profesores:', error);
+      setProfesores([]);
+      setServerError(error.message || 'Error al cargar profesores');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,193 +134,168 @@ export function useTeacherManagement() {
   const limpiarFormulario = () => {
     setTipoDocumento("");
     setIdentificacion("");
-    setNombres("");
-    setApellidos("");
+    setPrimerNombre("");
+    setSegundoNombre("");
+    setPrimerApellido("");
+    setSegundoApellido("");
     setGenero("");
     setIdentidadSexual("");
     setFechaNacimiento("");
-    setDireccionResidencia("");
-    setAnioIngreso("");
-    setPeriodo("");
-    setCiudadResidencia("");
-    setDepartamentoResidencia("");
+    setNacionalidad("CO"); // Código ISO de Colombia
+    setPais("CO"); // Código ISO de Colombia
     setDepartamento("");
     setMunicipio("");
-    setPais("CO"); // Código ISO de Colombia
-    setNacionalidad("CO"); // Código ISO de Colombia
-    setCiudad("");
+    setCiudadResidencia("");
+    setDireccionResidencia("");
     setTelefono("");
     setCorreo("");
     setContraseña("");
     setCategoriaDocente("");
     setCodigoPrograma("");
     setActivo(true);
-    // Limpiar listas de ciudades
-    setCiudadesResidencia([]);
+    // Limpiar listas de municipios
     setMunicipios([]);
   };
 
-  // Crear nuevo profesor
-  const handleSubmit = async (e) => {
+  // Crear nuevo profesor usando el servicio
+  const handleSubmit = async (e, onSuccess = null) => {
     e.preventDefault();
 
-    if (!tipoDocumento || !identificacion || !nombres || !apellidos || !correo || !contraseña) {
-      alert("Por favor complete todos los campos obligatorios");
-      return;
-    }
-
-    // Estructura exacta que espera el backend
-    const payload = {
-      categoria_docente: categoriaDocente,
-      codigo_programa: codigoPrograma,
-      activo: activo,
-      usuario: {
-        tipo_documento: tipoDocumento,
-        identificacion: identificacion,
-        nombres: nombres,
-        apellidos: apellidos,
-        genero: genero,
-        identidad_sexual: identidadSexual,
-        fecha_nacimiento: fechaNacimiento,
-        direccion_residencia: direccionResidencia,
-        anio_ingreso: anioIngreso,
-        periodo: periodo ? parseInt(periodo) : null,
-        ciudad_residencia: ciudadResidencia,
-        departamento_residencia: departamentoResidencia,
-        departamento: departamento,
-        municipio: municipio,
-        pais: pais,
-        nacionalidad: nacionalidad,
-        ciudad: ciudad,
-        telefono: telefono,
-        correo: correo,
-        rol: "Docente",
-        contraseña: contraseña
-      }
-    };
-
-    console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
+    setLoading(true);
+    setServerError("");
 
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      // Combinar nombres y apellidos separados en campos únicos para el servicio
+      const nombresCompletos = `${primerNombre} ${segundoNombre}`.trim();
+      const apellidosCompletos = `${primerApellido} ${segundoApellido}`.trim();
+
+      const datosDocente = formatearDatosDocente({
+        tipoDocumento,
+        identificacion,
+        nombres: nombresCompletos,
+        apellidos: apellidosCompletos,
+        genero,
+        identidadSexual,
+        fechaNacimiento,
+        nacionalidad,
+        pais,
+        departamento,
+        municipio,
+        ciudadResidencia,
+        direccionResidencia,
+        telefono,
+        correo,
+        contraseña,
+        categoriaDocente,
+        codigoPrograma
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-
-        await cargarProfesores();
-        alert("✅ Profesor creado exitosamente");
-        limpiarFormulario();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear el profesor: ${errorData.message || 'Error desconocido'}`);
+      await crearDocente(datosDocente);
+      await cargarProfesores();
+      // éxito: limpiar formulario y resetear errores
+      limpiarFormulario();
+      setServerError("");
+      // Llamar callback de éxito si se proporciona
+      if (onSuccess) {
+        onSuccess(`✅ Profesor ${nombresCompletos} creado correctamente`);
       }
     } catch (error) {
-      console.error('❌ Error al crear profesor:', error);
-      alert("❌ Error de conexión al crear el profesor");
+      console.error('❌ Error creando docente:', error);
+      setServerError(error.message || 'Error al crear docente');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
   // Iniciar edición
   const handleEdit = (profesor) => {
+    console.log('🔍 Editando profesor:', profesor);
+    
     setEditingId(profesor.id);
-    setTipoDocumento(profesor.usuario.tipo_documento);
-    setIdentificacion(profesor.usuario.identificacion);
-    setNombres(profesor.usuario.nombres);
-    setApellidos(profesor.usuario.apellidos);
-    setGenero(profesor.usuario.genero);
-    setIdentidadSexual(profesor.usuario.identidad_sexual || "");
-    setFechaNacimiento(profesor.usuario.fecha_nacimiento || "");
-    setDireccionResidencia(profesor.usuario.direccion_residencia || "");
-    setAnioIngreso(profesor.usuario.anio_ingreso || "");
-    setPeriodo(profesor.usuario.periodo || "");
-    setCiudadResidencia(profesor.usuario.ciudad_residencia || "");
-    setDepartamentoResidencia(profesor.usuario.departamento_residencia || "");
-    setDepartamento(profesor.usuario.departamento || "");
-    setMunicipio(profesor.usuario.municipio || "");
-    setPais(profesor.usuario.pais || "Colombia");
-    setNacionalidad(profesor.usuario.nacionalidad || "Colombiana");
-    setCiudad(profesor.usuario.ciudad || "");
-    setTelefono(profesor.usuario.telefono);
-    setCorreo(profesor.usuario.correo);
-    setCategoriaDocente(profesor.categoria_docente);
-    setCodigoPrograma(profesor.codigo_programa);
-    setActivo(profesor.activo);
+    
+    // Verificar si tiene propiedad 'usuario' o si los datos están directamente en el objeto
+    const datos = profesor.usuario || profesor;
+    
+    setTipoDocumento(datos.tipo_documento || "");
+    setIdentificacion(datos.identificacion || "");
+    
+    // El backend retorna 'nombres' y 'apellidos' combinados, no separados
+    // Separar nombres para mostrar en los campos primerNombre/segundoNombre
+    const nombresArray = (datos.nombres || "").split(" ");
+    const primerNom = nombresArray[0] || "";
+    const segundoNom = nombresArray.slice(1).join(" ") || "";
+    
+    const apellidosArray = (datos.apellidos || "").split(" ");
+    const primerApellido = apellidosArray[0] || "";
+    const segundoApellido = apellidosArray.slice(1).join(" ") || "";
+    
+    setPrimerNombre(primerNom);
+    setSegundoNombre(segundoNom);
+    setPrimerApellido(primerApellido);
+    setSegundoApellido(segundoApellido);
+    
+    setGenero(datos.sexo || datos.genero || ""); // Backend usa 'sexo'
+    setIdentidadSexual(datos.identidad_sexual || "");
+    setFechaNacimiento(datos.fecha_nacimiento || "");
+    setNacionalidad(datos.nacionalidad === "Colombiana" ? "CO" : datos.nacionalidad || "CO");
+    setPais(datos.pais_residencia === "Colombia" ? "CO" : datos.pais_residencia || "CO");
+    setDepartamento(datos.departamento || ""); // Backend usa 'departamento' (no 'departamento_residencia')
+    setMunicipio(datos.municipio || "");
+    setCiudadResidencia(datos.ciudad_residencia || "");
+    setDireccionResidencia(datos.direccion_residencia || "");
+    setTelefono(datos.telefono || "");
+    setCorreo(datos.correo || "");
+    setCategoriaDocente(profesor.categoria_docente || "");
+    setCodigoPrograma(profesor.codigo_programa || "");
+    setActivo(profesor.activo !== undefined ? profesor.activo : true);
     setIsEditing(true);
     setShowEditModal(true);
   };
 
-  // Guardar edición
+  // Guardar edición usando el servicio
   const handleSaveEdit = async (e) => {
     e.preventDefault();
 
-    if (!tipoDocumento || !identificacion || !nombres || !apellidos || !correo) {
-      alert("Por favor complete todos los campos obligatorios");
-      return;
-    }
-
-    const payload = {
-      categoria_docente: categoriaDocente,
-      codigo_programa: codigoPrograma,
-      activo: activo,
-      usuario: {
-        tipo_documento: tipoDocumento,
-        identificacion: identificacion,
-        nombres: nombres,
-        apellidos: apellidos,
-        genero: genero,
-        identidad_sexual: identidadSexual,
-        fecha_nacimiento: fechaNacimiento,
-        direccion_residencia: direccionResidencia,
-        anio_ingreso: anioIngreso,
-        periodo: periodo ? parseInt(periodo) : null,
-        ciudad_residencia: ciudadResidencia,
-        departamento_residencia: departamentoResidencia,
-        departamento: departamento,
-        municipio: municipio,
-        pais: pais,
-        nacionalidad: nacionalidad,
-        ciudad: ciudad,
-        telefono: telefono,
-        correo: correo,
-        rol: "Docente"
-      }
-    };
-
-    // Solo agregar contraseña si se proporcionó una nueva
-    if (contraseña) {
-      payload.usuario.contraseña = contraseña;
-    }
-
-    console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
+    setLoading(true);
+    setServerError("");
 
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTE_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      // Combinar nombres y apellidos separados en campos únicos para el servicio
+      const nombresCompletos = `${primerNombre} ${segundoNombre}`.trim();
+      const apellidosCompletos = `${primerApellido} ${segundoApellido}`.trim();
+
+      const datosDocente = formatearDatosDocente({
+        tipoDocumento,
+        identificacion,
+        nombres: nombresCompletos,
+        apellidos: apellidosCompletos,
+        genero,
+        identidadSexual,
+        fechaNacimiento,
+        nacionalidad,
+        pais,
+        departamento,
+        municipio,
+        ciudadResidencia,
+        direccionResidencia,
+        telefono,
+        correo,
+        contraseña,
+        categoriaDocente,
+        codigoPrograma
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-
-        await cargarProfesores();
-        alert("✅ Profesor actualizado exitosamente");
-        handleCancelEdit();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar el profesor: ${errorData.message || 'Error desconocido'}`);
-      }
+      await actualizarDocente(editingId, datosDocente);
+      await cargarProfesores();
+      setServerError("");
+      handleCancelEdit();
     } catch (error) {
-      console.error('❌ Error al actualizar profesor:', error);
-      alert("❌ Error de conexión al actualizar el profesor");
+      console.error('❌ Error actualizando docente:', error);
+      setServerError(error.message || 'Error al actualizar docente');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -383,31 +307,26 @@ export function useTeacherManagement() {
     limpiarFormulario();
   };
 
-  // Eliminar profesor
+  // Eliminar profesor usando el servicio
   const handleDelete = async (id) => {
     const profesorAEliminar = profesores.find(p => p.id === id);
+    
+    // El backend retorna 'nombres' combinado, no separado
+    const nombreCompleto = profesorAEliminar?.usuario?.nombres || profesorAEliminar?.nombres || "profesor";
 
-    if (window.confirm(`¿Está seguro de que desea eliminar al profesor "${profesorAEliminar?.usuario.nombres} ${profesorAEliminar?.usuario.apellidos}"?`)) {
-      console.log('🗑️ Eliminando del backend - ID:', id);
-      console.log('📋 Profesor a eliminar:', `${profesorAEliminar?.usuario.nombres} ${profesorAEliminar?.usuario.apellidos}`);
-
+    if (window.confirm(`¿Está seguro de que desea eliminar al profesor "${nombreCompleto}"?`)) {
       try {
-        const response = await fetch(API_ENDPOINTS.DOCENTE_BY_ID(id), {
-          method: 'DELETE'
-        });
-
-        if (response.ok) {
-          console.log('✅ Profesor eliminado del backend');
-          await cargarProfesores();
-          alert("✅ Profesor eliminado exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar el profesor: ${errorData.message || 'Error desconocido'}`);
-        }
+        setLoading(true);
+        setServerError("");
+        await eliminarDocente(id);
+        await cargarProfesores();
+        setServerError("");
       } catch (error) {
-        console.error('❌ Error al eliminar profesor:', error);
-        alert("❌ Error de conexión al eliminar el profesor");
+        console.error('❌ Error eliminando docente:', error);
+        setServerError(error.message || 'Error al eliminar docente');
+      }
+      finally {
+        setLoading(false);
       }
     }
   };
@@ -417,14 +336,8 @@ export function useTeacherManagement() {
     limpiarFormulario();
   };
 
-  // Filtrar profesores por búsqueda
-  const profesoresFiltrados = profesores.filter(profesor =>
-    profesor.usuario.nombres.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profesor.usuario.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profesor.usuario.identificacion.includes(searchTerm) ||
-    profesor.usuario.correo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profesor.codigo_programa.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar profesores por búsqueda usando el servicio
+  const profesoresFiltrados = filtrarDocentes(profesores, searchTerm);
 
   return {
     // Estados del formulario - Usuario (heredados)
@@ -432,36 +345,33 @@ export function useTeacherManagement() {
     setTipoDocumento,
     identificacion,
     setIdentificacion,
-    nombres,
-    setNombres,
-    apellidos,
-    setApellidos,
+    // Nombres y apellidos separados
+    primerNombre,
+    setPrimerNombre,
+    segundoNombre,
+    setSegundoNombre,
+    primerApellido,
+    setPrimerApellido,
+    segundoApellido,
+    setSegundoApellido,
     genero,
     setGenero,
     identidadSexual,
     setIdentidadSexual,
     fechaNacimiento,
     setFechaNacimiento,
-    direccionResidencia,
-    setDireccionResidencia,
-    anioIngreso,
-    setAnioIngreso,
-    periodo,
-    setPeriodo,
-    ciudadResidencia,
-    setCiudadResidencia,
-    departamentoResidencia,
-    setDepartamentoResidencia,
+    nacionalidad,
+    setNacionalidad,
+    pais,
+    setPais,
     departamento,
     setDepartamento,
     municipio,
     setMunicipio,
-    pais,
-    setPais,
-    nacionalidad,
-    setNacionalidad,
-    ciudad,
-    setCiudad,
+    ciudadResidencia,
+    setCiudadResidencia,
+    direccionResidencia,
+    setDireccionResidencia,
     telefono,
     setTelefono,
     correo,
@@ -483,8 +393,7 @@ export function useTeacherManagement() {
     setSearchTerm,
     profesoresFiltrados,
 
-    // Estados para ciudades dinámicas
-    ciudadesResidencia,
+    // Estados para municipios dinámicos
     municipios,
 
     // Opciones de países/nacionalidades
@@ -501,5 +410,8 @@ export function useTeacherManagement() {
     handleCancelEdit,
     handleDelete,
     handleCancel,
+    // UI states
+    loading,
+    serverError,
   };
 }

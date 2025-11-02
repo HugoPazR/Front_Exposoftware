@@ -1,37 +1,69 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
-import { API_ENDPOINTS } from "../../utils/constants";
-
-// Mock data inicial de grupos
-const GRUPOS_INICIAL = [
-  { id: "grp1", codigo_grupo: 101, id_docente: 1, fechaCreacion: "2025-01-15" },
-  { id: "grp2", codigo_grupo: 202, id_docente: 2, fechaCreacion: "2025-01-20" },
-];
-
-// Mock data de profesores disponibles (esto vendrá del backend)
-const PROFESORES_MOCK = [
-  { id: 1, nombre: "Dr. Alejandro José Meriño", departamento: "Ingeniería de Software" },
-  { id: 2, nombre: "Ing. Sofía Benítez", departamento: "Redes de Computadoras" },
-  { id: 3, nombre: "Lic. Carla Ruíz", departamento: "Inteligencia Artificial" },
-  { id: 4, nombre: "Dr. Fernando Vargas", departamento: "Sistemas Operativos" },
-  { id: 5, nombre: "Ing. María González", departamento: "Bases de Datos" },
-  { id: 6, nombre: "Dr. Juan Pérez", departamento: "Desarrollo Web" },
-];
+import * as AuthService from "../../Services/AuthService";
+import {
+  obtenerGrupos,
+  obtenerProfesores,
+  crearGrupo,
+  actualizarGrupo,
+  eliminarGrupo,
+  obtenerNombreProfesor,
+  filtrarGrupos
+} from "../../Services/CreateGroup";
 
 export default function CreateGroup() {
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const user = AuthService.getUserData();
+    if (user) {
+      setUserData(user);
+    }
+  }, []);
+
+  // Obtener nombre del usuario
+  const getUserName = () => {
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
+  };
+
+  const getUserInitials = () => {
+    const name = getUserName();
+    return name.charAt(0).toUpperCase();
+  };
+  
+  // Estado para tabs
+  const [activeTab, setActiveTab] = useState("crear"); // crear | editar
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        console.log('✅ Sesión cerrada exitosamente');
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+        navigate('/login');
+      }
+    }
+  };
+
   // Estados para el formulario
   const [codigoGrupo, setCodigoGrupo] = useState("");
   const [idDocente, setIdDocente] = useState("");
   
   // Estado para la lista de grupos y profesores
-  const [grupos, setGrupos] = useState(GRUPOS_INICIAL);
-  const [profesores, setProfesores] = useState(PROFESORES_MOCK);
+  const [grupos, setGrupos] = useState([]);
+  const [profesores, setProfesores] = useState([]);
   
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [editingCodigoGrupo, setEditingCodigoGrupo] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   
   // Estado para búsqueda/filtro
@@ -43,85 +75,88 @@ export default function CreateGroup() {
     cargarProfesores();
   }, []);
 
-  // Función para cargar grupos desde el backend
+  // Función para cargar grupos desde el backend usando el servicio
   const cargarGrupos = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPOS);
-      if (response.ok) {
-        const data = await response.json();
-        setGrupos(data);
-        console.log('📥 Grupos cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar grupos:', response.statusText);
-      }
+      console.log('🔄 Iniciando carga de grupos...');
+      const data = await obtenerGrupos();
+      console.log('✅ Grupos cargados exitosamente:', data);
+      setGrupos(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar grupos:', error);
-      console.log('⚠️ Usando datos mock locales');
+      console.error('❌ Error al cargar grupos:', error);
+      // No mostrar alert para no bloquear la UI
+      setGrupos([]);
     }
   };
 
-  // Función para cargar profesores desde el backend
+  // Función para cargar profesores desde el backend usando el servicio
   const cargarProfesores = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.DOCENTES);
-      if (response.ok) {
-        const data = await response.json();
-        setProfesores(data);
-        console.log('📥 Profesores cargados:', data.length);
-      } else {
-        console.error('❌ Error al cargar profesores:', response.statusText);
+      console.log('🔄 Iniciando carga de profesores...');
+      const data = await obtenerProfesores();
+      console.log('✅ Profesores cargados exitosamente:', data);
+      
+      // 🔍 DEBUG: Ver estructura del primer profesor
+      if (data && data.length > 0) {
+        console.log('🔍 ESTRUCTURA DEL PRIMER PROFESOR:', data[0]);
+        console.log('🔍 CLAVES DISPONIBLES:', Object.keys(data[0]));
+        console.log('🔍 ID del profesor:', data[0].id);
+        console.log('🔍 ¿Tiene usuario anidado?', data[0].usuario ? 'SÍ' : 'NO');
+        if (data[0].usuario) {
+          console.log('🔍 Claves de usuario:', Object.keys(data[0].usuario));
+        }
       }
+      
+      setProfesores(data);
     } catch (error) {
-      console.error('❌ Error de conexión al cargar profesores:', error);
-      console.log('⚠️ Usando datos mock de profesores');
+      console.error('❌ Error al cargar profesores:', error);
+      // No mostrar alert para no bloquear la UI
+      setProfesores([]);
     }
   };
 
-  // Obtener nombre de profesor por ID
-  const getProfesorNombre = (idDocente) => {
-    const profesor = profesores.find(p => p.id === idDocente);
-    return profesor ? profesor.nombre : 'Sin asignar';
-  };
-
-  // Crear nuevo grupo
+  // Crear nuevo grupo usando el servicio
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log('📝 Iniciando creación de grupo...');
+    console.log('📋 Valores del formulario:');
+    console.log('   - codigo_grupo:', codigoGrupo, typeof codigoGrupo);
+    console.log('   - id_docente:', idDocente, typeof idDocente);
     
-    if (!codigoGrupo || !idDocente) {
-      alert("Por favor complete todos los campos obligatorios");
+    // 🔍 DEBUG: Buscar el profesor seleccionado en el array
+    const profesorSeleccionado = profesores.find(item => {
+      const docente = item?.docente || item;
+      return docente?.id_docente === idDocente || docente?.id === idDocente;
+    });
+    console.log('🔍 Profesor seleccionado del array:', profesorSeleccionado);
+    
+    if (profesorSeleccionado) {
+      const docente = profesorSeleccionado?.docente || profesorSeleccionado;
+      console.log('✅ Profesor encontrado:');
+      console.log('   - id_docente:', docente?.id_docente);
+      console.log('   - categoria_docente:', docente?.categoria_docente);
+      console.log('   - Objeto completo:', profesorSeleccionado);
+    } else {
+      console.warn('⚠️ No se encontró el profesor en el array con ID:', idDocente);
+    }
+    
+    // Validar que se haya seleccionado un profesor válido
+    if (!idDocente || idDocente === '' || idDocente.startsWith('temp_')) {
+      alert('❌ Error: Debe seleccionar un profesor válido');
+      console.error('❌ ID de docente inválido:', idDocente);
       return;
     }
 
-    // Estructura exacta que espera el backend
-    const payload = {
-      codigo_grupo: parseInt(codigoGrupo),
-      id_docente: parseInt(idDocente)
-    };
-
-    console.log('📤 Enviando al backend:', JSON.stringify(payload, null, 2));
-
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPOS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
-        await cargarGrupos();
-        alert("✅ Grupo creado exitosamente");
-        limpiarFormulario();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al crear el grupo: ${errorData.message || 'Error desconocido'}`);
-      }
+      const resultado = await crearGrupo(codigoGrupo, idDocente);
+      console.log('✅ Grupo creado, recargando lista...');
+      await cargarGrupos();
+      alert("✅ Grupo creado exitosamente\n\nEl grupo ha sido registrado en el sistema.");
+      limpiarFormulario();
     } catch (error) {
-      console.error('❌ Error al crear grupo:', error);
-      alert("❌ Error de conexión al crear el grupo");
+      console.error('❌ Error en handleSubmit:', error);
+      alert(`❌ Error al crear el grupo:\n\n${error.message}`);
     }
   };
 
@@ -133,87 +168,54 @@ export default function CreateGroup() {
 
   // Iniciar edición
   const handleEdit = (grupo) => {
-    setEditingId(grupo.id);
+    console.log('🔄 Editando grupo:', grupo);
+    setEditingCodigoGrupo(grupo.codigo_grupo);
     setCodigoGrupo(grupo.codigo_grupo.toString());
-    setIdDocente(grupo.id_docente.toString());
+    // Usar directamente el id_docente del grupo
+    if (grupo.id_docente) {
+      console.log('✅ Grupo tiene docente asignado:', grupo.id_docente);
+      setIdDocente(grupo.id_docente);
+    } else {
+      console.log('⚠️ Grupo sin docente asignado');
+      setIdDocente("");
+    }
     setIsEditing(true);
     setShowEditModal(true);
   };
 
-  // Guardar edición
+  // Guardar edición usando el servicio
   const handleSaveEdit = async (e) => {
     e.preventDefault();
-    
-    if (!codigoGrupo || !idDocente) {
-      alert("Por favor complete todos los campos obligatorios");
-      return;
-    }
-
-    const payload = {
-      codigo_grupo: parseInt(codigoGrupo),
-      id_docente: parseInt(idDocente)
-    };
-
-    console.log('📤 Actualizando en backend (ID: ' + editingId + '):', JSON.stringify(payload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINTS.GRUPO_BY_ID(editingId), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Respuesta del backend:', data);
-        
-        await cargarGrupos();
-        alert("✅ Grupo actualizado exitosamente");
-        handleCancelEdit();
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Error del servidor:', errorData);
-        alert(`❌ Error al actualizar el grupo: ${errorData.message || 'Error desconocido'}`);
-      }
+      await actualizarGrupo(editingCodigoGrupo, codigoGrupo, idDocente);
+      await cargarGrupos();
+      alert("✅ Grupo actualizado exitosamente");
+      handleCancelEdit();
     } catch (error) {
-      console.error('❌ Error al actualizar grupo:', error);
-      alert("❌ Error de conexión al actualizar el grupo");
+      alert(`❌ ${error.message}`);
     }
   };
 
   // Cancelar edición
   const handleCancelEdit = () => {
     setIsEditing(false);
-    setEditingId(null);
+    setEditingCodigoGrupo(null);
     setShowEditModal(false);
     limpiarFormulario();
   };
 
-  // Eliminar grupo
-  const handleDelete = async (id) => {
-    const grupoAEliminar = grupos.find(g => g.id === id);
+  // Eliminar grupo usando el servicio
+  const handleDelete = async (codigoGrupo) => {
+    const grupoAEliminar = grupos.find(g => g.codigo_grupo === codigoGrupo);
     
-    if (window.confirm(`¿Está seguro de que desea eliminar el Grupo ${grupoAEliminar?.codigo_grupo}?`)) {
-      console.log('🗑️ Eliminando del backend - ID:', id);
-      console.log('📋 Grupo a eliminar:', grupoAEliminar?.codigo_grupo);
-      
+    if (window.confirm(`¿Está seguro de que desea eliminar el ${grupoAEliminar?.nombre_grupo}?`)) {
       try {
-        const response = await fetch(API_ENDPOINTS.GRUPO_BY_ID(id), { 
-          method: 'DELETE' 
-        });
-        
-        if (response.ok) {
-          console.log('✅ Grupo eliminado del backend');
-          await cargarGrupos();
-          alert("✅ Grupo eliminado exitosamente");
-        } else {
-          const errorData = await response.json();
-          console.error('❌ Error del servidor:', errorData);
-          alert(`❌ Error al eliminar el grupo: ${errorData.message || 'Error desconocido'}`);
-        }
+        await eliminarGrupo(codigoGrupo);
+        await cargarGrupos();
+        alert("✅ Grupo eliminado exitosamente");
       } catch (error) {
-        console.error('❌ Error al eliminar grupo:', error);
-        alert("❌ Error de conexión al eliminar el grupo");
+        alert(`❌ ${error.message}`);
       }
     }
   };
@@ -222,11 +224,8 @@ export default function CreateGroup() {
     limpiarFormulario();
   };
 
-  // Filtrar grupos por búsqueda
-  const gruposFiltrados = grupos.filter(grupo =>
-    grupo.codigo_grupo.toString().includes(searchTerm) ||
-    getProfesorNombre(grupo.id_docente).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar grupos por búsqueda usando el servicio
+  const gruposFiltrados = filtrarGrupos(grupos, searchTerm, profesores);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -245,13 +244,16 @@ export default function CreateGroup() {
             {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -264,10 +266,38 @@ export default function CreateGroup() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           
           {/* Sidebar Component */}
-          <AdminSidebar userName="Carlos Mendoza" userRole="Administrador" />
+          <AdminSidebar userName={getUserName()} userRole="Administrador" />
 
           {/* Main Content */}
           <main className="lg:col-span-3">
+            {/* Tabs de navegación */}
+            <div className="bg-white rounded-lg border border-gray-200 p-2 mb-6">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab("crear")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "crear"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ➕ Crear Grupo
+                </button>
+                <button
+                  onClick={() => setActiveTab("editar")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition ${
+                    activeTab === "editar"
+                      ? "bg-teal-600 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  ✏️ Editar Grupos
+                </button>
+              </div>
+            </div>
+
+            {/* ========== TAB 1: CREAR GRUPO ========== */}
+            {activeTab === "crear" && (
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               {/* Título y descripción */}
               <div className="mb-8">
@@ -294,12 +324,12 @@ export default function CreateGroup() {
                     id="codigoGrupo"
                     value={codigoGrupo}
                     onChange={(e) => setCodigoGrupo(e.target.value)}
-                    placeholder="Ej: 101, 202, 303"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    placeholder="Ej: 101, 102, 203"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                     required
                     min="1"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Número único que identifica el grupo</p>
+                  <p className="mt-1 text-xs text-gray-500">Código numérico único del grupo (Ej: 101, 102, 203).</p>
                 </div>
 
                 {/* Asignar Profesor */}
@@ -313,16 +343,59 @@ export default function CreateGroup() {
                   <select
                     id="idDocente"
                     value={idDocente}
-                    onChange={(e) => setIdDocente(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      console.log('🔄 Profesor seleccionado - ID:', selectedId);
+                      setIdDocente(selectedId);
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                     required
                   >
                     <option value="">Selecciona un profesor</option>
-                    {profesores.map((profesor) => (
-                      <option key={profesor.id} value={profesor.id}>
-                        {profesor.nombre} - {profesor.departamento}
-                      </option>
-                    ))}
+                    {Array.isArray(profesores) && profesores.length > 0 ? (
+                      profesores.map((item, index) => {
+                        // 🔍 Extraer datos del docente y usuario (estructura anidada del backend)
+                        const docente = item?.docente || item;
+                        const usuario = item?.usuario || {};
+
+                        const profesorId = docente?.id_docente || docente?.id || `temp_${index}`;
+                        
+                        // 🔍 Construir nombre del profesor desde usuario
+                        const nombreCompleto = usuario?.nombre_completo || '';
+                        const correo = usuario?.correo || '';
+                        const nombre = nombreCompleto || correo?.split('@')[0] || `Profesor ${profesorId}`;
+                        
+                        // Información adicional del docente
+                        const categoria = docente?.categoria_docente || '';
+                        const codigoPrograma = docente?.codigo_programa || '';
+                        
+                        let displayText = nombre;
+                        if (categoria) {
+                          displayText += ` - ${categoria}`;
+                        }
+                        if (codigoPrograma) {
+                          displayText += ` (${codigoPrograma})`;
+                        }
+                        
+                        // 🔍 DEBUG en consola para el primer profesor
+                        if (index === 0) {
+                          console.log('🔍 Primer profesor en dropdown:');
+                          console.log('   - docente.id_docente:', docente?.id_docente);
+                          console.log('   - ID FINAL usado:', profesorId);
+                          console.log('   - Nombre completo:', nombreCompleto);
+                          console.log('   - Display:', displayText);
+                          console.log('   - Estructura item:', item);
+                        }
+                        
+                        return (
+                          <option key={`prof_${index}_${profesorId}`} value={profesorId}>
+                            {displayText}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option value="" disabled>No hay profesores disponibles</option>
+                    )}
                   </select>
                   <p className="mt-1 text-xs text-gray-500">Profesor responsable del grupo</p>
                 </div>
@@ -331,15 +404,29 @@ export default function CreateGroup() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                    className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
                   >
                     Crear Grupo
                   </button>
                 </div>
               </form>
+            </div>
+            )}
+
+            {/* ========== TAB 2: EDITAR GRUPOS ========== */}
+            {activeTab === "editar" && (
+            <div className="bg-white rounded-lg border border-gray-200 p-8">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Editar Grupos
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Busca y edita la información de los grupos registrados en el sistema.
+                </p>
+              </div>
 
               {/* Tabla de Grupos Registrados */}
-              <div className="mt-12 pt-8 border-t border-gray-200">
+              <div className="mb-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-xl font-bold text-gray-900">Grupos Registrados</h3>
@@ -355,28 +442,29 @@ export default function CreateGroup() {
                       placeholder="Buscar grupos..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     />
                     <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                   </div>
                 </div>
+              </div>
 
-                {/* Tabla */}
+              {/* Tabla */}
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Código Grupo
+                          Grupo
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          ID Docente
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Profesor Asignado
+                          Materia
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha Creación
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Última Actualización
                         </th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Acciones
@@ -393,22 +481,69 @@ export default function CreateGroup() {
                         </tr>
                       ) : (
                         gruposFiltrados.map((grupo) => (
-                          <tr key={grupo.id} className="hover:bg-gray-50 transition">
+                          <tr key={grupo?.codigo_grupo || Math.random()} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                {grupo.codigo_grupo}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                                {grupo.id_docente}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-teal-100 text-teal-800 w-fit">
+                                  Grupo {grupo?.codigo_grupo || 'N/A'}
+                                </span>
+                                {grupo?.codigo_materia && (
+                                  <span className="text-xs text-gray-400 mt-1" title={`Materia: ${grupo.codigo_materia}`}>
+                                    Materia: {grupo.codigo_materia}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="text-sm text-gray-900">{getProfesorNombre(grupo.id_docente)}</div>
+                              <div className="text-sm font-medium text-gray-900">{grupo?.nombre_materia || 'N/A'}</div>
+                              {grupo?.id_docente ? (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {(() => {
+                                    // Buscar el profesor en la lista de profesores
+                                    const profesorInfo = profesores.find(item => {
+                                      const docente = item?.docente || item;
+                                      return docente?.id_docente === grupo.id_docente;
+                                    });
+                                    
+                                    if (profesorInfo) {
+                                      const usuario = profesorInfo?.usuario || {};
+                                      const nombreCompleto = usuario?.nombre_completo || grupo?.nombre_docente || 'Docente asignado';
+                                      return (
+                                        <span className="inline-flex items-center gap-1">
+                                          <i className="pi pi-user text-teal-600"></i>
+                                          {nombreCompleto}
+                                        </span>
+                                      );
+                                    }
+                                    
+                                    // Si no se encuentra pero tiene nombre_docente
+                                    if (grupo?.nombre_docente) {
+                                      return (
+                                        <span className="inline-flex items-center gap-1">
+                                          <i className="pi pi-user text-teal-600"></i>
+                                          {grupo.nombre_docente}
+                                        </span>
+                                      );
+                                    }
+                                    
+                                    // Tiene ID pero no se encuentra info
+                                    return (
+                                      <span className="text-orange-600">
+                                        <i className="pi pi-info-circle mr-1"></i>
+                                        Docente: {grupo.id_docente.substring(0, 8)}...
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-gray-400 mt-1 italic">Sin docentes asignados</div>
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{grupo.fechaCreacion || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{grupo?.created_at ? new Date(grupo.created_at).toLocaleDateString() : 'N/A'}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{grupo?.updated_at ? new Date(grupo.updated_at).toLocaleDateString() : 'N/A'}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-center">
                               <div className="flex items-center justify-center gap-2">
@@ -420,7 +555,7 @@ export default function CreateGroup() {
                                   <i className="pi pi-pencil"></i>
                                 </button>
                                 <button
-                                  onClick={() => handleDelete(grupo.id)}
+                                  onClick={() => handleDelete(grupo?.codigo_grupo)}
                                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                   title="Eliminar"
                                 >
@@ -434,8 +569,8 @@ export default function CreateGroup() {
                     </tbody>
                   </table>
                 </div>
-              </div>
             </div>
+            )}
           </main>
         </div>
       </div>
@@ -449,20 +584,19 @@ export default function CreateGroup() {
             </div>
             
             <form onSubmit={handleSaveEdit} className="p-6 space-y-6">
-              {/* Código del Grupo */}
+              {/* Código del Grupo (No editable - ID de Firebase) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Código del Grupo <span className="text-red-500">*</span>
+                  Código del Grupo (ID único)
                 </label>
                 <input
-                  type="number"
-                  value={codigoGrupo}
-                  onChange={(e) => setCodigoGrupo(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                  placeholder="Ej: 101, 202, 303"
-                  required
-                  min="1"
+                  type="text"
+                  value={editingCodigoGrupo || ''}
+                  disabled
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                  placeholder="Generado automáticamente por Firebase"
                 />
+                <p className="mt-1 text-xs text-gray-500">Este código se genera automáticamente y no puede modificarse</p>
               </div>
 
               {/* Asignar Profesor */}
@@ -473,15 +607,37 @@ export default function CreateGroup() {
                 <select
                   value={idDocente}
                   onChange={(e) => setIdDocente(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                   required
                 >
                   <option value="">Seleccionar profesor</option>
-                  {profesores.map((profesor) => (
-                    <option key={profesor.id} value={profesor.id}>
-                      {profesor.nombre} - {profesor.departamento}
-                    </option>
-                  ))}
+                  {profesores.map((item, index) => {
+                    // Extraer datos del docente y usuario (estructura anidada del backend)
+                    const docente = item?.docente || item;
+                    const usuario = item?.usuario || {};
+
+                    const profesorId = docente?.id_docente || docente?.id || `temp_${index}`;
+                    const nombreCompleto = usuario?.nombre_completo || '';
+                    const correo = usuario?.correo || '';
+                    const nombre = nombreCompleto || correo?.split('@')[0] || `Profesor ${profesorId}`;
+                    
+                    const categoria = docente?.categoria_docente || '';
+                    const codigoPrograma = docente?.codigo_programa || '';
+                    
+                    let displayText = nombre;
+                    if (categoria) {
+                      displayText += ` - ${categoria}`;
+                    }
+                    if (codigoPrograma) {
+                      displayText += ` (${codigoPrograma})`;
+                    }
+                    
+                    return (
+                      <option key={`prof_edit_${index}_${profesorId}`} value={profesorId}>
+                        {displayText}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -496,7 +652,7 @@ export default function CreateGroup() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
                 >
                   💾 Guardar Cambios
                 </button>
