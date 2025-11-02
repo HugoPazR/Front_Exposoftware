@@ -79,6 +79,9 @@ export function useTeacherManagement() {
 
   // Estado para la lista de profesores
   const [profesores, setProfesores] = useState([]);
+  // Estado de carga y mensaje de error del servidor
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
@@ -88,23 +91,42 @@ export function useTeacherManagement() {
   // Estado para búsqueda/filtro
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Cargar profesores al montar el componente
+  // Cargar profesores al montar el componente (evitar usar función antes de definirla)
   useEffect(() => {
-    cargarProfesores();
+    (async () => {
+      setLoading(true);
+      setServerError("");
+      try {
+        console.log('🔄 Iniciando carga de profesores...');
+        const data = await obtenerDocentes();
+        console.log('✅ Profesores cargados exitosamente:', data);
+        setProfesores(data);
+      } catch (error) {
+        console.error('❌ Error al cargar profesores:', error);
+        setProfesores([]);
+        setServerError(error.message || 'Error al cargar profesores');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  // Función para cargar profesores desde el backend usando el servicio
+  // Función para (re)cargar profesores desde el backend — usada por submit/edición/eliminación
   const cargarProfesores = async () => {
+    setLoading(true);
+    setServerError("");
     try {
       console.log('🔄 Iniciando carga de profesores...');
       const data = await obtenerDocentes();
       console.log('✅ Profesores cargados exitosamente:', data);
       setProfesores(data);
+      setServerError("");
     } catch (error) {
       console.error('❌ Error al cargar profesores:', error);
-      // No mostrar alert para no bloquear la UI, solo loggear
-      // La tabla mostrará "No se encontraron profesores"
       setProfesores([]);
+      setServerError(error.message || 'Error al cargar profesores');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,8 +158,11 @@ export function useTeacherManagement() {
   };
 
   // Crear nuevo profesor usando el servicio
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, onSuccess = null) => {
     e.preventDefault();
+
+    setLoading(true);
+    setServerError("");
 
     try {
       // Combinar nombres y apellidos separados en campos únicos para el servicio
@@ -167,17 +192,25 @@ export function useTeacherManagement() {
 
       await crearDocente(datosDocente);
       await cargarProfesores();
-      alert("✅ Profesor creado exitosamente");
+      // éxito: limpiar formulario y resetear errores
       limpiarFormulario();
+      setServerError("");
+      // Llamar callback de éxito si se proporciona
+      if (onSuccess) {
+        onSuccess(`✅ Profesor ${nombresCompletos} creado correctamente`);
+      }
     } catch (error) {
-      alert(`❌ ${error.message}`);
+      console.error('❌ Error creando docente:', error);
+      setServerError(error.message || 'Error al crear docente');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
   // Iniciar edición
   const handleEdit = (profesor) => {
     console.log('🔍 Editando profesor:', profesor);
-    console.log('🔍 Claves del profesor:', Object.keys(profesor));
     
     setEditingId(profesor.id);
     
@@ -187,18 +220,27 @@ export function useTeacherManagement() {
     setTipoDocumento(datos.tipo_documento || "");
     setIdentificacion(datos.identificacion || "");
     
-    // Cargar campos separados del backend directamente en los estados separados
-    setPrimerNombre(datos.primer_nombre || "");
-    setSegundoNombre(datos.segundo_nombre || "");
-    setPrimerApellido(datos.primer_apellido || "");
-    setSegundoApellido(datos.segundo_apellido || "");
+    // El backend retorna 'nombres' y 'apellidos' combinados, no separados
+    // Separar nombres para mostrar en los campos primerNombre/segundoNombre
+    const nombresArray = (datos.nombres || "").split(" ");
+    const primerNom = nombresArray[0] || "";
+    const segundoNom = nombresArray.slice(1).join(" ") || "";
     
-    setGenero(datos.sexo || datos.genero || ""); // Backend usa 'sexo' pero mantenemos compatibilidad
+    const apellidosArray = (datos.apellidos || "").split(" ");
+    const primerApellido = apellidosArray[0] || "";
+    const segundoApellido = apellidosArray.slice(1).join(" ") || "";
+    
+    setPrimerNombre(primerNom);
+    setSegundoNombre(segundoNom);
+    setPrimerApellido(primerApellido);
+    setSegundoApellido(segundoApellido);
+    
+    setGenero(datos.sexo || datos.genero || ""); // Backend usa 'sexo'
     setIdentidadSexual(datos.identidad_sexual || "");
     setFechaNacimiento(datos.fecha_nacimiento || "");
-    setNacionalidad(datos.nacionalidad || "CO");
-    setPais(datos.pais_residencia || "CO");
-    setDepartamento(datos.departamento_residencia || datos.departamento || ""); // Backend usa 'departamento_residencia'
+    setNacionalidad(datos.nacionalidad === "Colombiana" ? "CO" : datos.nacionalidad || "CO");
+    setPais(datos.pais_residencia === "Colombia" ? "CO" : datos.pais_residencia || "CO");
+    setDepartamento(datos.departamento || ""); // Backend usa 'departamento' (no 'departamento_residencia')
     setMunicipio(datos.municipio || "");
     setCiudadResidencia(datos.ciudad_residencia || "");
     setDireccionResidencia(datos.direccion_residencia || "");
@@ -214,6 +256,9 @@ export function useTeacherManagement() {
   // Guardar edición usando el servicio
   const handleSaveEdit = async (e) => {
     e.preventDefault();
+
+    setLoading(true);
+    setServerError("");
 
     try {
       // Combinar nombres y apellidos separados en campos únicos para el servicio
@@ -243,10 +288,14 @@ export function useTeacherManagement() {
 
       await actualizarDocente(editingId, datosDocente);
       await cargarProfesores();
-      alert("✅ Profesor actualizado exitosamente");
+      setServerError("");
       handleCancelEdit();
     } catch (error) {
-      alert(`❌ ${error.message}`);
+      console.error('❌ Error actualizando docente:', error);
+      setServerError(error.message || 'Error al actualizar docente');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -262,16 +311,22 @@ export function useTeacherManagement() {
   const handleDelete = async (id) => {
     const profesorAEliminar = profesores.find(p => p.id === id);
     
-    // Combinar nombres desde campos separados del backend
-    const nombreCompleto = `${profesorAEliminar?.usuario.primer_nombre || ""} ${profesorAEliminar?.usuario.segundo_nombre || ""} ${profesorAEliminar?.usuario.primer_apellido || ""} ${profesorAEliminar?.usuario.segundo_apellido || ""}`.trim();
+    // El backend retorna 'nombres' combinado, no separado
+    const nombreCompleto = profesorAEliminar?.usuario?.nombres || profesorAEliminar?.nombres || "profesor";
 
     if (window.confirm(`¿Está seguro de que desea eliminar al profesor "${nombreCompleto}"?`)) {
       try {
+        setLoading(true);
+        setServerError("");
         await eliminarDocente(id);
         await cargarProfesores();
-        alert("✅ Profesor eliminado exitosamente");
+        setServerError("");
       } catch (error) {
-        alert(`❌ ${error.message}`);
+        console.error('❌ Error eliminando docente:', error);
+        setServerError(error.message || 'Error al eliminar docente');
+      }
+      finally {
+        setLoading(false);
       }
     }
   };
@@ -355,5 +410,8 @@ export function useTeacherManagement() {
     handleCancelEdit,
     handleDelete,
     handleCancel,
+    // UI states
+    loading,
+    serverError,
   };
 }

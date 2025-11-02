@@ -9,6 +9,11 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
   const isAuthenticated = AuthService.isAuthenticated();
   const userRole = AuthService.getUserRole();
 
+  console.log('🔐 ProtectedRoute - Verificando acceso:');
+  console.log('   - Autenticado:', isAuthenticated);
+  console.log('   - Rol actual:', userRole);
+  console.log('   - Rol requerido:', requiredRole);
+
   // Si no está autenticado, redirigir al login
   if (!isAuthenticated) {
     console.log('❌ Usuario no autenticado - Redirigiendo a login');
@@ -27,11 +32,16 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
         return <Navigate to="/teacher/dashboard" replace />;
       case 'estudiante':
         return <Navigate to="/student/dashboard" replace />;
+      case 'egresado':
+        return <Navigate to="/graduate/dashboard" replace />;
+      case 'invitado':
+        return <Navigate to="/guest/dashboard" replace />;
       default:
         return <Navigate to="/login" replace />;
     }
   }
 
+  console.log('✅ Acceso permitido');
   // Usuario autenticado y con el rol correcto
   return children;
 };
@@ -55,4 +65,18 @@ export const DocenteRoute = ({ children }) => {
  */
 export const EstudianteRoute = ({ children }) => {
   return <ProtectedRoute requiredRole="estudiante">{children}</ProtectedRoute>;
+};
+
+/**
+ * Componente para proteger rutas de egresado
+ */
+export const EgresadoRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole="egresado">{children}</ProtectedRoute>;
+};
+
+/**
+ * Componente para proteger rutas de invitado
+ */
+export const InvitadoRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole="invitado">{children}</ProtectedRoute>;
 };

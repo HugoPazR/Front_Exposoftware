@@ -2,29 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import * as AuthService from "../../Services/AuthService";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
-  // Carrusel de fondo
-  const images = [
-    "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg",
-    "https://www.unicesar.edu.co/wp-content/uploads/2025/06/66_11zon.webp",
-    "https://www.unicesar.edu.co/wp-content/uploads/2025/06/Registro-4._11zon-980x653.webp",
-  ];
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(
-      () =>
-        setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1)),
-      5000
-    );
-    return () => clearInterval(interval);
-  }, []);
-
-  // Estados del login
+  const { login: loginContext } = useAuth();
+  
+  // Estados del formulario
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [recordarme, setRecordarme] = useState(false);
@@ -34,73 +18,147 @@ export default function LoginPage() {
 
   // Si ya está autenticado
   useEffect(() => {
-    if (AuthService.isAuthenticated()) {
-      const role = AuthService.getUserRole();
-      redirigirSegunRol(role);
+    const token = AuthService.getToken();
+    if (token) {
+      const userData = AuthService.getUserData();
+      if (userData && userData.rol) {
+        // Redirigir según el rol
+        switch(userData.rol.toLowerCase()) {
+          case 'estudiante':
+            navigate('/student/dashboard');
+            break;
+          case 'docente':
+          case 'profesor':
+            navigate('/teacher/dashboard');
+            break;
+          case 'administrador':
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'egresado':
+            navigate('/graduate/dashboard');
+            break;
+          case 'invitado':
+            navigate('/guest/dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      }
+    }
+  }, [navigate]);
+
+  // Cargar correo guardado
+  useEffect(() => {
+    const correoGuardado = localStorage.getItem("correoRecordado");
+    if (correoGuardado) {
+      setCorreo(correoGuardado);
+      setRecordarme(true);
     }
   }, []);
 
-  const redirigirSegunRol = (role) => {
-    switch (role) {
-      case "admin":
-        navigate("/admin/dash");
-        break;
-      case "docente":
-        navigate("/teacher/dashboard");
-        break;
-      case "estudiante":
-        navigate("/student/dashboard");
-        break;
-      default:
-        navigate("/");
-    }
-  };
-
+  // Manejar submit del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
-    if (!correo || !password) {
-      setError("Por favor complete todos los campos");
+    
+    // Validaciones básicas
+    if (!correo.trim()) {
+      setError("El correo electrónico es obligatorio");
       return;
     }
-
-    if (!AuthService.validarCorreo(correo)) {
-      setError("Por favor ingrese un correo válido");
+    
+    if (!password.trim()) {
+      setError("La contraseña es obligatoria");
       return;
     }
 
     setLoading(true);
+    setError("");
+
     try {
-      const resultado = await AuthService.login({ correo, password });
-      if (resultado.success) {
-        const role = AuthService.getUserRole();
-        redirigirSegunRol(role);
+      console.log("📤 Intentando iniciar sesión con:", correo);
+      
+      // ✅ Usar el contexto de autenticación para hacer login
+      const resultado = await loginContext({
+        correo: correo,
+        password: password
+      });
+      
+      console.log("✅ Login exitoso:", resultado);
+
+      if (!resultado.success) {
+        throw new Error(resultado.error || "Error al iniciar sesión");
       }
+
+      // Guardar correo si "Recordarme" está activado
+      if (recordarme) {
+        localStorage.setItem("correoRecordado", correo);
+      } else {
+        localStorage.removeItem("correoRecordado");
+      }
+
+      // Obtener rol del usuario
+      const userRole = AuthService.getUserRole();
+      
+      console.log(" userRole obtenido:", userRole);
+      
+      if (!userRole) {
+        throw new Error("No se pudo obtener el rol del usuario");
+      }
+
+      // ⏱️ Pequeño delay para asegurar que el estado se propagó
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Redirigir según el rol
+      const rol = userRole.toLowerCase();
+      console.log("🔀 Redirigiendo usuario con rol:", rol);
+
+      switch(rol) {
+        case 'estudiante':
+          navigate('/student/dashboard');
+          break;
+        case 'docente':
+        case 'profesor':
+          navigate('/teacher/dashboard');
+          break;
+        case 'administrador':
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'egresado':
+          navigate('/graduate/dashboard');
+          break;
+        case 'invitado':
+          navigate('/guest/dashboard');
+          break;
+        default:
+          console.warn("⚠️ Rol no reconocido:", rol);
+          navigate('/');
+      }
+
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión");
+      console.error("❌ Error en login:", err);
+      
+      // Manejar diferentes tipos de errores
+      if (err.message.includes('502') || err.message.includes('503')) {
+        setError("⚠️ El servidor no está disponible temporalmente. Por favor, intenta más tarde.");
+      } else if (err.message.includes('conexión') || err.message.includes('network')) {
+        setError("🌐 Error de conexión. Verifica tu conexión a internet.");
+      } else if (err.message.includes('401') || err.message.includes('credenciales')) {
+        setError("❌ Correo o contraseña incorrectos. Por favor, verifica tus datos.");
+      } else {
+        setError(err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center relative overflow-hidden bg-green-50">
-      {/* Fondo animado */}
-      {images.map((img, i) => (
-        <div
-          key={i}
-          className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out ${
-            i === currentImageIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
-          }`}
-          style={{ backgroundImage: `url(${img})` }}
-        ></div>
-      ))}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-green-50/85"></div>
+    <main className="min-h-screen flex items-center justify-center bg-green-50">
+      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
 
-      {/* Contenedor */}
-      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden relative z-10">
-        {/* Panel Izquierdo */}
+  
         <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center">
           <header className="mb-6">
             <div className="flex items-center gap-2 mb-3">
@@ -140,8 +198,33 @@ export default function LoginPage() {
 
         {/* Panel Derecho */}
         <section className="w-1/2 p-10 flex flex-col justify-center">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-1">Iniciar Sesión</h2>
-          <p className="text-gray-500 mb-4">Bienvenido a Exposoftware</p>
+          <header className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
+            <p className="text-gray-500">Bienvenido de nuevo a Exposoftware</p>
+            
+            {/* Mostrar error si existe */}
+            {error && (
+              <div className={`mt-4 border px-4 py-3 rounded-lg text-sm ${
+                error.includes('servidor') || error.includes('502') || error.includes('503')
+                  ? 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                  : 'bg-red-50 border-red-200 text-red-700'
+              }`}>
+                <div className="flex items-start gap-2">
+                  {error.includes('servidor') || error.includes('502') || error.includes('503') ? (
+                    <span className="text-xl">⚠️</span>
+                  ) : error.includes('conexión') ? (
+                    <span className="text-xl">🌐</span>
+                  ) : (
+                    <span className="text-xl">❌</span>
+                  )}
+                  <div>
+                    <p className="font-semibold">{error.includes('servidor') ? 'Servidor no disponible' : 'Error'}</p>
+                    <p>{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </header>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">

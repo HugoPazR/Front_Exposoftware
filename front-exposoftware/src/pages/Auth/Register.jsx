@@ -20,6 +20,7 @@ import MessageAlerts from "./Register/MessageAlerts";
 import PersonalInfoSection from "./Register/PersonalInfoSection";
 import IdentificationSection from "./Register/IdentificationSection";
 import CredentialsSection from "./Register/CredentialsSection";
+import * as AcademicService from "../../Services/AcademicService";
 
 function RegisterPage() {
   const [errors, setErrors] = useState({});
@@ -32,6 +33,12 @@ function RegisterPage() {
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
   const [rol, setrol] = useState("");
+  
+  // Estados para datos académicos
+  const [facultades, setFacultades] = useState([]);
+  const [programas, setProgramas] = useState([]);
+  const [cargandoFacultades, setCargandoFacultades] = useState(false);
+  const [cargandoProgramas, setCargandoProgramas] = useState(false);
   
   const [formData, setFormData] = useState({
     primerNombre: "",
@@ -61,6 +68,7 @@ function RegisterPage() {
     nombreEmpresa: "",
     periodo: "",
     titulado: "",
+    tituloObtenido: "",
     contraseña: "",
     confirmarcontraseña: "",
   });
@@ -77,6 +85,7 @@ function RegisterPage() {
       nombreEmpresa: "",
       periodo: "",
       titulado: "",
+      tituloObtenido: "",
       fechaIngreso: "",
       fechaFinalizacion: "",
       intitucionOrigen: "",
@@ -84,7 +93,7 @@ function RegisterPage() {
     
     const camposRol = [
       "correo", "programa", "facultad", "semestre", 
-      "sector", "nombreEmpresa", "periodo", "titulado",
+      "sector", "nombreEmpresa", "periodo", "titulado", "tituloObtenido",
       "fechaIngreso", "fechaFinalizacion", "intitucionOrigen"
     ];
     
@@ -112,6 +121,55 @@ function RegisterPage() {
       setciudades([]);
     }
   }, [formData.nacionalidad]);
+
+  // Cargar facultades al montar el componente
+  useEffect(() => {
+    const cargarFacultades = async () => {
+      setCargandoFacultades(true);
+      try {
+        const facultadesData = await AcademicService.obtenerFacultades();
+        setFacultades(facultadesData);
+        console.log('✅ Facultades cargadas:', facultadesData);
+      } catch (error) {
+        console.error('❌ Error al cargar facultades:', error);
+        setMensajeError('No se pudieron cargar las facultades. Intenta recargar la página.');
+      } finally {
+        setCargandoFacultades(false);
+      }
+    };
+
+    cargarFacultades();
+  }, []);
+
+  // Cargar programas cuando se selecciona una facultad
+  useEffect(() => {
+    const cargarProgramas = async () => {
+      if (!formData.facultad) {
+        setProgramas([]);
+        return;
+      }
+
+      setCargandoProgramas(true);
+      try {
+        const programasData = await AcademicService.obtenerProgramasPorFacultad(formData.facultad);
+        setProgramas(programasData);
+        console.log('✅ Programas cargados para facultad', formData.facultad, ':', programasData);
+        
+        // Limpiar programa seleccionado si ya no está disponible
+        if (formData.programa && !programasData.find(p => p.codigo === formData.programa)) {
+          setFormData(prev => ({ ...prev, programa: "" }));
+        }
+      } catch (error) {
+        console.error('❌ Error al cargar programas:', error);
+        setProgramas([]);
+        setMensajeError('No se pudieron cargar los programas. Intenta seleccionar otra facultad.');
+      } finally {
+        setCargandoProgramas(false);
+      }
+    };
+
+    cargarProgramas();
+  }, [formData.facultad]);
 
   // Handlers
   const handleChange = (e) => {
@@ -194,6 +252,10 @@ function RegisterPage() {
             cargando={cargando} 
             successFields={successFields} 
             getInputClassName={getInputClassName}
+            facultades={facultades}
+            programas={programas}
+            cargandoFacultades={cargandoFacultades}
+            cargandoProgramas={cargandoProgramas}
           />
 
           <CredentialsSection

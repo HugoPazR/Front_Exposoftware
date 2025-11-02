@@ -69,17 +69,48 @@ export const obtenerProfesores = async () => {
     
     if (response.ok) {
       const result = await response.json();
-      console.log('� Respuesta completa profesores:', result);
+      console.log('📦 Respuesta completa profesores:', result);
       
       // El backend puede retornar { data: [...] } o directamente [...]
       const profesores = result.data || result;
       console.log('✅ Profesores cargados:', profesores.length);
       
       if (profesores.length > 0) {
-        console.log('🔍 Estructura del primer profesor:', profesores[0]);
+        console.log('🔍 ESTRUCTURA COMPLETA DEL PRIMER PROFESOR:', profesores[0]);
+        console.log('🔍 TODAS LAS CLAVES:', Object.keys(profesores[0]));
+        console.log('🔍 ¿Tiene campo "id_docente"?', 'id_docente' in profesores[0], profesores[0].id_docente);
+        console.log('🔍 ¿Tiene campo "id_usuario"?', 'id_usuario' in profesores[0], profesores[0].id_usuario);
+        console.log('🔍 JSON COMPLETO:', JSON.stringify(profesores[0], null, 2));
       }
       
-      return Array.isArray(profesores) ? profesores : [];
+      // Cargar información de usuario para cada profesor
+      const profesoresConUsuario = await Promise.all(
+        profesores.map(async (profesor) => {
+          try {
+            if (profesor.id_usuario) {
+              // Intentar obtener información del usuario
+              const userResponse = await fetch(`${API_ENDPOINTS.USUARIOS}/${profesor.id_usuario}`, {
+                method: 'GET',
+                headers: headers
+              });
+              
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                const usuario = userData.data || userData;
+                console.log('✅ Usuario cargado para profesor:', profesor.id_docente, usuario);
+                return { ...profesor, usuario };
+              }
+            }
+            return profesor;
+          } catch (error) {
+            console.warn('⚠️ No se pudo cargar usuario para profesor:', profesor.id_docente, error);
+            return profesor;
+          }
+        })
+      );
+      
+      console.log('✅ Profesores con información de usuario:', profesoresConUsuario);
+      return Array.isArray(profesoresConUsuario) ? profesoresConUsuario : [];
     } else {
       const errorText = await response.text();
       console.error('❌ Error al cargar profesores:', response.status, response.statusText, errorText);
@@ -104,8 +135,9 @@ export const crearGrupo = async (codigoGrupo, idDocente) => {
   }
 
   // Estructura exacta que espera el backend
+  // IMPORTANTE: codigo_grupo debe ser STRING con solo números
   const payload = {
-    codigo_grupo: parseInt(codigoGrupo),
+    codigo_grupo: String(codigoGrupo),  // Convertir a string
     id_docente: idDocente
   };
 
@@ -148,13 +180,22 @@ export const crearGrupo = async (codigoGrupo, idDocente) => {
     } else if (response.status === 422) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Error de validación:', errorData);
+      console.error('❌ Error detail completo:', JSON.stringify(errorData, null, 2));
       
       // Manejar errores de validación de FastAPI
       if (errorData.detail && Array.isArray(errorData.detail)) {
-        const errorMessages = errorData.detail.map(err => 
-          `• ${err.loc ? err.loc.join('.') : 'Campo'}: ${err.msg || err.message || 'Error de validación'}`
-        ).join('\n');
+        console.error('❌ Errores de validación (Array):', errorData.detail);
+        const errorMessages = errorData.detail.map((err, index) => {
+          console.error(`   Error ${index + 1}:`, err);
+          return `• ${err.loc ? err.loc.join('.') : 'Campo'}: ${err.msg || err.message || 'Error de validación'}`;
+        }).join('\n');
         throw new Error('Errores de validación:\n' + errorMessages);
+      }
+      
+      // Si detail es un string
+      if (typeof errorData.detail === 'string') {
+        console.error('❌ Error detail (string):', errorData.detail);
+        throw new Error(`Error de validación: ${errorData.detail}`);
       }
       
       throw new Error(`Error de validación: ${errorData.message || errorData.detail || 'Los datos no son válidos'}`);

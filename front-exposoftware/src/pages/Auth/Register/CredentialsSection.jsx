@@ -1,6 +1,7 @@
 import { AlertCircle } from "lucide-react";
 import vista from "../../../assets/icons/vista.png";
-import esconder from "../../../assets/icons/esconder.png";
+//import esconder from "../../../assets/icons/esconder.png";
+import esconder from "../../../assets/icons/vista.png";
 
 const CredentialsSection = ({
   formData,

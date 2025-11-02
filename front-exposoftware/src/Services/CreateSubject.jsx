@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from "../utils/constants";
+import { API_ENDPOINTS, API_BASE_URL } from "../utils/constants";
 import * as AuthService from "./AuthService";
 
 
@@ -15,7 +15,7 @@ const procesarRespuesta = async (response) => {
   if (contentType && contentType.includes("application/json")) {
     try {
       responseData = await response.json();
-      console.log('📦 Datos de respuesta:', responseData);
+      console.log('📦 Datos de respuesta completos:', JSON.stringify(responseData, null, 2));
     } catch (error) {
       console.error('❌ Error al parsear JSON:', error);
     }
@@ -43,6 +43,9 @@ const procesarRespuesta = async (response) => {
   // Si hay errores, extraer el mensaje apropiado
   let errorMessage = responseData.message || responseData.detail || 'Error desconocido';
   
+  console.log('🔍 Analizando error - Status:', response.status);
+  console.log('🔍 responseData completo:', responseData);
+  
   // Si hay un array de errores detallados, procesarlos
   if (responseData.errors && Array.isArray(responseData.errors)) {
     const errorMessages = responseData.errors.map(err => 
@@ -52,11 +55,15 @@ const procesarRespuesta = async (response) => {
   }
   
   // Manejar errores de validación de FastAPI/Pydantic
-  if (responseData.detail && Array.isArray(responseData.detail)) {
-    const errorMessages = responseData.detail.map(err => 
-      `• ${err.loc ? err.loc.join('.') : 'Campo'}: ${err.msg || err.message || 'Error de validación'}`
-    ).join('\n');
-    errorMessage = 'Errores de validación:\n' + errorMessages;
+  if (responseData.detail) {
+    if (Array.isArray(responseData.detail)) {
+      const errorMessages = responseData.detail.map(err => 
+        `• ${err.loc ? err.loc.join('.') : 'Campo'}: ${err.msg || err.message || 'Error de validación'}`
+      ).join('\n');
+      errorMessage = 'Errores de validación:\n' + errorMessages;
+    } else if (typeof responseData.detail === 'string') {
+      errorMessage = responseData.detail;
+    }
   }
 
   console.error('❌ Error del servidor:', errorMessage);
@@ -119,20 +126,20 @@ export const obtenerGrupos = async () => {
 
 
 /**
- * Obtener todos los docentes desde el backend
- * @returns {Promise<Array>} Lista de docentes
+ * Obtener todos los profesores desde el backend
+ * @returns {Promise<Array>} Lista de profesores con estructura anidada {docente, usuario}
  */
 export const obtenerDocentes = async () => {
   try {
-    const response = await fetch(API_ENDPOINTS.DOCENTES, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/admin/profesores`, {
       method: 'GET',
       headers: AuthService.getAuthHeaders()
     });
     const resultado = await procesarRespuesta(response);
-    console.log('📥 Docentes cargados desde backend:', resultado.data?.length || 0);
-    return resultado.data || [];
+    console.log('📥 Profesores cargados desde backend:', resultado.data?.length || 0);
+    return resultado.data;
   } catch (error) {
-    console.error('❌ Error al cargar docentes:', error.message);
+    console.error('❌ Error al cargar profesores:', error.message);
     throw error;
   }
 };
@@ -147,10 +154,40 @@ export const obtenerDocentes = async () => {
  * @returns {Promise<Object>} Materia creada
  */
 export const crearMateria = async (materiaData) => {
+  // Validaciones previas
+  console.log('🔍 VALIDACIONES PREVIAS:');
+  console.log('   - codigo_materia:', materiaData.codigo_materia, '(length:', materiaData.codigo_materia?.length, ')');
+  console.log('   - nombre_materia:', materiaData.nombre_materia, '(length:', materiaData.nombre_materia?.length, ')');
+  console.log('   - ciclo_semestral:', materiaData.ciclo_semestral);
+  
+  // Validar longitud del código
+  if (materiaData.codigo_materia.length > 8) {
+    throw new Error('El código de materia no puede exceder 8 caracteres');
+  }
+  
+  // Validar patrón del código (solo mayúsculas, números y guiones bajos)
+  const codigoPattern = /^[A-Z0-9_]+$/;
+  const codigoUpper = materiaData.codigo_materia.toUpperCase();
+  if (!codigoPattern.test(codigoUpper)) {
+    throw new Error('El código solo puede contener letras mayúsculas, números y guiones bajos');
+  }
+  
+  // Validar nombre
+  if (materiaData.nombre_materia.length < 3 || materiaData.nombre_materia.length > 100) {
+    throw new Error('El nombre debe tener entre 3 y 100 caracteres');
+  }
+  
+  // Validar ciclo
+  const ciclosValidos = ["Ciclo Básico", "Ciclo Profesional", "Ciclo de Profundización"];
+  if (!ciclosValidos.includes(materiaData.ciclo_semestral)) {
+    throw new Error(`Ciclo inválido. Debe ser uno de: ${ciclosValidos.join(', ')}`);
+  }
+  
+  // El orden DEBE ser exactamente como aparece en el ejemplo de la documentación
   const payload = {
-    codigo_materia: materiaData.codigo_materia.toUpperCase(),
-    nombre_materia: materiaData.nombre_materia,
-    ciclo_semestral: materiaData.ciclo_semestral
+    ciclo_semestral: materiaData.ciclo_semestral,
+    codigo_materia: codigoUpper,
+    nombre_materia: materiaData.nombre_materia.trim()
   };
 
   console.log('📤 Creando materia en backend:', JSON.stringify(payload, null, 2));
@@ -158,6 +195,19 @@ export const crearMateria = async (materiaData) => {
   
   const headers = AuthService.getAuthHeaders();
   console.log('🔑 Headers:', headers);
+  
+  // Verificar token
+  const token = localStorage.getItem('auth_token');
+  const expiresAt = localStorage.getItem('token_expires_at');
+  console.log('🔐 Token exists:', !!token);
+  console.log('🕐 Token expires at:', expiresAt);
+  if (expiresAt) {
+    const isExpired = new Date(expiresAt) < new Date();
+    console.log('⏰ Token expired:', isExpired);
+    if (isExpired) {
+      throw new Error('Su sesión ha expirado. Por favor, inicie sesión nuevamente.');
+    }
+  }
 
   try {
     const response = await fetch(API_ENDPOINTS.MATERIAS, {
@@ -167,6 +217,32 @@ export const crearMateria = async (materiaData) => {
     });
 
     console.log('📡 Respuesta del servidor - Status:', response.status, response.statusText);
+    
+    // Si es error 500, dar más información al usuario
+    if (response.status === 500) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ ERROR 500 - DETALLE:', errorData);
+      console.error('❌ Payload enviado:', payload);
+      console.error('❌ Headers enviados:', headers);
+      
+      throw new Error(
+        '⚠️ ERROR INTERNO DEL SERVIDOR (500)\n\n' +
+        'El backend tiene un problema al crear la materia.\n\n' +
+        '📋 DATOS ENVIADOS (CORRECTOS):\n' +
+        `• Código: ${payload.codigo_materia}\n` +
+        `• Nombre: ${payload.nombre_materia}\n` +
+        `• Ciclo: ${payload.ciclo_semestral}\n\n` +
+        '🔧 POSIBLES CAUSAS DEL ERROR:\n' +
+        '1. Código de materia duplicado en la base de datos\n' +
+        '2. Error de conexión con la base de datos\n' +
+        '3. Permisos insuficientes del usuario\n' +
+        '4. Bug en el código del backend\n\n' +
+        '💡 RECOMENDACIÓN:\n' +
+        'Contacte al equipo de backend con este timestamp:\n' +
+        `${errorData.timestamp || new Date().toISOString()}\n\n` +
+        'Los datos del frontend están correctos.'
+      );
+    }
     
     const resultado = await procesarRespuesta(response);
     console.log('✅ Materia creada exitosamente:', resultado);
@@ -269,6 +345,68 @@ export const eliminarMateria = async (id) => {
     return resultado;
   } catch (error) {
     console.error('❌ Error al eliminar materia:', error.message);
+    throw error;
+  }
+};
+
+
+/**
+ * Agregar un grupo a una materia
+ * Usa el endpoint: POST /api/v1/admin/materias/{subject_code}/grupos/{group_code}
+ * @param {string} codigoMateria - Código de la materia
+ * @param {string} codigoGrupo - Código del grupo
+ * @returns {Promise<Object>} Resultado de la operación
+ */
+export const agregarGrupoAMateria = async (codigoMateria, codigoGrupo) => {
+  // Obtener la URL base de las constantes
+  const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
+  const url = `${API_BASE_URL}/api/v1/admin/materias/${codigoMateria}/grupos/${codigoGrupo}`;
+  
+  console.log(`📤 Agregando grupo ${codigoGrupo} a materia ${codigoMateria}`);
+  console.log(`🔗 URL: ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: AuthService.getAuthHeaders()
+    });
+
+    const resultado = await procesarRespuesta(response);
+    console.log(`✅ Grupo ${codigoGrupo} agregado exitosamente a materia ${codigoMateria}`);
+    return resultado;
+  } catch (error) {
+    console.error(`❌ Error al agregar grupo ${codigoGrupo} a materia ${codigoMateria}:`, error.message);
+    throw error;
+  }
+};
+
+
+/**
+ * Eliminar un grupo de una materia
+ * Usa el endpoint: DELETE /api/v1/admin/materias/{subject_code}/grupos/{group_code}
+ * @param {string} codigoMateria - Código de la materia
+ * @param {string} codigoGrupo - Código del grupo
+ * @returns {Promise<Object>} Resultado de la operación
+ */
+export const eliminarGrupoDeMateria = async (codigoMateria, codigoGrupo) => {
+  // Obtener la URL base de las constantes
+  const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
+  const url = `${API_BASE_URL}/api/v1/admin/materias/${codigoMateria}/grupos/${codigoGrupo}`;
+  
+  console.log(`🗑️ Eliminando grupo ${codigoGrupo} de materia ${codigoMateria}`);
+  console.log(`🔗 URL: ${url}`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: AuthService.getAuthHeaders()
+    });
+
+    const resultado = await procesarRespuesta(response);
+    console.log(`✅ Grupo ${codigoGrupo} eliminado exitosamente de materia ${codigoMateria}`);
+    return resultado;
+  } catch (error) {
+    console.error(`❌ Error al eliminar grupo ${codigoGrupo} de materia ${codigoMateria}:`, error.message);
     throw error;
   }
 };

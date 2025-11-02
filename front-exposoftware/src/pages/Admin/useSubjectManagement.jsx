@@ -34,11 +34,34 @@ export const useSubjectManagement = () => {
  
 
   /**
-   * Obtener nombre del docente por ID
+   * Obtener nombre del docente por ID (maneja estructura anidada {docente, usuario})
    */
   const getDocenteNombre = (docenteId) => {
-    const docente = profesores.find(d => d.id === parseInt(docenteId));
-    return docente ? docente.nombre : "Sin asignar";
+    if (!docenteId) return "Sin asignar";
+    
+    console.log('🔍 Buscando docente con ID:', docenteId);
+    console.log('🔍 Total profesores disponibles:', profesores.length);
+    
+    // Buscar en el array de profesores (estructura anidada del backend)
+    const profesorInfo = profesores.find(item => {
+      const docente = item?.docente || item;
+      const idDocente = docente?.id_docente || docente?.id;
+      return idDocente === docenteId;
+    });
+    
+    if (profesorInfo) {
+      // Extraer nombre del usuario anidado
+      const usuario = profesorInfo?.usuario || {};
+      const nombreCompleto = usuario?.nombre_completo || '';
+      const correo = usuario?.correo || '';
+      const nombre = nombreCompleto || correo?.split('@')[0] || 'Docente asignado';
+      
+      console.log('✅ Docente encontrado:', nombre);
+      return nombre;
+    }
+    
+    console.log('⚠️ Docente no encontrado, mostrando ID parcial');
+    return `Docente ${docenteId.substring(0, 8)}...`;
   };
 
   /**
@@ -52,12 +75,26 @@ export const useSubjectManagement = () => {
    * Agregar grupo seleccionado
    */
   const agregarGrupoSeleccionado = (codigoGrupo) => {
-    const grupo = gruposDisponibles.find(g => g.codigo_grupo === parseInt(codigoGrupo));
-    if (grupo && !gruposSeleccionados.find(g => g.codigo_grupo === grupo.codigo_grupo)) {
+    if (!codigoGrupo) return;
+    
+    console.log('🔍 Buscando grupo con código:', codigoGrupo, 'tipo:', typeof codigoGrupo);
+    console.log('🔍 Grupos disponibles:', gruposDisponibles.map(g => ({ codigo: g.codigo_grupo, tipo: typeof g.codigo_grupo })));
+    
+    // Comparar como strings ya que el backend devuelve strings
+    const grupo = gruposDisponibles.find(g => String(g.codigo_grupo) === String(codigoGrupo));
+    
+    console.log('🔍 Grupo encontrado:', grupo);
+    
+    if (grupo && !gruposSeleccionados.find(g => String(g.codigo_grupo) === String(grupo.codigo_grupo))) {
+      console.log('✅ Agregando grupo:', grupo.codigo_grupo);
       setGruposSeleccionados([...gruposSeleccionados, { 
         codigo_grupo: grupo.codigo_grupo, 
         id_docente: grupo.id_docente 
       }]);
+    } else if (!grupo) {
+      console.warn('⚠️ No se encontró el grupo con código:', codigoGrupo);
+    } else {
+      console.warn('⚠️ El grupo ya está seleccionado');
     }
   };
 
@@ -65,7 +102,8 @@ export const useSubjectManagement = () => {
    * Eliminar grupo seleccionado
    */
   const eliminarGrupoSeleccionado = (codigoGrupo) => {
-    setGruposSeleccionados(gruposSeleccionados.filter(g => g.codigo_grupo !== codigoGrupo));
+    console.log('🗑️ Eliminando grupo:', codigoGrupo);
+    setGruposSeleccionados(gruposSeleccionados.filter(g => String(g.codigo_grupo) !== String(codigoGrupo)));
   };
 
   const limpiarFormulario = () => {
@@ -111,7 +149,24 @@ export const useSubjectManagement = () => {
    */
   const cargarProfesores = async () => {
     try {
+      console.log('🔄 Iniciando carga de profesores...');
       const data = await SubjectService.obtenerDocentes();
+      
+      // 🔍 DEBUG: Ver estructura de profesores cargados
+      if (data && data.length > 0) {
+        console.log('✅ Profesores cargados:', data.length);
+        console.log('🔍 Estructura del primer profesor:', data[0]);
+        console.log('🔍 Claves disponibles:', Object.keys(data[0]));
+        
+        // Verificar estructura anidada
+        if (data[0].docente) {
+          console.log('🔍 Docente anidado - ID:', data[0].docente.id_docente);
+        }
+        if (data[0].usuario) {
+          console.log('🔍 Usuario anidado - Nombre:', data[0].usuario.nombre_completo);
+        }
+      }
+      
       setProfesores(data);
     } catch (error) {
       console.log('⚠️ Error al cargar profesores del backend');
@@ -165,16 +220,31 @@ export const useSubjectManagement = () => {
    * Iniciar edición de materia (para asignar grupos)
    */
   const handleEdit = (materia) => {
-    setEditingId(materia.id);
+    console.log('🔄 Editando materia:', materia);
+    console.log('🔍 Código de materia:', materia.codigo_materia);
+    
+    // El ID de la materia ES su codigo_materia (no tiene campo "id")
+    setEditingId(materia.codigo_materia);
     setCodigoMateria(materia.codigo_materia);
     setNombreMateria(materia.nombre_materia);
     setCicloSemestral(materia.ciclo_semestral);
-    setGruposSeleccionados(materia.grupos_con_docentes && materia.grupos_con_docentes.length > 0 
-      ? [...materia.grupos_con_docentes] 
-      : []
-    );
+    
+    // Cargar grupos asignados - convertir de códigos a objetos completos
+    const gruposAsignados = materia.grupos_asignados || [];
+    console.log('📋 Códigos de grupos asignados:', gruposAsignados);
+    
+    // Buscar los objetos completos de grupo en gruposDisponibles
+    const gruposCompletos = gruposAsignados
+      .map(codigoGrupo => gruposDisponibles.find(g => String(g.codigo_grupo) === String(codigoGrupo)))
+      .filter(Boolean); // Eliminar undefined
+    
+    console.log('📋 Grupos completos encontrados:', gruposCompletos);
+    setGruposSeleccionados(gruposCompletos);
+    
     setIsEditing(true);
     setShowEditModal(true);
+    
+    console.log('✅ Estado de edición configurado para materia:', materia.codigo_materia);
   };
 
   /**
@@ -182,6 +252,10 @@ export const useSubjectManagement = () => {
    */
   const handleSaveEdit = async (e) => {
     e.preventDefault();
+    
+    console.log('💾 Guardando cambios de materia...');
+    console.log('📋 ID de materia (codigo_materia):', editingId);
+    console.log('📋 Grupos seleccionados:', gruposSeleccionados);
     
     // Validar campos usando el servicio
     const validacion = SubjectService.validarDatosMateria({
@@ -196,19 +270,67 @@ export const useSubjectManagement = () => {
     }
 
     try {
-      const resultado = await SubjectService.actualizarMateria(editingId, {
+      // 1. Actualizar información básica de la materia (sin grupos)
+      console.log('1️⃣ Actualizando información básica de la materia...');
+      await SubjectService.actualizarMateria(editingId, {
         codigo_materia: codigoMateria,
         nombre_materia: nombreMateria,
-        ciclo_semestral: cicloSemestral,
-        grupos_con_docentes: gruposSeleccionados
+        ciclo_semestral: cicloSemestral
       });
 
-      if (resultado.success) {
-        await cargarMaterias();
-        alert("✅ " + resultado.message);
-        handleCancelEdit();
+      // 2. Obtener la materia actual para comparar grupos
+      const materiaActual = materias.find(m => m.codigo_materia === editingId);
+      const gruposActuales = materiaActual?.grupos_asignados || [];
+      
+      console.log('2️⃣ Grupos actuales en backend:', gruposActuales);
+      console.log('2️⃣ Grupos nuevos seleccionados:', gruposSeleccionados.map(g => g.codigo_grupo));
+
+      // 3. Identificar grupos a agregar y grupos a eliminar
+      const gruposAAgregar = gruposSeleccionados.filter(
+        g => !gruposActuales.includes(String(g.codigo_grupo))
+      );
+      
+      const gruposAEliminar = gruposActuales.filter(
+        codigoGrupo => !gruposSeleccionados.find(g => String(g.codigo_grupo) === String(codigoGrupo))
+      );
+
+      console.log('3️⃣ Grupos a agregar:', gruposAAgregar.map(g => g.codigo_grupo));
+      console.log('3️⃣ Grupos a eliminar:', gruposAEliminar);
+
+      // 4. Agregar nuevos grupos
+      if (gruposAAgregar.length > 0) {
+        console.log('4️⃣ Agregando nuevos grupos...');
+        for (const grupo of gruposAAgregar) {
+          try {
+            await SubjectService.agregarGrupoAMateria(editingId, grupo.codigo_grupo);
+            console.log(`   ✅ Grupo ${grupo.codigo_grupo} agregado`);
+          } catch (error) {
+            console.error(`   ❌ Error al agregar grupo ${grupo.codigo_grupo}:`, error.message);
+          }
+        }
       }
+
+      // 5. Eliminar grupos removidos
+      if (gruposAEliminar.length > 0) {
+        console.log('5️⃣ Eliminando grupos removidos...');
+        for (const codigoGrupo of gruposAEliminar) {
+          try {
+            await SubjectService.eliminarGrupoDeMateria(editingId, codigoGrupo);
+            console.log(`   ✅ Grupo ${codigoGrupo} eliminado`);
+          } catch (error) {
+            console.error(`   ❌ Error al eliminar grupo ${codigoGrupo}:`, error.message);
+          }
+        }
+      }
+
+      // 6. Recargar materias y mostrar éxito
+      console.log('6️⃣ Recargando lista de materias...');
+      await cargarMaterias();
+      alert("✅ Materia actualizada exitosamente");
+      handleCancelEdit();
+      
     } catch (error) {
+      console.error('❌ Error al actualizar la materia:', error);
       alert("❌ Error al actualizar la materia: " + error.message);
     }
   };

@@ -64,9 +64,8 @@ export const validateField = (name, value, formData = {}) => {
       // Solo requerido para docentes Internos
       if (formData.categoriaDocente === 'Interno' && (!val || String(val).trim() === "")) {
         error = "El código de programa es obligatorio para docentes internos.";
-      } else if (val && !/^[A-Z0-9-]{3,20}$/.test(val)) {
-        error = "Formato inválido. Ej: ING-SIS, ING01";
       }
+      // Eliminada la validación de formato para permitir cualquier código del backend
       break;
 
     case "correo":

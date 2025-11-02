@@ -27,8 +27,8 @@ export default function CreateGroup() {
 
   // Obtener nombre del usuario
   const getUserName = () => {
-    if (!userData) return 'Usuario';
-    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Usuario';
+    if (!userData) return 'Administrador';
+    return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
   };
 
   const getUserInitials = () => {
@@ -95,6 +95,18 @@ export default function CreateGroup() {
       console.log('🔄 Iniciando carga de profesores...');
       const data = await obtenerProfesores();
       console.log('✅ Profesores cargados exitosamente:', data);
+      
+      // 🔍 DEBUG: Ver estructura del primer profesor
+      if (data && data.length > 0) {
+        console.log('🔍 ESTRUCTURA DEL PRIMER PROFESOR:', data[0]);
+        console.log('🔍 CLAVES DISPONIBLES:', Object.keys(data[0]));
+        console.log('🔍 ID del profesor:', data[0].id);
+        console.log('🔍 ¿Tiene usuario anidado?', data[0].usuario ? 'SÍ' : 'NO');
+        if (data[0].usuario) {
+          console.log('🔍 Claves de usuario:', Object.keys(data[0].usuario));
+        }
+      }
+      
       setProfesores(data);
     } catch (error) {
       console.error('❌ Error al cargar profesores:', error);
@@ -108,10 +120,33 @@ export default function CreateGroup() {
     e.preventDefault();
 
     console.log('📝 Iniciando creación de grupo...');
-    console.log('📋 Datos del formulario:', {
-      codigo_grupo: codigoGrupo,
-      id_docente: idDocente
+    console.log('📋 Valores del formulario:');
+    console.log('   - codigo_grupo:', codigoGrupo, typeof codigoGrupo);
+    console.log('   - id_docente:', idDocente, typeof idDocente);
+    
+    // 🔍 DEBUG: Buscar el profesor seleccionado en el array
+    const profesorSeleccionado = profesores.find(item => {
+      const docente = item?.docente || item;
+      return docente?.id_docente === idDocente || docente?.id === idDocente;
     });
+    console.log('🔍 Profesor seleccionado del array:', profesorSeleccionado);
+    
+    if (profesorSeleccionado) {
+      const docente = profesorSeleccionado?.docente || profesorSeleccionado;
+      console.log('✅ Profesor encontrado:');
+      console.log('   - id_docente:', docente?.id_docente);
+      console.log('   - categoria_docente:', docente?.categoria_docente);
+      console.log('   - Objeto completo:', profesorSeleccionado);
+    } else {
+      console.warn('⚠️ No se encontró el profesor en el array con ID:', idDocente);
+    }
+    
+    // Validar que se haya seleccionado un profesor válido
+    if (!idDocente || idDocente === '' || idDocente.startsWith('temp_')) {
+      alert('❌ Error: Debe seleccionar un profesor válido');
+      console.error('❌ ID de docente inválido:', idDocente);
+      return;
+    }
 
     try {
       const resultado = await crearGrupo(codigoGrupo, idDocente);
@@ -133,12 +168,15 @@ export default function CreateGroup() {
 
   // Iniciar edición
   const handleEdit = (grupo) => {
+    console.log('🔄 Editando grupo:', grupo);
     setEditingCodigoGrupo(grupo.codigo_grupo);
     setCodigoGrupo(grupo.codigo_grupo.toString());
-    // Obtener el primer docente asignado si existe
-    if (grupo.docentes_asignados && grupo.docentes_asignados.length > 0) {
-      setIdDocente(grupo.docentes_asignados[0].id || "");
+    // Usar directamente el id_docente del grupo
+    if (grupo.id_docente) {
+      console.log('✅ Grupo tiene docente asignado:', grupo.id_docente);
+      setIdDocente(grupo.id_docente);
     } else {
+      console.log('⚠️ Grupo sin docente asignado');
       setIdDocente("");
     }
     setIsEditing(true);
@@ -305,23 +343,59 @@ export default function CreateGroup() {
                   <select
                     id="idDocente"
                     value={idDocente}
-                    onChange={(e) => setIdDocente(e.target.value)}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      console.log('🔄 Profesor seleccionado - ID:', selectedId);
+                      setIdDocente(selectedId);
+                    }}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                     required
                   >
                     <option value="">Selecciona un profesor</option>
-                    {Array.isArray(profesores) && profesores.map((profesor) => {
-                      // El profesor puede tener la estructura con usuario anidado
-                      const nombre = profesor?.usuario?.primer_nombre 
-                        ? `${profesor.usuario.primer_nombre} ${profesor.usuario.segundo_nombre || ''} ${profesor.usuario.primer_apellido} ${profesor.usuario.segundo_apellido || ''}`.trim()
-                        : profesor?.nombre || 'Sin nombre';
-                      
-                      return (
-                        <option key={profesor.id} value={profesor.id}>
-                          {nombre}
-                        </option>
-                      );
-                    })}
+                    {Array.isArray(profesores) && profesores.length > 0 ? (
+                      profesores.map((item, index) => {
+                        // 🔍 Extraer datos del docente y usuario (estructura anidada del backend)
+                        const docente = item?.docente || item;
+                        const usuario = item?.usuario || {};
+
+                        const profesorId = docente?.id_docente || docente?.id || `temp_${index}`;
+                        
+                        // 🔍 Construir nombre del profesor desde usuario
+                        const nombreCompleto = usuario?.nombre_completo || '';
+                        const correo = usuario?.correo || '';
+                        const nombre = nombreCompleto || correo?.split('@')[0] || `Profesor ${profesorId}`;
+                        
+                        // Información adicional del docente
+                        const categoria = docente?.categoria_docente || '';
+                        const codigoPrograma = docente?.codigo_programa || '';
+                        
+                        let displayText = nombre;
+                        if (categoria) {
+                          displayText += ` - ${categoria}`;
+                        }
+                        if (codigoPrograma) {
+                          displayText += ` (${codigoPrograma})`;
+                        }
+                        
+                        // 🔍 DEBUG en consola para el primer profesor
+                        if (index === 0) {
+                          console.log('🔍 Primer profesor en dropdown:');
+                          console.log('   - docente.id_docente:', docente?.id_docente);
+                          console.log('   - ID FINAL usado:', profesorId);
+                          console.log('   - Nombre completo:', nombreCompleto);
+                          console.log('   - Display:', displayText);
+                          console.log('   - Estructura item:', item);
+                        }
+                        
+                        return (
+                          <option key={`prof_${index}_${profesorId}`} value={profesorId}>
+                            {displayText}
+                          </option>
+                        );
+                      })
+                    ) : (
+                      <option value="" disabled>No hay profesores disponibles</option>
+                    )}
                   </select>
                   <p className="mt-1 text-xs text-gray-500">Profesor responsable del grupo</p>
                 </div>
@@ -422,13 +496,44 @@ export default function CreateGroup() {
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm font-medium text-gray-900">{grupo?.nombre_materia || 'N/A'}</div>
-                              {grupo?.docentes_asignados && grupo.docentes_asignados.length > 0 ? (
+                              {grupo?.id_docente ? (
                                 <div className="text-xs text-gray-500 mt-1">
-                                  {grupo.docentes_asignados.map((doc, idx) => (
-                                    <span key={idx} className="inline-block mr-2">
-                                      {doc?.nombre || doc?.nombres || 'Sin nombre'}
-                                    </span>
-                                  ))}
+                                  {(() => {
+                                    // Buscar el profesor en la lista de profesores
+                                    const profesorInfo = profesores.find(item => {
+                                      const docente = item?.docente || item;
+                                      return docente?.id_docente === grupo.id_docente;
+                                    });
+                                    
+                                    if (profesorInfo) {
+                                      const usuario = profesorInfo?.usuario || {};
+                                      const nombreCompleto = usuario?.nombre_completo || grupo?.nombre_docente || 'Docente asignado';
+                                      return (
+                                        <span className="inline-flex items-center gap-1">
+                                          <i className="pi pi-user text-teal-600"></i>
+                                          {nombreCompleto}
+                                        </span>
+                                      );
+                                    }
+                                    
+                                    // Si no se encuentra pero tiene nombre_docente
+                                    if (grupo?.nombre_docente) {
+                                      return (
+                                        <span className="inline-flex items-center gap-1">
+                                          <i className="pi pi-user text-teal-600"></i>
+                                          {grupo.nombre_docente}
+                                        </span>
+                                      );
+                                    }
+                                    
+                                    // Tiene ID pero no se encuentra info
+                                    return (
+                                      <span className="text-orange-600">
+                                        <i className="pi pi-info-circle mr-1"></i>
+                                        Docente: {grupo.id_docente.substring(0, 8)}...
+                                      </span>
+                                    );
+                                  })()}
                                 </div>
                               ) : (
                                 <div className="text-xs text-gray-400 mt-1 italic">Sin docentes asignados</div>
@@ -494,23 +599,6 @@ export default function CreateGroup() {
                 <p className="mt-1 text-xs text-gray-500">Este código se genera automáticamente y no puede modificarse</p>
               </div>
 
-              {/* Nombre del Grupo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre del Grupo <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={nombreGrupo}
-                  onChange={(e) => setNombreGrupo(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
-                  placeholder="Ej: Grupo 01, Grupo 02"
-                  required
-                  maxLength="10"
-                />
-                <p className="mt-1 text-xs text-gray-500">Máximo 10 caracteres</p>
-              </div>
-
               {/* Asignar Profesor */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -523,11 +611,33 @@ export default function CreateGroup() {
                   required
                 >
                   <option value="">Seleccionar profesor</option>
-                  {profesores.map((profesor) => (
-                    <option key={profesor.id} value={profesor.id}>
-                      {profesor.nombre} - {profesor.departamento}
-                    </option>
-                  ))}
+                  {profesores.map((item, index) => {
+                    // Extraer datos del docente y usuario (estructura anidada del backend)
+                    const docente = item?.docente || item;
+                    const usuario = item?.usuario || {};
+
+                    const profesorId = docente?.id_docente || docente?.id || `temp_${index}`;
+                    const nombreCompleto = usuario?.nombre_completo || '';
+                    const correo = usuario?.correo || '';
+                    const nombre = nombreCompleto || correo?.split('@')[0] || `Profesor ${profesorId}`;
+                    
+                    const categoria = docente?.categoria_docente || '';
+                    const codigoPrograma = docente?.codigo_programa || '';
+                    
+                    let displayText = nombre;
+                    if (categoria) {
+                      displayText += ` - ${categoria}`;
+                    }
+                    if (codigoPrograma) {
+                      displayText += ` (${codigoPrograma})`;
+                    }
+                    
+                    return (
+                      <option key={`prof_edit_${index}_${profesorId}`} value={profesorId}>
+                        {displayText}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

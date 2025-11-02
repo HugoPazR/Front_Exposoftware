@@ -1,9 +1,9 @@
 import { validateField, isNumericField } from "./validations";
+import * as RegisterService from "../../../Services/RegisterService";
 
 /**
- * Maneja cambios en inputs de texto
+ * Capitaliza la primera letra de cada palabra
  */
-// Capitaliza la primera letra de cada palabra
 const capitalizeWords = (str) => {
   return str.replace(/\b\w/g, (c) => c.toUpperCase());
 };
@@ -182,12 +182,9 @@ export const handlePhoneChange = (
 };
 
 /**
- * Maneja el envío del formulario
+ * Maneja el envío del formulario con backend
  */
-/**
- * Maneja el envío del formulario sin backend
- */
-export const handleSubmit = (
+export const handleSubmit = async (
   e,
   formData,
   rol,
@@ -208,16 +205,10 @@ export const handleSubmit = (
   const allErrors = validateAllFields(formData, rol);
   setErrors(allErrors);
 
-  // Si no hay errores, mostrar alerta de éxito inmediatamente
-  if (!hasErrors(allErrors)) {
-    setMensajeExito("✅ ¡Registro exitoso!");
-    alert("✅ Registro exitoso. Tus datos han sido validados correctamente.");
-
-    console.log("Formulario válido, datos registrados localmente:", formData);
-  } else {
-    // Mostrar mensaje de error si hay errores
+  // Si hay errores, detener el proceso
+  if (hasErrors(allErrors)) {
     setMensajeError("❌ Por favor corrige los errores en el formulario.");
-    alert("❌ Corrige los errores en el formulario antes de continuar.");
+    setCargando(false);
 
     console.warn("Errores en el formulario:", allErrors);
 
@@ -228,9 +219,51 @@ export const handleSubmit = (
       element.scrollIntoView({ behavior: "smooth", block: "center" });
       element.focus();
     }
+    return;
   }
 
-  setCargando(false);
+  // Intentar registrar según el rol
+  try {
+    let resultado;
+
+    console.log("📤 Enviando registro para rol:", rol);
+    console.log("📦 Datos del formulario:", formData);
+
+    switch (rol.toLowerCase()) {
+      case "estudiante":
+        resultado = await RegisterService.registrarEstudiante(formData);
+        break;
+      
+      case "egresado":
+        resultado = await RegisterService.registrarEgresado(formData);
+        break;
+      
+      case "invitado":
+        resultado = await RegisterService.registrarInvitado(formData);
+        break;
+      
+      default:
+        throw new Error(`Rol no soportado: ${rol}`);
+    }
+
+    // Si llegamos aquí, el registro fue exitoso
+    console.log("✅ Registro exitoso:", resultado);
+    setMensajeExito(resultado.message || "✅ ¡Registro exitoso! Revisa tu correo para activar tu cuenta.");
+    
+    // Limpiar el formulario después de 2 segundos
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 3000);
+
+  } catch (error) {
+    console.error("❌ Error en el registro:", error);
+    setMensajeError(error.message || "❌ Error al registrar. Intenta nuevamente.");
+    
+    // Hacer scroll hacia arriba para mostrar el mensaje de error
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } finally {
+    setCargando(false);
+  }
 };
 
 /**

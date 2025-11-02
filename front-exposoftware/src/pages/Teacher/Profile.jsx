@@ -1,50 +1,56 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { getTeacherProfile, procesarDatosDocente } from "../../Services/TeacherService.jsx";
 import countryList from 'react-select-country-list';
 import colombiaData from "../../data/colombia.json";
 import logo from "../../assets/Logo-unicesar.png";
 import ProfileForm from "./ProfileForm";
 
 export default function TeacherProfile() {
+  const { user, getFullName, getInitials, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
 
-  // Estado del perfil del docente con todos los campos
+  // Estado del perfil del docente - Valores por defecto
   const [profileData, setProfileData] = useState({
     // Campos propios de Docentes
-    id_docente: "DOC001",
-    id_usuario: "USR001",
-    categoria_docente: "Interno", // "Interno", "Invitado", "Externo"
-    codigo_programa: "12345", // ❌ NO EDITABLE
+    id_docente: "",
+    id_usuario: "",
+    categoria_docente: "Interno",
+    codigo_programa: "",
     
     // Campos heredados de Usuarios
     tipo_documento: "CC",
-    identificacion: "1098765432", // ❌ NO EDITABLE (Cédula)
-    nombres: "Ana María",
-    apellidos: "Gómez Rodríguez",
-    genero: "Femenino",
-    identidad_sexual: "Femenino",
-    fecha_nacimiento: "1985-03-15",
-    telefono: "3001234567",
+    identificacion: "",
+    nombres: "",
+    apellidos: "",
+    genero: "",
+    identidad_sexual: "",
+    fecha_nacimiento: "",
+    telefono: "",
     
     // Ubicación
     pais: "CO",
-    nacionalidad: "CO",
-    departamento_residencia: "Cesar",
-    ciudad_residencia: "Valledupar",
-    direccion_residencia: "Calle 15 # 20-30",
-    departamento: "Cesar",
-    municipio: "Valledupar",
-    ciudad: "Valledupar",
+    nacionalidad: "",
+    departamento_residencia: "",
+    ciudad_residencia: "",
+    direccion_residencia: "",
+    departamento: "",
+    municipio: "",
+    ciudad: "",
     
     // Institucional
-    correo: "ana.gomez@unicesar.edu.co", // ❌ NO EDITABLE
-    anio_ingreso: "2015",
+    correo: "",
+    anio_ingreso: new Date().getFullYear(),
     periodo: 1,
     rol: "Docente"
   });
@@ -53,6 +59,33 @@ export default function TeacherProfile() {
   const [opcionesPaises, setOpcionesPaises] = useState([]);
   const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+
+  // Cargar información del docente desde el backend
+  useEffect(() => {
+    const loadTeacherProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('📋 Cargando perfil del docente desde backend...');
+        const datosCrudos = await getTeacherProfile();
+        
+        // Procesar los datos
+        const datosProcesados = procesarDatosDocente(datosCrudos);
+        console.log('✅ Perfil procesado:', datosProcesados);
+        
+        // Establecer los datos en el estado
+        setProfileData(datosProcesados);
+      } catch (err) {
+        console.error('❌ Error al cargar perfil:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTeacherProfile();
+  }, []);
 
   // Inicializar opciones de países
   useEffect(() => {
@@ -166,6 +199,17 @@ export default function TeacherProfile() {
     handleClosePasswordModal();
   };
 
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 Cerrando sesión del docente...");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("❌ Error al cerrar sesión:", error);
+      alert("❌ Error al cerrar sesión");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - mismo que dashboard */}
@@ -186,16 +230,19 @@ export default function TeacherProfile() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                   <span className="text-emerald-600 font-bold text-lg">
-                    {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
+                    {getInitials()}
                   </span>
                 </div>
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">{profileData.nombres} {profileData.apellidos}</p>
-                  <p className="text-xs text-gray-500">{profileData.rol}</p>
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500">Docente</p>
                 </div>
               </div>
                 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -239,11 +286,11 @@ export default function TeacherProfile() {
               <div className="text-center">
                 <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-emerald-600 font-bold text-2xl">
-                    {profileData.nombres?.charAt(0)}{profileData.apellidos?.charAt(0)}
+                    {getInitials()}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900">{profileData.nombres} {profileData.apellidos}</h3>
-                <p className="text-sm text-gray-500">{profileData.rol}</p>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500">Docente</p>
                 <p className="text-xs text-gray-400 mt-1">Categoría: {profileData.categoria_docente}</p>
               </div>
             </div>
@@ -254,7 +301,7 @@ export default function TeacherProfile() {
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
-                {!isEditing && (
+                {!isEditing && !loading && (
                   <button 
                     onClick={handleEdit}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
@@ -265,7 +312,34 @@ export default function TeacherProfile() {
                 )}
               </div>
 
-              {/* Formulario de Perfil */}
+              {/* Estado de carga */}
+              {loading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="inline-block">
+                      <div className="w-12 h-12 border-4 border-gray-200 border-t-emerald-600 rounded-full animate-spin"></div>
+                    </div>
+                    <p className="mt-4 text-gray-600">Cargando información del perfil...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Estado de error */}
+              {error && !loading && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <i className="pi pi-exclamation-circle text-red-600 text-lg"></i>
+                    <div>
+                      <h3 className="font-semibold text-red-900">Error al cargar el perfil</h3>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Formulario de Perfil - Solo mostrar cuando no hay carga y no hay error */}
+              {!loading && !error && (
+                <>
               <ProfileForm
                 profileData={profileData}
                 isEditing={isEditing}
@@ -323,6 +397,8 @@ export default function TeacherProfile() {
                     Guardar Cambios
                   </button>
                 </div>
+              )}
+                </>
               )}
             </div>
           </main>
