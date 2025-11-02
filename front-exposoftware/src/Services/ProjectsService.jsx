@@ -127,7 +127,8 @@ export const getTeacherProjects = async (teacherId) => {
   try {
     console.log(`👨‍🏫 Obteniendo proyectos del docente ${teacherId}...`);
     
-    const response = await fetch(`${API_URL}/api/v1/admin/profesores/${teacherId}/proyectos`, {
+    // Endpoint correcto según OpenAPI: /api/v1/teachers/{teacher_id}/projects
+    const response = await fetch(`${API_URL}/api/v1/teachers/${teacherId}/projects`, {
       method: 'GET',
       headers: getAuthHeaders()
     });

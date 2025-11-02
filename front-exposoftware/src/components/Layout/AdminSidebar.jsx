@@ -37,6 +37,11 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Gestión de Profesores"
     },
     {
+      to: "/admin/estudiantes",
+      icon: "pi-graduation-cap",
+      label: "Gestión de Estudiantes"
+    },
+    {
       to: "/admin/lineas-investigacion",
       icon: "pi-lightbulb",
       label: "Gestión de Líneas de Investigación"

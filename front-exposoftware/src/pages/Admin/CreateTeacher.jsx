@@ -1,17 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import Select from 'react-select';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import * as AuthService from "../../Services/AuthService";
+import countryList from "react-select-country-list";
+import colombia from "../../assets/colombia-json-master/colombia.json";
 import { 
   useTeacherManagement,
   TIPOS_DOCUMENTO,
   GENEROS,
   IDENTIDADES_SEXUALES,
   CATEGORIAS_DOCENTE,
-  DEPARTAMENTOS_COLOMBIA,
-  PAISES
 } from "./useTeacherManagement";
 import EditTeacherModal from "./EditTeacherModal";
 import { 
@@ -19,6 +19,7 @@ import {
   filterInput, 
   hasErrors 
 } from "../../utils/teacherValidations";
+import { API_ENDPOINTS } from "../../utils/constants";
 
 export default function CreateTeacher() {
   const navigate = useNavigate();
@@ -26,6 +27,16 @@ export default function CreateTeacher() {
   
   // Estado para mostrar mensaje de éxito
   const [successMessage, setSuccessMessage] = useState("");
+  
+  // Estado para programas académicos
+  const [programas, setProgramas] = useState([]);
+  const [loadingProgramas, setLoadingProgramas] = useState(false);
+  
+  // Opciones de países usando react-select-country-list (igual que Register)
+  const options = useMemo(() => countryList().getData(), []);
+  
+  // Estado para municipios dinámicos según departamento seleccionado
+  const [municipiosDisponibles, setMunicipiosDisponibles] = useState([]);
   
   // Cargar datos del usuario autenticado
   useEffect(() => {
@@ -133,6 +144,116 @@ export default function CreateTeacher() {
     handleCancel,
   } = useTeacherManagement();
   
+  // Efecto para actualizar municipios cuando cambia el departamento
+  // DEBE estar DESPUÉS de useTeacherManagement para acceder a departamento y municipio
+  useEffect(() => {
+    if (departamento) {
+      // Buscar el departamento en el array de Colombia
+      const deptoEncontrado = colombia.find((d) => d.departamento === departamento);
+      
+      if (deptoEncontrado && Array.isArray(deptoEncontrado.ciudades)) {
+        setMunicipiosDisponibles(deptoEncontrado.ciudades);
+        
+        // Si el municipio actual no está en la lista, limpiarlo
+        if (municipio && !deptoEncontrado.ciudades.includes(municipio)) {
+          setMunicipio("");
+        }
+      } else {
+        setMunicipiosDisponibles([]);
+        setMunicipio("");
+      }
+    } else {
+      setMunicipiosDisponibles([]);
+      setMunicipio("");
+    }
+  }, [departamento, municipio, setMunicipio]);
+
+  // Cargar programas académicos al montar el componente
+  useEffect(() => {
+    const cargarProgramas = async () => {
+      setLoadingProgramas(true);
+      try {
+        // Primero cargar las facultades
+        const facultadesResponse = await fetch(API_ENDPOINTS.FACULTADES, {
+          method: 'GET',
+          headers: AuthService.getAuthHeaders(),
+        });
+
+        if (!facultadesResponse.ok) {
+          throw new Error(`Error ${facultadesResponse.status}: ${facultadesResponse.statusText}`);
+        }
+
+        const facultadesData = await facultadesResponse.json();
+        console.log('✅ Facultades cargadas:', facultadesData);
+        console.log('📊 Tipo de datos:', typeof facultadesData);
+        console.log('📊 Es array:', Array.isArray(facultadesData));
+        
+        // Manejar diferentes estructuras de respuesta
+        let facultades = [];
+        if (Array.isArray(facultadesData)) {
+          facultades = facultadesData;
+        } else if (facultadesData && typeof facultadesData === 'object') {
+          // Si es un objeto, buscar la propiedad que contenga el array
+          facultades = facultadesData.facultades || facultadesData.data || facultadesData.results || [];
+        }
+
+        console.log('📚 Total de facultades:', facultades.length);
+        console.log('🔍 Primera facultad:', facultades[0]);
+
+        // Cargar programas de cada facultad
+        const todasLosProgramas = [];
+        
+        for (const facultad of facultades) {
+          const facultadId = facultad.id_facultad || facultad.id;
+          console.log(`🔄 Cargando programas de facultad: ${facultad.nombre_facultad} (${facultadId})`);
+          
+          try {
+            const url = API_ENDPOINTS.PROGRAMAS_BY_FACULTAD(facultadId);
+            console.log(`📡 URL: ${url}`);
+            
+            const programasResponse = await fetch(url, {
+              method: 'GET',
+              headers: AuthService.getAuthHeaders(),
+            });
+
+            console.log(`📊 Status programas facultad ${facultadId}:`, programasResponse.status);
+
+            if (programasResponse.ok) {
+              const programasData = await programasResponse.json();
+              console.log(`📦 Datos programas facultad ${facultadId}:`, programasData);
+              
+              // Manejar diferentes estructuras de respuesta para programas
+              let programasFacultad = [];
+              if (Array.isArray(programasData)) {
+                programasFacultad = programasData;
+              } else if (programasData && typeof programasData === 'object') {
+                programasFacultad = programasData.programas || programasData.data || programasData.results || [];
+              }
+              
+              if (programasFacultad.length > 0) {
+                console.log(`✅ Facultad ${facultad.nombre_facultad}: ${programasFacultad.length} programas`);
+                todasLosProgramas.push(...programasFacultad);
+              }
+            }
+          } catch (error) {
+            console.warn(`⚠️ Error cargando programas de facultad ${facultadId}:`, error);
+          }
+        }
+
+        console.log('✅ Total de programas cargados:', todasLosProgramas.length);
+        console.log('🔍 Primer programa:', todasLosProgramas[0]);
+        setProgramas(todasLosProgramas);
+      } catch (error) {
+        console.error("❌ Error al cargar programas:", error);
+        setProgramas([]);
+      } finally {
+        setLoadingProgramas(false);
+      }
+    };
+
+    cargarProgramas();
+  }, []);
+  
 
   // Función para manejar cambios con validación
   const handleInputChange = (fieldName, value, setter) => {
@@ -172,6 +293,10 @@ export default function CreateTeacher() {
   // Validar antes de enviar el formulario
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    
+    console.log('🚀 Formulario enviado');
+    console.log('📋 Categoría Docente:', categoriaDocente);
+    console.log('📋 Código Programa:', codigoPrograma);
 
     // Combinar nombres y apellidos para validación
     const nombresCompletos = `${primerNombre} ${segundoNombre}`.trim();
@@ -199,6 +324,8 @@ export default function CreateTeacher() {
       activo,
     };
 
+    console.log('📦 Datos del formulario:', formData);
+
     // Validar todos los campos requeridos
     const newErrors = {};
     Object.keys(formData).forEach(key => {
@@ -208,10 +335,19 @@ export default function CreateTeacher() {
       }
     });
 
+    console.log('❌ Errores encontrados:', newErrors);
+    console.log('❌ Cantidad de errores:', Object.keys(newErrors).length);
+    
+    // Mostrar cada error específico
+    Object.keys(newErrors).forEach(campo => {
+      console.log(`   ⚠️ Campo "${campo}": ${newErrors[campo]}`);
+    });
+    
     setErrors(newErrors);
 
     // Si hay errores, no enviar el formulario
     if (hasErrors(newErrors)) {
+      console.log('⛔ Formulario NO enviado - hay errores de validación');
       // Scroll al primer error
       const firstErrorField = Object.keys(newErrors)[0];
       const element = document.querySelector(`[name="${firstErrorField}"]`);
@@ -222,6 +358,8 @@ export default function CreateTeacher() {
       return;
     }
 
+    console.log('✅ Validación pasada - enviando al servidor');
+    
     // Si no hay errores, proceder con el envío con callback de éxito
     handleSubmit(e, (message) => {
       setSuccessMessage(message);
@@ -488,10 +626,10 @@ export default function CreateTeacher() {
                       )}
                     </div>
 
-                    {/* Género */}
+                    {/* Género (Sexo en backend) */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Género <span className="text-red-500">*</span>
+                        Sexo <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={genero}
@@ -499,7 +637,7 @@ export default function CreateTeacher() {
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
                         required
                       >
-                        <option value="">Seleccionar género</option>
+                        <option value="">Seleccionar sexo</option>
                         {GENEROS.map((gen) => (
                           <option key={gen} value={gen}>{gen}</option>
                         ))}
@@ -509,12 +647,13 @@ export default function CreateTeacher() {
                     {/* Identidad Sexual */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Identidad Sexual
+                        Identidad Sexual <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={identidadSexual}
                         onChange={(e) => setIdentidadSexual(e.target.value)}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                        required
                       >
                         <option value="">Seleccionar</option>
                         {IDENTIDADES_SEXUALES.map((id) => (
@@ -526,13 +665,14 @@ export default function CreateTeacher() {
                     {/* Fecha de Nacimiento */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fecha de Nacimiento
+                        Fecha de Nacimiento <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="date"
                         value={fechaNacimiento}
                         onChange={(e) => setFechaNacimiento(e.target.value)}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        required
                       />
                     </div>
 
@@ -603,18 +743,18 @@ export default function CreateTeacher() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Información de Ubicación y Residencia</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* País - Select dinámico */}
+                    {/* País de Residencia - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        País de Residencia
+                        País de Residencia <span className="text-red-500">*</span>
                       </label>
                       <Select
                         name="pais"
-                        options={opcionesPaises}
+                        options={options}
                         placeholder="Selecciona País de Residencia"
                         value={
                           pais
-                            ? opcionesPaises.find(
+                            ? options.find(
                                 (option) => option.value === pais
                               )
                             : null
@@ -627,25 +767,25 @@ export default function CreateTeacher() {
                             borderColor: "#d1d5db",
                             borderRadius: "0.5rem",
                             padding: "2px",
-                            "&:hover": { borderColor: "#16a34a" },
+                            "&:hover": { borderColor: "#14b8a6" },
                             boxShadow: "0 0 0 1px #d1d5db",
                           }),
                         }}
                       />
                     </div>
 
-                    {/* País de Nacimiento - Select dinámico */}
+                    {/* Nacionalidad (País de Nacimiento) - Select dinámico */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        País de Nacimiento
+                        Nacionalidad (País de Nacimiento) <span className="text-red-500">*</span>
                       </label>
                       <Select
                         name="nacionalidad"
-                        options={opcionesPaises}
-                        placeholder="Selecciona País de Nacimiento"
+                        options={options}
+                        placeholder="Selecciona tu Nacionalidad"
                         value={
                           nacionalidad
-                            ? opcionesPaises.find(
+                            ? options.find(
                                 (option) => option.value === nacionalidad
                               )
                             : null
@@ -658,43 +798,47 @@ export default function CreateTeacher() {
                             borderColor: "#d1d5db",
                             borderRadius: "0.5rem",
                             padding: "2px",
-                            "&:hover": { borderColor: "#16a34a" },
+                            "&:hover": { borderColor: "#14b8a6" },
                             boxShadow: "0 0 0 1px #d1d5db",
                           }),
                         }}
                       />
                     </div>
 
-                    {/* Departamento */}
+                    {/* Departamento - Select dinámico desde JSON de Colombia */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Departamento
+                        Departamento <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={departamento}
                         onChange={(e) => setDepartamento(e.target.value)}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                        required
                       >
                         <option value="">Seleccionar departamento</option>
-                        {DEPARTAMENTOS_COLOMBIA.map((dept) => (
-                          <option key={dept} value={dept}>{dept}</option>
+                        {colombia.map((d) => (
+                          <option key={d.id} value={d.departamento}>
+                            {d.departamento}
+                          </option>
                         ))}
                       </select>
                     </div>
 
-                    {/* Municipio - Select dinámico */}
+                    {/* Municipio - Select dinámico basado en departamento */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Municipio
+                        Municipio <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={municipio}
                         onChange={(e) => setMunicipio(e.target.value)}
                         disabled={!departamento}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        required
                       >
                         <option value="">Seleccionar municipio</option>
-                        {municipios.map((mun) => (
+                        {Array.isArray(municipiosDisponibles) && municipiosDisponibles.map((mun) => (
                           <option key={mun} value={mun}>{mun}</option>
                         ))}
                       </select>
@@ -706,7 +850,7 @@ export default function CreateTeacher() {
                     {/* Ciudad de Residencia */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ciudad de Residencia
+                        Ciudad de Residencia <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -715,21 +859,23 @@ export default function CreateTeacher() {
                         placeholder="Nombre de la ciudad"
                         maxLength={50}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        required
                       />
                     </div>
 
                     {/* Dirección de Residencia */}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Dirección de Residencia
+                        Dirección de Residencia <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={direccionResidencia}
                         onChange={(e) => setDireccionResidencia(e.target.value)}
                         placeholder="Ej: Calle 50 #30-20"
-                        maxLength={50}
+                        maxLength={100}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        required
                       />
                     </div>
 
@@ -807,14 +953,28 @@ export default function CreateTeacher() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Código del Programa <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          value={codigoPrograma}
-                          onChange={(e) => setCodigoPrograma(e.target.value)}
-                          placeholder="Ej: ING01"
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                          required
-                        />
+                        {loadingProgramas ? (
+                          <div className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500">
+                            Cargando programas...
+                          </div>
+                        ) : (
+                          <select
+                            value={codigoPrograma}
+                            onChange={(e) => setCodigoPrograma(e.target.value)}
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            required
+                          >
+                            <option value="">Seleccionar programa</option>
+                            {programas.map((programa) => (
+                              <option key={programa.codigo_programa} value={programa.codigo_programa}>
+                                {programa.codigo_programa}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {programas.length === 0 && !loadingProgramas && (
+                          <p className="text-xs text-gray-500 mt-1">No hay programas disponibles</p>
+                        )}
                       </div>
                     )}
 
@@ -1000,6 +1160,8 @@ export default function CreateTeacher() {
         // Listas dinámicas
         municipios={municipios}
         opcionesPaises={opcionesPaises}
+        programas={programas}
+        loadingProgramas={loadingProgramas}
         // Estados del formulario - Usuario
         tipoDocumento={tipoDocumento}
         setTipoDocumento={setTipoDocumento}

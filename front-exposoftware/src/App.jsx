@@ -29,6 +29,9 @@ import Proyects from "./pages/Home/Projects";
 import GuestDashboard from "./pages/Guest/Dashboard";
 import GuestProfile from "./pages/Guest/Profile";
 import GuestProjects from "./pages/Guest/Proyects";
+import ManageStudents from "./pages/Admin/ManageStudents";
+import StudentDetails from "./pages/Admin/StudentDetails";
+import EditStudent from "./pages/Admin/EditStudent";
 import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute} from "./components/ProtectedRoute";
 
 
@@ -62,6 +65,10 @@ function App() {
     "/admin/crear-facultad",
     "/admin/crear-programa",
     "/admin/programas",
+    "/admin/estudiantes",
+    "/admin/estudiantes/:studentId",
+    "/admin/estudiantes/:studentId/editar",
+    "/admin/estudiantes/nuevo",
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
@@ -107,6 +114,9 @@ function App() {
           <Route path="/admin/gestionar-eventos" element={<AdminRoute><ManageEvents /></AdminRoute>} />
           <Route path="/admin/crear-facultad" element={<AdminRoute><CrearFacultades /></AdminRoute>} />
           <Route path="/admin/crear-programa" element={<AdminRoute><CreatePrograms /></AdminRoute>} />
+          <Route path="/admin/estudiantes" element={<AdminRoute><ManageStudents /></AdminRoute>} />
+          <Route path="/admin/estudiantes/:studentId" element={<AdminRoute><StudentDetails /></AdminRoute>} />
+          <Route path="/admin/estudiantes/:studentId/editar" element={<AdminRoute><EditStudent /></AdminRoute>} />
 
 
           {/* ✅ Egresados - RUTAS PROTEGIDAS */}

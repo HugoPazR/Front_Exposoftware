@@ -177,9 +177,9 @@ const PersonalInfoSection = ({
           className={getInputClassName("genero")}
         >
           <option value="">Selecciona Género</option>
-          <option value="hombre">Hombre</option>
-          <option value="mujer">Mujer</option>
-          <option value="hermafrodita">Hermafrodita</option>
+          <option value="Hombre">Hombre</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Hermafrodita">Hermafrodita</option>
         </select>
         {errors.genero && (
           <p className="text-red-500 text-sm mt-1 flex items-center gap-1">

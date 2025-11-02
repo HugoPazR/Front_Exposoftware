@@ -141,31 +141,29 @@ export const crearDocente = async (datosDocente) => {
   const { primer_nombre, segundo_nombre } = separarNombres(datosDocente.nombres);
   const { primer_apellido, segundo_apellido } = separarApellidos(datosDocente.apellidos);
 
-  // Estructura del payload según la tabla de DOCENTE
+  // Estructura del payload según el OpenAPI: TeacherCreateWithUser
   const payload = {
-    // Atributos del usuario (heredados) - SEPARADOS según tabla
-    tipo_documento: datosDocente.tipo_documento,
-    identificacion: datosDocente.identificacion,
-    primer_nombre: primer_nombre,
-    segundo_nombre: segundo_nombre,
-    primer_apellido: primer_apellido,
-    segundo_apellido: segundo_apellido,
-    sexo: datosDocente.genero || "Hombre", // La tabla usa 'sexo' en lugar de 'genero'
-    identidad_sexual: datosDocente.identidad_sexual || "",
-    fecha_nacimiento: datosDocente.fecha_nacimiento || "",
-    nacionalidad: datosDocente.nacionalidad || "CO",
-    pais_residencia: datosDocente.pais_residencia || "CO",
-    departamento_residencia: datosDocente.departamento || "", // La tabla usa 'departamento_residencia'
-    ciudad_residencia: datosDocente.ciudad_residencia || "",
-    direccion_residencia: datosDocente.direccion_residencia || "",
-    telefono: datosDocente.telefono,
-    correo: datosDocente.correo,
-    contraseña: datosDocente.contraseña,
-    rol: "Docente", // Rol fijo para docentes
-    activo: true,
-    // Atributos propios del docente
     categoria_docente: datosDocente.categoria_docente,
-    codigo_programa: datosDocente.codigo_programa || ""
+    codigo_programa: datosDocente.codigo_programa || "",
+    usuario: {
+      tipo_documento: datosDocente.tipo_documento,
+      identificacion: datosDocente.identificacion,
+      nombres: datosDocente.nombres, // Enviar nombres completos
+      apellidos: datosDocente.apellidos, // Enviar apellidos completos
+      sexo: datosDocente.genero || "Hombre",
+      identidad_sexual: datosDocente.identidad_sexual || "",
+      fecha_nacimiento: datosDocente.fecha_nacimiento || "",
+      nacionalidad: datosDocente.nacionalidad || "CO",
+      pais_residencia: datosDocente.pais_residencia || "CO",
+      departamento: datosDocente.departamento || "",
+      municipio: datosDocente.municipio || "",
+      ciudad_residencia: datosDocente.ciudad_residencia || "",
+      direccion_residencia: datosDocente.direccion_residencia || "",
+      telefono: datosDocente.telefono,
+      correo: datosDocente.correo,
+      contraseña: datosDocente.contraseña,
+      rol: "Docente"
+    }
   };
 
   console.log('📤 Enviando docente al backend:', JSON.stringify(payload, null, 2));

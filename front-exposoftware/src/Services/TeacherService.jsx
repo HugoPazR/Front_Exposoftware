@@ -12,17 +12,39 @@ export const getTeacherProfile = async () => {
     
     // Obtener el usuario actual del AuthService
     const userData = AuthService.getUserData();
-    if (!userData || !userData.identificacion) {
+    console.log('👤 Datos del usuario desde AuthService:', userData);
+    console.log('📋 userData completo (JSON):', JSON.stringify(userData, null, 2));
+    
+    if (!userData) {
       throw new Error("No hay sesión activa");
     }
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/v1/docentes/${userData.identificacion}`,
-      {
-        method: 'GET',
-        headers: headers
-      }
-    );
+    // El ID del docente puede estar en diferentes propiedades según la respuesta del backend
+    // Priorizar user.id_usuario que es donde está en Firebase Auth
+    const docenteId = userData.user?.id_usuario || 
+                      userData.user?.identificacion || 
+                      userData.id_usuario || 
+                      userData.id || 
+                      userData.identificacion || 
+                      userData.usuario?.identificacion ||
+                      userData.docente_id;
+    
+    console.log('🔍 ID del docente:', docenteId);
+    console.log('🔍 Claves disponibles en userData:', Object.keys(userData));
+    console.log('🔍 user object:', userData.user);
+    
+    if (!docenteId) {
+      throw new Error("No se encontró el ID del docente en la sesión. Intente cerrar sesión y volver a iniciar.");
+    }
+
+    // Endpoint correcto según OpenAPI: /api/v1/teachers/{teacher_id}/profile
+    const url = `${API_BASE_URL}/api/v1/teachers/${docenteId}/profile`;
+    console.log('📡 URL del perfil:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
 
     console.log('📡 Respuesta del servidor - Status:', response.status);
 
@@ -148,8 +170,9 @@ export const updateTeacherProfile = async (identificacion, datosActualizados) =>
 
     console.log('📦 Payload:', payload);
 
+    // Endpoint correcto según OpenAPI: /api/v1/teachers/{teacher_id}/profile
     const response = await fetch(
-      `${API_BASE_URL}/api/v1/docentes/${identificacion}`,
+      `${API_BASE_URL}/api/v1/teachers/${identificacion}/profile`,
       {
         method: 'PUT',
         headers: headers,

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getTeacherProjects, updateProjectStatus } from "../../Services/ProjectsService.jsx";
+import * as AuthService from "../../Services/AuthService";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function StudentProjects() {
@@ -23,7 +24,32 @@ export default function StudentProjects() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getTeacherProjects();
+        
+        // Obtener datos del usuario autenticado
+        const userData = AuthService.getUserData();
+        console.log('👤 Datos del usuario:', userData);
+        
+        if (!userData) {
+          throw new Error('No hay sesión activa');
+        }
+        
+        // El ID del docente puede estar en diferentes propiedades
+        // Priorizar user.id_usuario que es donde está en Firebase Auth
+        const docenteId = userData.user?.id_usuario || 
+                         userData.user?.identificacion || 
+                         userData.id_usuario || 
+                         userData.id || 
+                         userData.identificacion || 
+                         userData.usuario?.identificacion;
+        
+        console.log('🔍 ID del docente:', docenteId);
+        console.log('🔍 user object:', userData.user);
+        
+        if (!docenteId) {
+          throw new Error('No se encontró el ID del docente');
+        }
+        
+        const data = await getTeacherProjects(docenteId);
         // Si la respuesta es un array, usarla directamente; si es un objeto con una propiedad, extraerla
         const projectsList = Array.isArray(data) ? data : data?.data || data?.projects || [];
         setProjects(projectsList);

@@ -73,13 +73,23 @@ export const registrarEstudiante = async (studentData) => {
   const nombres = `${studentData.primerNombre} ${studentData.segundoNombre || ''}`.trim();
   const apellidos = `${studentData.primerApellido} ${studentData.segundoApellido}`.trim();
   
+  // Normalizar género para que coincida con el backend (primera letra mayúscula)
+  const normalizarGenero = (genero) => {
+    if (!genero) return '';
+    const generoLower = genero.toLowerCase();
+    if (generoLower === 'hombre') return 'Hombre';
+    if (generoLower === 'mujer') return 'Mujer';
+    if (generoLower === 'hermafrodita') return 'Hermafrodita';
+    return genero; // Si ya está correcto, devolverlo tal cual
+  };
+  
   const payload = {
     usuario: {
       tipo_documento: studentData.tipoDocumento,
       identificacion: studentData.numeroDocumento,
       nombres: nombres,
       apellidos: apellidos,
-      sexo: studentData.genero,
+      sexo: normalizarGenero(studentData.genero),
       identidad_sexual: studentData.orientacionSexual,
       fecha_nacimiento: studentData.fechaNacimiento,
       nacionalidad: studentData.paisNacimiento,

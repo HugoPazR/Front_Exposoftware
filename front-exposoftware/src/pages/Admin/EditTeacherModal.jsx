@@ -26,6 +26,8 @@ export default function EditTeacherModal({
   // Listas dinámicas
   municipios,
   opcionesPaises,
+  programas = [],
+  loadingProgramas = false,
   // Estados del formulario - Usuario
   tipoDocumento,
   setTipoDocumento,
@@ -431,15 +433,30 @@ export default function EditTeacherModal({
               {categoriaDocente === "Interno" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Código Programa
+                    Código del Programa <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    value={codigoPrograma}
-                    onChange={(e) => setCodigoPrograma(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
-                    required
-                  />
+                  {loadingProgramas ? (
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500">
+                      Cargando programas...
+                    </div>
+                  ) : (
+                    <select
+                      value={codigoPrograma}
+                      onChange={(e) => setCodigoPrograma(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                      required
+                    >
+                      <option value="">Seleccionar programa</option>
+                      {programas.map((programa) => (
+                        <option key={programa.codigo_programa} value={programa.codigo_programa}>
+                          {programa.codigo_programa}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {programas.length === 0 && !loadingProgramas && (
+                    <p className="text-xs text-gray-500 mt-1">No hay programas disponibles</p>
+                  )}
                 </div>
               )}
 

@@ -1,4 +1,3 @@
-// URL base del backend API - Backend desplegado en AWS Lambda
 export const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
 
 // Endpoints de la API
@@ -36,10 +35,19 @@ export const API_ENDPOINTS = {
   ASIGNACIONES_DOCENTE: `${API_BASE_URL}/api/v1/admin/asignaciones-docentes`,
   ASIGNACION_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/asignaciones-docentes/${id}`,
   
-  // Estudiantes
+  // Estudiantes (Público)
   ESTUDIANTES: `${API_BASE_URL}/estudiantes`,
   ESTUDIANTE_BY_ID: (id) => `${API_BASE_URL}/estudiantes/${id}`,
   MI_PERFIL_ESTUDIANTE: `${API_BASE_URL}/api/v1/estudiantes/mi-perfil`,
+  
+  // Estudiantes (Admin) - Gestión administrativa
+  ADMIN_ESTUDIANTES: `${API_BASE_URL}/api/v1/admin/estudiantes`,
+  ADMIN_ESTUDIANTE_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/estudiantes/${id}`,
+  ADMIN_ESTUDIANTE_COMPLETO: (id) => `${API_BASE_URL}/api/v1/admin/estudiantes/${id}/completo`,
+  ADMIN_ESTUDIANTE_ACTIVAR: (id) => `${API_BASE_URL}/api/v1/admin/estudiantes/${id}/activar`,
+  ADMIN_ESTUDIANTE_DESACTIVAR: (id) => `${API_BASE_URL}/api/v1/admin/estudiantes/${id}/desactivar`,
+  ADMIN_ESTUDIANTES_POR_PROGRAMA: (codigoPrograma) => `${API_BASE_URL}/api/v1/admin/estudiantes/programa/${codigoPrograma}`,
+  ADMIN_ESTUDIANTE_ASIGNAR_EXISTENTE: `${API_BASE_URL}/api/v1/admin/estudiantes/asignar-existente`,
   
   // Proyectos
   PROYECTOS: `${API_BASE_URL}/proyectos`,
@@ -69,8 +77,15 @@ export const API_ENDPOINTS = {
   FACULTADES: `${API_BASE_URL}/api/v1/admin/academico/facultades`,
   FACULTAD_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/academico/facultades/${id}`,
   
+  // Facultades (Público) - Para registro sin autenticación
+  FACULTADES_PUBLICO: `${API_BASE_URL}/api/v1/public-academico/facultades`,
+  
   // Programas Académicos (Admin) - Asociados a Facultades
   PROGRAMAS_BY_FACULTAD: (facultadId) => `${API_BASE_URL}/api/v1/admin/academico/facultades/${facultadId}/programas`,
   PROGRAMA_BY_ID: (facultadId, codigoPrograma) => `${API_BASE_URL}/api/v1/admin/academico/facultades/${facultadId}/programas/${codigoPrograma}`,
   PROGRAMAS: `${API_BASE_URL}/api/v1/admin/academico/programas`, // Endpoint para listar todos los programas
+  
+  // Programas (Público) - Para registro sin autenticación
+  PROGRAMAS_BY_FACULTAD_PUBLICO: (facultadId) => `${API_BASE_URL}/api/v1/public-academico/facultades/${facultadId}/programas`,
+  PROGRAMAS_PUBLICO: `${API_BASE_URL}/api/v1/public-academico/programas`,
 };
