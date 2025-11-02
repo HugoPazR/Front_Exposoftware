@@ -126,6 +126,7 @@ function App() {
           <Route path="/admin/estudiantes" element={<AdminRoute><ManageStudents /></AdminRoute>} />
           <Route path="/admin/estudiantes/:studentId" element={<AdminRoute><StudentDetails /></AdminRoute>} />
           <Route path="/admin/estudiantes/:studentId/editar" element={<AdminRoute><EditStudent /></AdminRoute>} />
+          <Route path="/admin/asistencia" element={<AdminRoute><AttendanceAdmin /></AdminRoute>} />
 
 
           {/* ✅ Egresados - RUTAS PROTEGIDAS */}
