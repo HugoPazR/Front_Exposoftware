@@ -66,9 +66,6 @@ function App() {
     "/admin/crear-programa",
     "/admin/programas",
     "/admin/estudiantes",
-    "/admin/estudiantes/:studentId",
-    "/admin/estudiantes/:studentId/editar",
-    "/admin/estudiantes/nuevo",
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
@@ -77,9 +74,24 @@ function App() {
     "/guest/proyectos",
   ];
 
+  // Verificar si la ruta actual debe ocultar el Navbar
+  const shouldHideNavbar = () => {
+    // Verificar rutas exactas
+    if (hideNavbarOn.includes(location.pathname)) {
+      return true;
+    }
+    
+    // Verificar patrones dinámicos
+    if (location.pathname.startsWith('/admin/estudiantes/')) {
+      return true;
+    }
+    
+    return false;
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
-      {!hideNavbarOn.includes(location.pathname) && <Navbar />}
+      {!shouldHideNavbar() && <Navbar />}
       <main className="flex-1">
         <Routes>
           {/* Página principal */}

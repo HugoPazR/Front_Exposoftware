@@ -152,11 +152,6 @@ export default function MyProjects() {
                 {user?.semestre && (
                   <p className="text-xs text-gray-400">Semestre: {user.semestre}</p>
                 )}
-                {user?.correo && (
-                  <p className="text-xs text-gray-400 mt-2 truncate" title={user.correo}>
-                    {user.correo}
-                  </p>
-                )}
               </div>
             </div>
           </aside>

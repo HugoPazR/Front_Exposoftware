@@ -114,9 +114,13 @@ export function useResearchLinesManagement() {
     try {
       const data = await obtenerLineas();
       setLineas(data);
+      if (data.length === 0) {
+        console.log('ℹ️ No hay líneas registradas aún. Puedes crear la primera línea.');
+      }
     } catch (error) {
       console.error(error);
-      alert("Error al cargar las líneas");
+      // No mostrar alerta, solo registrar el error
+      setLineas([]);
     }
   };
 
@@ -172,10 +176,18 @@ export function useResearchLinesManagement() {
       alert("El nombre es obligatorio");
       return;
     }
+    if (!codigoLinea.trim()) {
+      alert("El código de la línea es obligatorio");
+      return;
+    }
     try {
-      await crearLinea({ nombre_linea: nombreLinea });
+      await crearLinea({ 
+        nombre_linea: nombreLinea,
+        codigo_linea: parseInt(codigoLinea)
+      });
       alert("Línea creada exitosamente");
       setNombreLinea("");
+      setCodigoLinea("");
       // Invalidar caché y recargar
       invalidarCache();
       await cargarLineas();

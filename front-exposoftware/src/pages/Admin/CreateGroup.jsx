@@ -61,6 +61,11 @@ export default function CreateGroup() {
   const [grupos, setGrupos] = useState([]);
   const [profesores, setProfesores] = useState([]);
   
+  // Estados de carga
+  const [loadingGrupos, setLoadingGrupos] = useState(true);
+  const [loadingProfesores, setLoadingProfesores] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  
   // Estados para edición
   const [isEditing, setIsEditing] = useState(false);
   const [editingCodigoGrupo, setEditingCodigoGrupo] = useState(null);
@@ -77,6 +82,7 @@ export default function CreateGroup() {
 
   // Función para cargar grupos desde el backend usando el servicio
   const cargarGrupos = async () => {
+    setLoadingGrupos(true);
     try {
       console.log('🔄 Iniciando carga de grupos...');
       const data = await obtenerGrupos();
@@ -86,11 +92,14 @@ export default function CreateGroup() {
       console.error('❌ Error al cargar grupos:', error);
       // No mostrar alert para no bloquear la UI
       setGrupos([]);
+    } finally {
+      setLoadingGrupos(false);
     }
   };
 
   // Función para cargar profesores desde el backend usando el servicio
   const cargarProfesores = async () => {
+    setLoadingProfesores(true);
     try {
       console.log('🔄 Iniciando carga de profesores...');
       const data = await obtenerProfesores();
@@ -98,13 +107,51 @@ export default function CreateGroup() {
       
       // 🔍 DEBUG: Ver estructura del primer profesor
       if (data && data.length > 0) {
-        console.log('🔍 ESTRUCTURA DEL PRIMER PROFESOR:', data[0]);
-        console.log('🔍 CLAVES DISPONIBLES:', Object.keys(data[0]));
-        console.log('🔍 ID del profesor:', data[0].id);
-        console.log('🔍 ¿Tiene usuario anidado?', data[0].usuario ? 'SÍ' : 'NO');
-        if (data[0].usuario) {
-          console.log('🔍 Claves de usuario:', Object.keys(data[0].usuario));
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔍 ESTRUCTURA COMPLETA DEL PRIMER PROFESOR:');
+        console.log(data[0]);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('� CLAVES DISPONIBLES:', Object.keys(data[0]));
+        
+        // Extraer docente
+        const docente = data[0].docente || data[0];
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('👤 OBJETO DOCENTE:');
+        console.log(docente);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('� CAMPOS CRÍTICOS DEL DOCENTE:');
+        console.log('   ✅ docente.id_docente:', docente.id_docente);
+        console.log('   ❌ docente.id_usuario:', docente.id_usuario);
+        console.log('   📝 docente.codigo_docente:', docente.codigo_docente);
+        console.log('   📧 docente.correo:', docente.correo);
+        
+        // Extraer usuario
+        const usuario = data[0].usuario;
+        if (usuario) {
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          console.log('� OBJETO USUARIO:');
+          console.log(usuario);
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          console.log('📋 Claves de usuario:', Object.keys(usuario));
+          console.log('   - usuario.id_usuario:', usuario.id_usuario);
+          console.log('   - usuario.nombre_completo:', usuario.nombre_completo);
         }
+        
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🚨 DIAGNÓSTICO:');
+        if (docente.id_docente === docente.id_usuario) {
+          console.error('❌ PROBLEMA ENCONTRADO: id_docente es igual a id_usuario!');
+          console.error('   El backend está usando el ID de Firebase como id_docente');
+          console.error('   Esto causará errores al crear proyectos');
+        } else if (docente.id_docente && docente.id_docente.length > 30) {
+          console.error('❌ PROBLEMA ENCONTRADO: id_docente parece ser un ID de Firebase (muy largo)');
+          console.error('   Longitud del id_docente:', docente.id_docente.length);
+        } else if (docente.id_docente) {
+          console.log('✅ id_docente parece ser correcto (diferente de id_usuario)');
+        } else {
+          console.error('❌ PROBLEMA: No hay id_docente!');
+        }
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       }
       
       setProfesores(data);
@@ -112,6 +159,8 @@ export default function CreateGroup() {
       console.error('❌ Error al cargar profesores:', error);
       // No mostrar alert para no bloquear la UI
       setProfesores([]);
+    } finally {
+      setLoadingProfesores(false);
     }
   };
 
@@ -127,28 +176,37 @@ export default function CreateGroup() {
     // 🔍 DEBUG: Buscar el profesor seleccionado en el array
     const profesorSeleccionado = profesores.find(item => {
       const docente = item?.docente || item;
-      return docente?.id_docente === idDocente || docente?.id === idDocente;
+      return docente?.id_docente === idDocente;
     });
     console.log('🔍 Profesor seleccionado del array:', profesorSeleccionado);
     
     if (profesorSeleccionado) {
       const docente = profesorSeleccionado?.docente || profesorSeleccionado;
       console.log('✅ Profesor encontrado:');
-      console.log('   - id_docente:', docente?.id_docente);
-      console.log('   - categoria_docente:', docente?.categoria_docente);
-      console.log('   - Objeto completo:', profesorSeleccionado);
+      console.log('   - ✅ id_docente (CORRECTO):', docente?.id_docente);
+      console.log('   - ❌ id_usuario (NO USAR):', docente?.id_usuario);
+      console.log('   - 📋 categoria_docente:', docente?.categoria_docente);
+      console.log('   - 🔍 Objeto completo:', profesorSeleccionado);
     } else {
-      console.warn('⚠️ No se encontró el profesor en el array con ID:', idDocente);
+      console.error('❌ No se encontró el profesor en el array con id_docente:', idDocente);
     }
     
-    // Validar que se haya seleccionado un profesor válido
+    // 🔥 VALIDACIÓN: Verificar que se use id_docente válido
     if (!idDocente || idDocente === '' || idDocente.startsWith('temp_')) {
       alert('❌ Error: Debe seleccionar un profesor válido');
       console.error('❌ ID de docente inválido:', idDocente);
       return;
     }
+    
+    // ℹ️ NOTA: El backend acepta id_usuario como id_docente (workaround)
+    console.log('ℹ️ Backend acepta el id_docente proporcionado (puede ser igual a id_usuario)');
 
+    setSubmitting(true);
     try {
+      console.log('📤 Enviando al backend:');
+      console.log('   - codigo_grupo:', codigoGrupo);
+      console.log('   - id_docente:', idDocente);
+      
       const resultado = await crearGrupo(codigoGrupo, idDocente);
       console.log('✅ Grupo creado, recargando lista...');
       await cargarGrupos();
@@ -157,6 +215,8 @@ export default function CreateGroup() {
     } catch (error) {
       console.error('❌ Error en handleSubmit:', error);
       alert(`❌ Error al crear el grupo:\n\n${error.message}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -348,17 +408,32 @@ export default function CreateGroup() {
                       console.log('🔄 Profesor seleccionado - ID:', selectedId);
                       setIdDocente(selectedId);
                     }}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
                     required
+                    disabled={loadingProfesores}
                   >
-                    <option value="">Selecciona un profesor</option>
-                    {Array.isArray(profesores) && profesores.length > 0 ? (
+                    {loadingProfesores ? (
+                      <option value="">⏳ Cargando profesores...</option>
+                    ) : profesores.length === 0 ? (
+                      <option value="">❌ No hay profesores disponibles</option>
+                    ) : (
+                      <option value="">Selecciona un profesor</option>
+                    )}
+                    {!loadingProfesores && Array.isArray(profesores) && profesores.length > 0 ? (
                       profesores.map((item, index) => {
                         // 🔍 Extraer datos del docente y usuario (estructura anidada del backend)
                         const docente = item?.docente || item;
                         const usuario = item?.usuario || {};
 
-                        const profesorId = docente?.id_docente || docente?.id || `temp_${index}`;
+                        // 🔥 WORKAROUND: El backend usa id_usuario como id_docente
+                        // Aceptamos lo que el backend envía
+                        const profesorId = docente?.id_docente;
+                        
+                        // Si no hay id_docente, no mostrar
+                        if (!profesorId) {
+                          console.warn('⚠️ Profesor sin id_docente:', item);
+                          return null;
+                        }
                         
                         // 🔍 Construir nombre del profesor desde usuario
                         const nombreCompleto = usuario?.nombre_completo || '';
@@ -381,10 +456,13 @@ export default function CreateGroup() {
                         if (index === 0) {
                           console.log('🔍 Primer profesor en dropdown:');
                           console.log('   - docente.id_docente:', docente?.id_docente);
-                          console.log('   - ID FINAL usado:', profesorId);
-                          console.log('   - Nombre completo:', nombreCompleto);
-                          console.log('   - Display:', displayText);
-                          console.log('   - Estructura item:', item);
+                          console.log('   - docente.id_usuario:', docente?.id_usuario);
+                          console.log('   - 🎯 ID usado en select:', profesorId);
+                          console.log('   - 📝 Nombre:', nombreCompleto);
+                          console.log('   - 📋 Display:', displayText);
+                          if (docente?.id_docente === docente?.id_usuario) {
+                            console.log('   - ℹ️ NOTA: Backend usa id_usuario como id_docente (workaround activo)');
+                          }
                         }
                         
                         return (
@@ -404,9 +482,22 @@ export default function CreateGroup() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+                    disabled={submitting || loadingProfesores}
+                    className="w-full bg-teal-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all shadow-md hover:shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none"
                   >
-                    Crear Grupo
+                    {submitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creando grupo...
+                      </span>
+                    ) : loadingProfesores ? (
+                      'Cargando datos...'
+                    ) : (
+                      'Crear Grupo'
+                    )}
                   </button>
                 </div>
               </form>
@@ -451,6 +542,16 @@ export default function CreateGroup() {
 
               {/* Tabla */}
                 <div className="overflow-x-auto">
+                  {loadingGrupos ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <svg className="animate-spin h-12 w-12 text-teal-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-gray-600 font-medium">Cargando grupos...</p>
+                      <p className="text-gray-400 text-sm mt-1">Por favor espera un momento</p>
+                    </div>
+                  ) : (
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
@@ -568,6 +669,7 @@ export default function CreateGroup() {
                       )}
                     </tbody>
                   </table>
+                  )}
                 </div>
             </div>
             )}
@@ -607,16 +709,31 @@ export default function CreateGroup() {
                 <select
                   value={idDocente}
                   onChange={(e) => setIdDocente(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition disabled:bg-gray-100 disabled:cursor-not-allowed"
                   required
+                  disabled={loadingProfesores}
                 >
-                  <option value="">Seleccionar profesor</option>
-                  {profesores.map((item, index) => {
+                  {loadingProfesores ? (
+                    <option value="">⏳ Cargando profesores...</option>
+                  ) : profesores.length === 0 ? (
+                    <option value="">❌ No hay profesores disponibles</option>
+                  ) : (
+                    <option value="">Seleccionar profesor</option>
+                  )}
+                  {!loadingProfesores && profesores.map((item, index) => {
                     // Extraer datos del docente y usuario (estructura anidada del backend)
                     const docente = item?.docente || item;
                     const usuario = item?.usuario || {};
 
-                    const profesorId = docente?.id_docente || docente?.id || `temp_${index}`;
+                    // 🔥 WORKAROUND: El backend usa id_usuario como id_docente
+                    const profesorId = docente?.id_docente;
+                    
+                    // Si no hay id_docente, no mostrar
+                    if (!profesorId) {
+                      console.warn('⚠️ Profesor sin id_docente en modal edición:', item);
+                      return null;
+                    }
+                    
                     const nombreCompleto = usuario?.nombre_completo || '';
                     const correo = usuario?.correo || '';
                     const nombre = nombreCompleto || correo?.split('@')[0] || `Profesor ${profesorId}`;
@@ -652,9 +769,22 @@ export default function CreateGroup() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition disabled:bg-teal-400 disabled:cursor-not-allowed"
+                  disabled={submitting || loadingProfesores}
                 >
-                  💾 Guardar Cambios
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Guardando...
+                    </span>
+                  ) : loadingProfesores ? (
+                    'Cargando datos...'
+                  ) : (
+                    '💾 Guardar Cambios'
+                  )}
                 </button>
               </div>
             </form>

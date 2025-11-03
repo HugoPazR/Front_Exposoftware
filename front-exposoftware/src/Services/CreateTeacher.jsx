@@ -137,24 +137,26 @@ export const crearDocente = async (datosDocente) => {
     throw new Error("La categoría del docente es obligatoria");
   }
 
-  // Separar nombres y apellidos según la tabla
+  // Separar nombres y apellidos según el nuevo formato del backend
   const { primer_nombre, segundo_nombre } = separarNombres(datosDocente.nombres);
   const { primer_apellido, segundo_apellido } = separarApellidos(datosDocente.apellidos);
 
-  // Estructura del payload según el OpenAPI: TeacherCreateWithUser
+  // Estructura del payload según el OpenAPI actualizado: TeacherCreateWithUser
   const payload = {
     categoria_docente: datosDocente.categoria_docente,
-    codigo_programa: datosDocente.codigo_programa || "",
+    codigo_programa: datosDocente.codigo_programa || null,
     usuario: {
       tipo_documento: datosDocente.tipo_documento,
       identificacion: datosDocente.identificacion,
-      nombres: datosDocente.nombres, // Enviar nombres completos
-      apellidos: datosDocente.apellidos, // Enviar apellidos completos
+      primer_nombre: primer_nombre,
+      segundo_nombre: segundo_nombre || null,
+      primer_apellido: primer_apellido,
+      segundo_apellido: segundo_apellido || null,
       sexo: datosDocente.genero || "Hombre",
-      identidad_sexual: datosDocente.identidad_sexual || "",
+      identidad_sexual: datosDocente.identidad_sexual || "Heterosexual",
       fecha_nacimiento: datosDocente.fecha_nacimiento || "",
-      nacionalidad: datosDocente.nacionalidad || "CO",
-      pais_residencia: datosDocente.pais_residencia || "CO",
+      nacionalidad: datosDocente.nacionalidad || "Colombiana",
+      pais_residencia: datosDocente.pais_residencia || "Colombia",
       departamento: datosDocente.departamento || "",
       municipio: datosDocente.municipio || "",
       ciudad_residencia: datosDocente.ciudad_residencia || "",
@@ -194,6 +196,7 @@ export const crearDocente = async (datosDocente) => {
       throw new Error(`Conflicto: ${errorData.message || errorData.detail || 'El docente ya existe'}`);
     } else if (response.status === 422) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Error de validación (422):', errorData);
       throw new Error(`Error de validación: ${errorData.message || errorData.detail || 'Los datos no son válidos'}`);
     } else {
       const errorData = await response.json().catch(() => ({}));

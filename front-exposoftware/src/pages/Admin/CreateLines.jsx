@@ -205,6 +205,23 @@ export default function CreateLines() {
                 {/* Formulario Línea */}
                 <form onSubmit={handleSubmitLinea} className="space-y-6 max-w-2xl">
                   <div>
+                    <label htmlFor="codigoLinea" className="block text-sm font-medium text-gray-700 mb-2">
+                      Código de la Línea <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      id="codigoLinea"
+                      value={codigoLinea}
+                      onChange={(e) => setCodigoLinea(e.target.value)}
+                      placeholder="Ej: 1"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                      required
+                      min="1"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Ingresa un código numérico único para la línea</p>
+                  </div>
+
+                  <div>
                     <label htmlFor="nombreLinea" className="block text-sm font-medium text-gray-700 mb-2">
                       Nombre de la Línea de Investigación <span className="text-red-500">*</span>
                     </label>
@@ -213,11 +230,17 @@ export default function CreateLines() {
                       id="nombreLinea"
                       value={nombreLinea}
                       onChange={(e) => setNombreLinea(e.target.value)}
-                      placeholder="Ej: Inteligencia Artificial"
+                      placeholder="Ej: IA y Machine L"
+                      maxLength={15}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                       required
                     />
-                    <p className="mt-1 text-xs text-gray-500">El código se generará automáticamente</p>
+                    <p className="mt-1 text-xs text-red-600 font-medium">
+                      ⚠️ Máximo 15 caracteres (limitación del backend). Actual: {nombreLinea.length}/15
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Usa abreviaturas: "TIC", "IA y ML", "Des. Software", "Sist. Embebd.", etc.
+                    </p>
                   </div>
 
                   <div className="pt-4">
@@ -273,9 +296,20 @@ export default function CreateLines() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {lineasFiltradas.length === 0 ? (
                           <tr>
-                            <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
-                              <i className="pi pi-inbox text-4xl mb-3 block"></i>
-                              <p className="text-sm">No se encontraron líneas</p>
+                            <td colSpan="4" className="px-6 py-12 text-center">
+                              <div className="flex flex-col items-center justify-center">
+                                <i className="pi pi-inbox text-4xl mb-3 text-gray-400"></i>
+                                <p className="text-sm text-gray-500 mb-1">
+                                  {lineas.length === 0 
+                                    ? "No hay líneas de investigación registradas aún" 
+                                    : "No se encontraron líneas con ese criterio de búsqueda"}
+                                </p>
+                                {lineas.length === 0 && (
+                                  <p className="text-xs text-teal-600 font-medium">
+                                    ⬆️ Usa el formulario de arriba para crear la primera línea
+                                  </p>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ) : (

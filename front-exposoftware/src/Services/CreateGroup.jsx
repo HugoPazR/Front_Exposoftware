@@ -56,11 +56,13 @@ export const obtenerGrupos = async () => {
  */
 export const obtenerProfesores = async () => {
   try {
-    console.log('📥 Cargando profesores desde:', API_ENDPOINTS.PROFESORES);
+    // 🔥 IMPORTANTE: Backend solo acepta limit <= 100
+    const url = `${API_ENDPOINTS.PROFESORES}?limit=100`;
+    console.log('📥 Cargando profesores desde:', url);
     const headers = AuthService.getAuthHeaders();
     console.log('🔑 Headers de autenticación:', headers);
     
-    const response = await fetch(API_ENDPOINTS.PROFESORES, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
@@ -80,8 +82,19 @@ export const obtenerProfesores = async () => {
         console.log('🔍 TODAS LAS CLAVES:', Object.keys(profesores[0]));
         console.log('🔍 ¿Tiene campo "id_docente"?', 'id_docente' in profesores[0], profesores[0].id_docente);
         console.log('🔍 ¿Tiene campo "id_usuario"?', 'id_usuario' in profesores[0], profesores[0].id_usuario);
+        console.log('🔍 ¿Tiene campo "codigo_docente"?', 'codigo_docente' in profesores[0], profesores[0].codigo_docente);
         console.log('🔍 JSON COMPLETO:', JSON.stringify(profesores[0], null, 2));
+        
+        // 🚨 DIAGNÓSTICO: Ver si id_docente es igual a id_usuario
+        if (profesores[0].id_docente === profesores[0].id_usuario) {
+          console.warn('⚠️ PROBLEMA DETECTADO: id_docente es igual a id_usuario');
+          console.warn('   Esto indica que el backend está usando el ID de Firebase como id_docente');
+          console.warn('   SOLUCIÓN: Usaremos el id_usuario directamente ya que el backend lo acepta');
+        }
       }
+      
+      // 🔥 NO filtrar profesores - aceptar lo que el backend envía
+      // El backend está usando id_usuario como id_docente, así que lo aceptamos
       
       // Cargar información de usuario para cada profesor
       const profesoresConUsuario = await Promise.all(
