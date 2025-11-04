@@ -216,15 +216,19 @@ export default function RegisterProject() {
           eventos: eventosData.length
         });
 
-        // Auto-agregar estudiante actual al proyecto
-        if (user?.id_estudiante) {
-          console.log('✅ Auto-agregando estudiante al proyecto:', user.id_estudiante);
+        // Auto-agregar usuario actual al proyecto (estudiante o egresado)
+        const userId = user?.id_estudiante || user?.id_egresado || user?.id_usuario;
+        const userRole = user?.rol?.toLowerCase();
+        
+        if (userId) {
+          console.log(`✅ Auto-agregando ${userRole} al proyecto:`, userId);
+          console.log('📋 Rol del usuario:', userRole);
           setForm(prev => ({
             ...prev,
-            id_estudiantes: [user.id_estudiante],
+            id_estudiantes: [userId], // El backend maneja tanto estudiantes como egresados
           }));
         } else {
-          console.warn('⚠️ No se pudo auto-agregar estudiante. id_estudiante no disponible en user:', user);
+          console.warn('⚠️ No se pudo auto-agregar usuario. ID no disponible en user:', user);
         }
 
         console.log("✅ Catálogos cargados exitosamente");

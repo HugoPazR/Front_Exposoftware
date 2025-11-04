@@ -84,6 +84,51 @@ export const getTeacherProfileById = async (teacherId) => {
 };
 
 /**
+ * Obtener perfil completo del docente desde admin endpoint
+ * GET /api/v1/admin/profesores/{teacher_id}
+ * @param {string} teacherId - ID del docente (puede ser id_usuario de Firebase)
+ * @returns {Promise<Object>} Perfil completo del docente con id_docente
+ */
+export const getTeacherProfileByAdmin = async (teacherId) => {
+  try {
+    console.log('📚 Obteniendo perfil completo del docente desde admin:', teacherId);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/admin/profesores/${teacherId}`;
+    console.log('🔗 URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    console.log('📡 Respuesta - Status:', response.status);
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('📦 Respuesta completa:', result);
+      
+      const perfil = result.data || result;
+      console.log('✅ Perfil del docente obtenido:', perfil);
+      console.log('🔍 id_docente:', perfil.id_docente);
+      console.log('🔍 id_usuario:', perfil.id_usuario);
+      
+      return perfil;
+    } else if (response.status === 404) {
+      throw new Error("Docente no encontrado en el sistema");
+    } else if (response.status === 401) {
+      throw new Error("No autorizado para acceder a esta información");
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener perfil del docente');
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener perfil del docente desde admin:', error);
+    throw error;
+  }
+};
+
+/**
  * Obtener todas las materias asignadas al docente
  * GET /api/v1/teachers/{teacher_id}/subjects
  * @param {string} teacherId - ID del docente
