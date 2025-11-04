@@ -24,9 +24,12 @@ export const obtenerMiPerfil = async () => {
     if (response.ok) {
       const data = await response.json();
       console.log('✅ Perfil obtenido exitosamente:', data);
+      console.log('📊 Estructura completa de data:', JSON.stringify(data, null, 2));
       
       // La respuesta tiene formato: { status, message, data, code }
       if (data.data) {
+        console.log('📦 data.data:', data.data);
+        console.log('👤 data.data.usuario:', data.data.usuario);
         return {
           success: true,
           data: data.data,
@@ -147,15 +150,53 @@ export const procesarDatosPerfil = (perfil) => {
   const usuario = perfil.usuario || perfil;
   
   // Los datos del estudiante están en el nivel raíz del perfil
-  const estudiante = perfil;
+  const estudiante = perfil.estudiante || perfil;
+  
+  // 🔥 IMPORTANTE: Si el backend devuelve nombre_completo pero NO los campos separados,
+  // dividirlo automáticamente
+  let primer_nombre = usuario.primer_nombre || '';
+  let segundo_nombre = usuario.segundo_nombre || '';
+  let primer_apellido = usuario.primer_apellido || '';
+  let segundo_apellido = usuario.segundo_apellido || '';
+  
+  // Si no hay campos separados pero sí hay nombre_completo, dividirlo
+  if (!primer_nombre && !primer_apellido && usuario.nombre_completo) {
+    console.log('⚠️ El backend devolvió nombre_completo pero no campos separados. Dividiendo automáticamente...');
+    const nombreCompleto = usuario.nombre_completo.trim();
+    const partes = nombreCompleto.split(/\s+/); // Dividir por espacios
+    
+    if (partes.length >= 4) {
+      // Caso: "Andres Camilo Botello Nunez" -> 4 partes
+      primer_nombre = partes[0];
+      segundo_nombre = partes[1];
+      primer_apellido = partes[2];
+      segundo_apellido = partes[3];
+    } else if (partes.length === 3) {
+      // Caso: "Juan Carlos Pérez" -> 3 partes (asumimos 2 nombres, 1 apellido)
+      primer_nombre = partes[0];
+      segundo_nombre = partes[1];
+      primer_apellido = partes[2];
+    } else if (partes.length === 2) {
+      // Caso: "Juan Pérez" -> 2 partes (1 nombre, 1 apellido)
+      primer_nombre = partes[0];
+      primer_apellido = partes[1];
+    } else if (partes.length === 1) {
+      // Solo un nombre
+      primer_nombre = partes[0];
+    }
+    
+    console.log('✂️ Nombre dividido:', { primer_nombre, segundo_nombre, primer_apellido, segundo_apellido });
+  }
   
   const datosProcessados = {
     // Datos de usuario (desde perfil.usuario)
     id_usuario: usuario.id || usuario.id_usuario,
     identificacion: usuario.identificacion || '',
-    nombres: usuario.nombres || '',
-    apellidos: usuario.apellidos || '',
-    nombre_completo: `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim(),
+    primer_nombre: primer_nombre,
+    segundo_nombre: segundo_nombre,
+    primer_apellido: primer_apellido,
+    segundo_apellido: segundo_apellido,
+    nombre_completo: usuario.nombre_completo || `${primer_nombre} ${segundo_nombre} ${primer_apellido} ${segundo_apellido}`.trim().replace(/\s+/g, ' '),
     correo: usuario.correo || '',
     telefono: usuario.telefono || '',
     rol: usuario.rol || 'Estudiante',
@@ -182,11 +223,11 @@ export const procesarDatosPerfil = (perfil) => {
     activo: usuario.activo !== undefined ? usuario.activo : true,
     
     // Metadata
-    fecha_creacion: usuario.fecha_creacion || estudiante.fecha_creacion || null,
-    fecha_actualizacion: usuario.fecha_actualizacion || estudiante.fecha_actualizacion || null,
+    fecha_creacion: usuario.fecha_creacion || estudiante.created_at || estudiante.fecha_creacion || null,
+    fecha_actualizacion: usuario.fecha_actualizacion || estudiante.updated_at || estudiante.fecha_actualizacion || null,
     
     // Iniciales para avatar
-    iniciales: getIniciales(usuario.nombres, usuario.apellidos)
+    iniciales: getIniciales(primer_nombre, primer_apellido)
   };
   
   console.log('✅ Datos procesados:', datosProcessados);
@@ -194,13 +235,13 @@ export const procesarDatosPerfil = (perfil) => {
 };
 
 /**
- * Obtener iniciales de nombres y apellidos
- * @param {string} nombres 
- * @param {string} apellidos 
- * @returns {string} Iniciales (ej: "JD" para Juan Pérez)
+ * Obtener iniciales de primer nombre y primer apellido
+ * @param {string} primerNombre 
+ * @param {string} primerApellido 
+ * @returns {string} Iniciales (ej: "JP" para Juan Pérez)
  */
-const getIniciales = (nombres, apellidos) => {
-  const primerosNombres = (nombres || '').split(' ')[0] || '';
-  const primerosApellidos = (apellidos || '').split(' ')[0] || '';
-  return `${primerosNombres.charAt(0)}${primerosApellidos.charAt(0)}`.toUpperCase();
+const getIniciales = (primerNombre, primerApellido) => {
+  const nombre = (primerNombre || '').trim();
+  const apellido = (primerApellido || '').trim();
+  return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
 };

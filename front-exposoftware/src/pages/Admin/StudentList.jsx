@@ -338,11 +338,14 @@ const StudentList = () => {
                             </td>
                           </tr>
                         ) : (
-                          estudiantesActuales.map((estudiante) => {
-                            const formateado = formatearEstudiante(estudiante);
+                          estudiantesActuales.map((item) => {
+                            const formateado = formatearEstudiante(item);
+                            // Extraer el ID correcto según el formato de datos
+                            const estudianteId = item.estudiante?.id_estudiante || item.id_estudiante || formateado.id;
+                            
                             return (
                               <tr
-                                key={estudiante.id_estudiante}
+                                key={estudianteId}
                                 className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                               >
                                 <td className="py-4 px-4 text-sm text-gray-800">
@@ -379,14 +382,14 @@ const StudentList = () => {
                                 <td className="py-4 px-4">
                                   <div className="flex justify-center gap-2">
                                     <button
-                                      onClick={() => verDetalles(estudiante.id_estudiante)}
+                                      onClick={() => verDetalles(estudianteId)}
                                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                       title="Ver detalles"
                                     >
                                       <i className="pi pi-eye"></i>
                                     </button>
                                     <button
-                                      onClick={() => editarEstudiante(estudiante.id_estudiante)}
+                                      onClick={() => editarEstudiante(estudianteId)}
                                       className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
                                       title="Editar"
                                     >
@@ -394,7 +397,7 @@ const StudentList = () => {
                                     </button>
                                     <button
                                       onClick={() => handleCambiarEstado(
-                                        estudiante,
+                                        item,
                                         formateado.estadoBool ? 'desactivar' : 'activar'
                                       )}
                                       className={`p-2 rounded-lg transition-colors ${

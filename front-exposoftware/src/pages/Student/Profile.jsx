@@ -21,11 +21,13 @@ export default function Profile() {
 
   // Datos del perfil del estudiante - Inicializados desde el contexto
   const [profileData, setProfileData] = useState({
-    // Información personal (heredada de Usuarios)
+    // Información personal (heredada de Usuarios) - Campos separados
     tipoDocumento: "",
     identificacion: "",
-    nombres: "",
-    apellidos: "",
+    primer_nombre: "",
+    segundo_nombre: "",
+    primer_apellido: "",
+    segundo_apellido: "",
     genero: "",
     identidadSexual: "",
     fechaNacimiento: "",
@@ -58,71 +60,84 @@ export default function Profile() {
   const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
   const [municipios, setMunicipios] = useState([]);
 
-  // Cargar datos del usuario desde el contexto al montar el componente
+  // 🔥 Cargar perfil desde el backend al montar el componente
   useEffect(() => {
-    if (user) {
-      console.log('📋 Cargando datos del usuario en el perfil:', user);
-      
-      // Extraer datos del usuario (puede venir directo o dentro de user.usuario)
-      const datosUsuario = user.usuario || user;
-      
-      // Si no tiene nombres/apellidos separados pero sí tiene nombre_completo, dividirlo
-      let nombres = datosUsuario.nombres || user.nombres || "";
-      let apellidos = datosUsuario.apellidos || user.apellidos || "";
-      
-      if (!nombres && !apellidos && (datosUsuario.nombre_completo || user.nombre_completo || user.name)) {
-        const nombreCompleto = datosUsuario.nombre_completo || user.nombre_completo || user.name || "";
-        const partes = nombreCompleto.trim().split(" ");
+    const cargarPerfilDesdeBackend = async () => {
+      setLoading(true);
+      try {
+        console.log('🔄 Cargando perfil desde el backend...');
+        const resultado = await StudentProfileService.obtenerMiPerfil();
         
-        // Asumir que las primeras 2 palabras son nombres y el resto apellidos
-        if (partes.length >= 2) {
-          nombres = partes.slice(0, 2).join(" ");
-          apellidos = partes.slice(2).join(" ");
-        } else if (partes.length === 1) {
-          nombres = partes[0];
-        }
-        
-        console.log('📝 Nombre dividido:', { nombres, apellidos });
-      }
-      
-      const normalizeDateForInput = (raw) => {
-        if (!raw) return "";
-        try {
-          const d = new Date(raw);
-          if (isNaN(d)) return "";
-          return d.toISOString().slice(0, 10); // yyyy-mm-dd
-        } catch (e) {
-          return "";
-        }
-      };
+        if (resultado.success && resultado.data) {
+          console.log('✅ Perfil del backend obtenido:', resultado.data);
+          
+          // Procesar los datos del perfil
+          const perfilProcesado = StudentProfileService.procesarDatosPerfil(resultado.data);
+          console.log('📦 Perfil procesado:', perfilProcesado);
+          
+          // Actualizar el contexto con los datos del backend
+          updateUser(perfilProcesado);
+          
+          // Actualizar el formulario con los datos procesados
+          const normalizeDateForInput = (raw) => {
+            if (!raw) return "";
+            try {
+              const d = new Date(raw);
+              if (isNaN(d)) return "";
+              return d.toISOString().slice(0, 10);
+            } catch (e) {
+              return "";
+            }
+          };
 
-      setProfileData({
-        tipoDocumento: datosUsuario.tipo_documento || user.tipo_documento || "",
-        identificacion: datosUsuario.identificacion || user.identificacion || user.id_usuario || "",
-        nombres: nombres,
-        apellidos: apellidos,
-        genero: datosUsuario.genero || datosUsuario.sexo || user.sexo || user.genero || "",
-        identidadSexual: datosUsuario.identidad_sexual || user.identidad_sexual || "",
-        fechaNacimiento: normalizeDateForInput(datosUsuario.fecha_nacimiento || user.fecha_nacimiento || ""),
-        telefono: datosUsuario.telefono || user.telefono || "",
-  pais: datosUsuario.pais_residencia || user.pais_residencia || "",
-  nacionalidad: datosUsuario.nacionalidad || user.nacionalidad || "",
-        departamentoResidencia: datosUsuario.departamento || user.departamento || "",
-        ciudadResidencia: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
-        direccionResidencia: datosUsuario.direccion_residencia || user.direccion_residencia || "",
-        departamento: datosUsuario.departamento || user.departamento || "",
-        municipio: datosUsuario.municipio || user.municipio || "",
-        ciudad: datosUsuario.ciudad_residencia || user.ciudad_residencia || "",
-        correo: datosUsuario.correo || user.correo || "",
-  codigoPrograma: user.codigo_programa || "",
-  semestre: (user.semestre !== undefined && user.semestre !== null) ? user.semestre : "",
-        fechaIngreso: normalizeDateForInput(datosUsuario.fecha_ingreso || user.fecha_ingreso || ""),
-        anioIngreso: user.anio_ingreso || "",
-        periodo: user.periodo || "",
-        rol: datosUsuario.rol || user.rol || "Estudiante"
-      });
-    }
-  }, [user]);
+          setProfileData({
+            tipoDocumento: perfilProcesado.tipo_documento || "",
+            identificacion: perfilProcesado.identificacion || "",
+            primer_nombre: perfilProcesado.primer_nombre || "",
+            segundo_nombre: perfilProcesado.segundo_nombre || "",
+            primer_apellido: perfilProcesado.primer_apellido || "",
+            segundo_apellido: perfilProcesado.segundo_apellido || "",
+            genero: perfilProcesado.genero || perfilProcesado.sexo || "",
+            identidadSexual: perfilProcesado.identidad_sexual || "",
+            fechaNacimiento: normalizeDateForInput(perfilProcesado.fecha_nacimiento),
+            telefono: perfilProcesado.telefono || "",
+            pais: perfilProcesado.pais_residencia || "",
+            nacionalidad: perfilProcesado.nacionalidad || "",
+            departamentoResidencia: perfilProcesado.departamento || "",
+            ciudadResidencia: perfilProcesado.ciudad_residencia || "",
+            direccionResidencia: perfilProcesado.direccion_residencia || "",
+            departamento: perfilProcesado.departamento || "",
+            municipio: perfilProcesado.municipio || "",
+            ciudad: perfilProcesado.ciudad_residencia || "",
+            correo: perfilProcesado.correo || "",
+            codigoPrograma: perfilProcesado.codigo_programa || "",
+            semestre: perfilProcesado.semestre || "",
+            fechaIngreso: normalizeDateForInput(perfilProcesado.fecha_ingreso),
+            anioIngreso: perfilProcesado.anio_ingreso || "",
+            periodo: perfilProcesado.periodo || "",
+            rol: perfilProcesado.rol || "Estudiante"
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error al cargar perfil desde backend:', error);
+        // Si falla, intentar cargar desde el contexto
+        console.log('⚠️ Cargando desde contexto como fallback...');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarPerfilDesdeBackend();
+  }, []); // Solo al montar
+
+  // ⚠️ COMENTADO: Ahora cargamos directamente desde el backend
+  // // Cargar datos del usuario desde el contexto al montar el componente
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log('📋 Cargando datos del usuario en el perfil:', user);
+  //     ... código comentado ...
+  //   }
+  // }, [user]);
 
   // Inicializar opciones de países
   useEffect(() => {
@@ -171,8 +186,8 @@ export default function Profile() {
 
   const handleSave = async () => {
     // Validaciones básicas
-    if (!profileData.nombres || !profileData.apellidos || !profileData.telefono) {
-      alert("Por favor completa los campos obligatorios");
+    if (!profileData.primer_nombre || !profileData.primer_apellido || !profileData.telefono) {
+      alert("Por favor completa los campos obligatorios (primer nombre, primer apellido y teléfono)");
       return;
     }
 
@@ -264,6 +279,18 @@ export default function Profile() {
     handleClosePasswordModal();
   };
 
+  // Mostrar indicador de carga mientras se obtiene el perfil
+  if (loading && !profileData.identificacion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header (same style as Dashboard) */}
@@ -330,6 +357,21 @@ export default function Profile() {
 
           {/* Main content: Form de configuración de perfil */}
           <main className="lg:col-span-3">
+            {/* Alerta si el perfil está incompleto */}
+            {(!profileData.primer_nombre || !profileData.primer_apellido) && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <i className="pi pi-exclamation-triangle text-yellow-600 text-xl mt-0.5"></i>
+                  <div>
+                    <h4 className="font-semibold text-yellow-800 mb-1">Perfil Incompleto</h4>
+                    <p className="text-sm text-yellow-700">
+                      Tu perfil no tiene información completa. Por favor, haz clic en <strong>"Editar Perfil"</strong> y completa al menos tu <strong>nombre</strong> y <strong>apellido</strong>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>

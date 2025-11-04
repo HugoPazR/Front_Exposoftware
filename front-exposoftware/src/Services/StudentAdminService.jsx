@@ -336,23 +336,30 @@ export const filtrarPorEstado = (estado, estudiantes) => {
 
 /**
  * Formatear datos del estudiante para visualización
- * @param {Object} estudiante - Datos del estudiante
+ * @param {Object} data - Datos del estudiante (puede venir en formato anidado o plano)
  * @returns {Object} Datos formateados
  */
-export const formatearEstudiante = (estudiante) => {
+export const formatearEstudiante = (data) => {
+  // Detectar si los datos vienen en formato anidado (nuevo formato del backend)
+  const estudiante = data.estudiante || data;
+  const usuario = data.usuario || estudiante.usuario || {};
+  
   return {
     id: estudiante.id_estudiante,
-    nombreCompleto: `${estudiante.usuario?.nombres || ''} ${estudiante.usuario?.apellidos || ''}`.trim(),
-    identificacion: estudiante.usuario?.identificacion || 'N/A',
-    email: estudiante.usuario?.email || 'N/A',
-    telefono: estudiante.usuario?.telefono || 'N/A',
+    nombreCompleto: usuario.nombre_completo || 
+                   `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim() ||
+                   'Sin nombre',
+    identificacion: usuario.identificacion || 'N/A',
+    email: usuario.correo || usuario.email || 'N/A',
+    telefono: usuario.telefono || 'N/A',
     programa: estudiante.programa?.nombre || 'Sin programa',
-    codigoPrograma: estudiante.codigo_programa,
-    semestre: estudiante.semestre,
+    codigoPrograma: estudiante.codigo_programa || 'N/A',
+    semestre: estudiante.semestre || 0,
     periodo: estudiante.periodo,
     anioIngreso: estudiante.anio_ingreso,
-    estado: estudiante.estado ? 'Activo' : 'Inactivo',
-    estadoBool: estudiante.estado,
+    estado: estudiante.activo !== undefined ? (estudiante.activo ? 'Activo' : 'Inactivo') : 
+            (estudiante.estado ? 'Activo' : 'Inactivo'),
+    estadoBool: estudiante.activo !== undefined ? estudiante.activo : estudiante.estado,
     fechaCreacion: estudiante.fecha_creacion,
     fechaActualizacion: estudiante.fecha_actualizacion
   };

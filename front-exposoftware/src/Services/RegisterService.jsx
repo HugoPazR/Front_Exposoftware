@@ -69,10 +69,6 @@ const handleErrorResponse = async (response) => {
  * @returns {Promise<Object>} Resultado del registro
  */
 export const registrarEstudiante = async (studentData) => {
-  // Construir nombres y apellidos completos
-  const nombres = `${studentData.primerNombre} ${studentData.segundoNombre || ''}`.trim();
-  const apellidos = `${studentData.primerApellido} ${studentData.segundoApellido}`.trim();
-  
   // Normalizar género para que coincida con el backend (primera letra mayúscula)
   const normalizarGenero = (genero) => {
     if (!genero) return '';
@@ -87,8 +83,10 @@ export const registrarEstudiante = async (studentData) => {
     usuario: {
       tipo_documento: studentData.tipoDocumento,
       identificacion: studentData.numeroDocumento,
-      nombres: nombres,
-      apellidos: apellidos,
+      primer_nombre: studentData.primerNombre,
+      segundo_nombre: studentData.segundoNombre || null,
+      primer_apellido: studentData.primerApellido,
+      segundo_apellido: studentData.segundoApellido || null,
       sexo: normalizarGenero(studentData.genero),
       identidad_sexual: studentData.orientacionSexual,
       fecha_nacimiento: studentData.fechaNacimiento,
@@ -149,15 +147,13 @@ export const registrarEstudiante = async (studentData) => {
  * @returns {Promise<Object>} Resultado del registro
  */
 export const registrarEgresado = async (graduateData) => {
-  // Construir nombres y apellidos completos
-  const nombres = `${graduateData.primerNombre} ${graduateData.segundoNombre || ''}`.trim();
-  const apellidos = `${graduateData.primerApellido} ${graduateData.segundoApellido}`.trim();
-  
   const payload = {
     tipo_documento: graduateData.tipoDocumento,
     identificacion: graduateData.numeroDocumento,
-    nombres: nombres,
-    apellidos: apellidos,
+    primer_nombre: graduateData.primerNombre,
+    segundo_nombre: graduateData.segundoNombre || null,
+    primer_apellido: graduateData.primerApellido,
+    segundo_apellido: graduateData.segundoApellido || null,
     sexo: graduateData.genero,
     identidad_sexual: graduateData.orientacionSexual,
     fecha_nacimiento: graduateData.fechaNacimiento,
@@ -218,15 +214,13 @@ export const registrarEgresado = async (graduateData) => {
  * @returns {Promise<Object>} Resultado del registro
  */
 export const registrarInvitado = async (guestData) => {
-  // Construir nombres y apellidos completos
-  const nombres = `${guestData.primerNombre} ${guestData.segundoNombre || ''}`.trim();
-  const apellidos = `${guestData.primerApellido} ${guestData.segundoApellido}`.trim();
-  
   const payload = {
     tipo_documento: guestData.tipoDocumento,
     identificacion: guestData.numeroDocumento,
-    nombres: nombres,
-    apellidos: apellidos,
+    primer_nombre: guestData.primerNombre,
+    segundo_nombre: guestData.segundoNombre || null,
+    primer_apellido: guestData.primerApellido,
+    segundo_apellido: guestData.segundoApellido || null,
     sexo: guestData.genero,
     identidad_sexual: guestData.orientacionSexual,
     fecha_nacimiento: guestData.fechaNacimiento,
@@ -243,10 +237,13 @@ export const registrarInvitado = async (guestData) => {
     // Campos específicos del invitado
     ...(guestData.intitucionOrigen && { institucion_origen: guestData.intitucionOrigen }),
     ...(guestData.nombreEmpresa && { nombre_empresa: guestData.nombreEmpresa }),
-    ...(guestData.sector && { id_sector: guestData.sector }) // ✅ Ya viene como número (1, 2, 3, 4)
+    ...(guestData.sector && { id_sector: parseInt(guestData.sector) })
   };
 
-  console.log('👤 Registrando INVITADO:', {
+  console.log('👤 Registrando INVITADO con credenciales:');
+  console.log('📧 Correo:', payload.correo);
+  console.log('🔐 Contraseña:', payload.contraseña ? '***' + payload.contraseña.slice(-3) : 'NO PROPORCIONADA');
+  console.log('📦 Payload completo:', {
     ...payload,
     contraseña: '***'
   });

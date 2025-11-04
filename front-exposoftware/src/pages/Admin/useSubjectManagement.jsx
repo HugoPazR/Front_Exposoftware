@@ -305,7 +305,36 @@ export const useSubjectManagement = () => {
             await SubjectService.agregarGrupoAMateria(editingId, grupo.codigo_grupo);
             console.log(`   ✅ Grupo ${grupo.codigo_grupo} agregado`);
           } catch (error) {
-            console.error(`   ❌ Error al agregar grupo ${grupo.codigo_grupo}:`, error.message);
+            // Si el grupo ya está asignado a otra materia, intentar liberarlo primero
+            if (error.message && error.message.includes('ya está asignado')) {
+              console.warn(`   ⚠️ Grupo ${grupo.codigo_grupo} ya asignado a otra materia`);
+              
+              // Extraer el código de materia del mensaje de error
+              const match = error.message.match(/materia\s+([A-Z0-9_]+)/i);
+              if (match && match[1]) {
+                const materiaAnterior = match[1];
+                console.log(`   🔄 Intentando liberar grupo de materia anterior: ${materiaAnterior}`);
+                
+                try {
+                  // Eliminar grupo de la materia anterior
+                  await SubjectService.eliminarGrupoDeMateria(materiaAnterior, grupo.codigo_grupo);
+                  console.log(`   ✅ Grupo liberado de ${materiaAnterior}`);
+                  
+                  // Intentar agregar nuevamente
+                  await SubjectService.agregarGrupoAMateria(editingId, grupo.codigo_grupo);
+                  console.log(`   ✅ Grupo ${grupo.codigo_grupo} agregado después de liberarlo`);
+                } catch (secondError) {
+                  console.error(`   ❌ Error al liberar/agregar grupo ${grupo.codigo_grupo}:`, secondError.message);
+                  alert(`⚠️ No se pudo agregar el grupo ${grupo.codigo_grupo}: ${secondError.message}`);
+                }
+              } else {
+                console.error(`   ❌ Error al agregar grupo ${grupo.codigo_grupo}:`, error.message);
+                alert(`⚠️ ${error.message}`);
+              }
+            } else {
+              console.error(`   ❌ Error al agregar grupo ${grupo.codigo_grupo}:`, error.message);
+              alert(`⚠️ Error al agregar grupo ${grupo.codigo_grupo}: ${error.message}`);
+            }
           }
         }
       }
@@ -323,9 +352,12 @@ export const useSubjectManagement = () => {
         }
       }
 
-      // 6. Recargar materias y mostrar éxito
-      console.log('6️⃣ Recargando lista de materias...');
-      await cargarMaterias();
+      // 6. Recargar materias Y grupos para actualizar la UI
+      console.log('6️⃣ Recargando lista de materias y grupos...');
+      await Promise.all([
+        cargarMaterias(),
+        cargarGrupos() // También recargar grupos para actualizar la lista de disponibles
+      ]);
       alert("✅ Materia actualizada exitosamente");
       handleCancelEdit();
       

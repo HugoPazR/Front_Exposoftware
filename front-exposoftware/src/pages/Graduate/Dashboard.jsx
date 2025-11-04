@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
+import * as AuthService from "../../Services/AuthService";
 import {
   BarChart,
   Bar,
@@ -15,7 +16,23 @@ import {
 } from "recharts";
 
 export default function GraduateDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+      try {
+        await AuthService.logout();
+        console.log('✅ Sesión cerrada exitosamente');
+        navigate('/login');
+      } catch (error) {
+        console.error('❌ Error al cerrar sesión:', error);
+        // Aunque falle, redirigir al login
+        navigate('/login');
+      }
+    }
+  };
 
   // Datos para gráfica de barras - Proyectos por Área
   const proyectosPorArea = [
@@ -62,7 +79,10 @@ export default function GraduateDashboard() {
                 </div>
               </div>
 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>

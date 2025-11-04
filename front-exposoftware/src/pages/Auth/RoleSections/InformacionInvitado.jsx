@@ -12,16 +12,21 @@ function InformacionInvitado({
   return (
     <>
       <div className="col-span-2 border-l-4 border-green-600 pl-2 mt-4 mb-2">
-        <h2 className="text-lg font-semibold text-gray-700">Información Invitado</h2>
+        <h2 className="text-lg font-semibold text-gray-700">Información del Invitado</h2>
+        <p className="text-sm text-gray-500 mt-1">Completa los datos de acceso y organización</p>
       </div>
 
-      <div className="col-span-2">
-        <label className="block font-medium text-gray-700 mb-1">Correo Personal *</label>
+      {/* Correo Personal - Campo Destacado */}
+      <div className="col-span-2 bg-green-50 p-4 rounded-lg border-2 border-green-200">
+        <label className="block font-semibold text-gray-900 mb-2 flex items-center gap-2">
+          <span className="text-green-600">✉️</span>
+          Correo Personal (será tu usuario de acceso) *
+        </label>
         <div className="relative">
           <input
             name="correo"
             type="email"
-            placeholder="usuario@dominio.com"
+            placeholder="usuario@ejemplo.com"
             value={formData.correo}
             onChange={handleChange}
             disabled={cargando}
@@ -36,6 +41,9 @@ function InformacionInvitado({
             <AlertCircle size={14} /> {errors.correo}
           </p>
         )}
+        <p className="text-xs text-gray-600 mt-2">
+          📌 Este correo será usado para iniciar sesión en la plataforma
+        </p>
       </div>
 
       <div>

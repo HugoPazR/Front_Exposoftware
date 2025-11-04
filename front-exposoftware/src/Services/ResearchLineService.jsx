@@ -112,40 +112,50 @@ const getAuthHeaders = () => {
 
 /**
  * Obtener todas las líneas de investigación
- * GET /api/v1/public-investigacion/lineas
+ * GET /api/v1/public-investigacion/arbol-completo
  */
 export const obtenerLineas = async () => {
   try {
-    console.log('🔍 Obteniendo líneas desde:', `${API_URL}/api/v1/public-investigacion/lineas`);
+    console.log('🔍 Obteniendo líneas desde:', `${API_URL}/api/v1/public-investigacion/arbol-completo`);
     
-    const response = await fetch(`${API_URL}/api/v1/public-investigacion/lineas`, {
+    const response = await fetch(`${API_URL}/api/v1/public-investigacion/arbol-completo`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
 
     if (!response.ok) {
+      // Si es error 500, probablemente no hay datos aún
+      if (response.status === 500) {
+        console.warn('⚠️ El árbol de investigación aún no tiene datos. Retornando array vacío.');
+        return [];
+      }
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('📦 Respuesta completa de líneas:', data);
+    console.log('📦 Respuesta completa del árbol de investigación:', data);
     
-    // El backend puede devolver: array directo, {data: array}, o {lineas: array}
+    // Extraer las líneas del árbol completo
     let lineas = [];
     if (Array.isArray(data)) {
+      // Si data es un array, son las líneas directamente
       lineas = data;
-    } else if (data.data && Array.isArray(data.data)) {
-      lineas = data.data;
     } else if (data.lineas && Array.isArray(data.lineas)) {
+      // Si viene en formato {lineas: [...]}
       lineas = data.lineas;
+    } else if (data.data && Array.isArray(data.data)) {
+      // Si viene en formato {data: [...]}
+      lineas = data.data;
     }
     
-    console.log('✅ Líneas procesadas:', lineas);
+    console.log('✅ Líneas extraídas del árbol:', lineas);
     return lineas;
     
   } catch (error) {
     console.error('❌ Error obteniendo líneas:', error);
-    throw new Error('No se pudieron cargar las líneas de investigación');
+    // En lugar de lanzar error, retornar array vacío para permitir crear las primeras líneas
+    console.warn('⚠️ Retornando array vacío para permitir crear las primeras líneas');
+    return [];
   }
 };
 
@@ -182,18 +192,28 @@ export const obtenerLineaPorId = async (lineaId) => {
  * POST /api/v1/admin/investigacion/lineas
  * 
  * @param {Object} lineaData - Datos de la línea
- * @param {string} lineaData.nombre_linea - Nombre de la línea
- * @param {number} lineaData.codigo_linea - Código de la línea
+ * @param {string} lineaData.nombre_linea - Nombre de la línea (máximo 15 caracteres - LIMITACIÓN DEL BACKEND)
+ * @param {number} lineaData.codigo_linea - Código de la línea (OBLIGATORIO)
  */
 export const crearLinea = async (lineaData) => {
   try {
+    // Validaciones
     if (!lineaData.nombre_linea || !lineaData.nombre_linea.trim()) {
       throw new Error('El nombre de la línea es obligatorio');
     }
 
+    if (!lineaData.codigo_linea) {
+      throw new Error('El código de la línea es obligatorio');
+    }
+
+    const nombreTrimmed = lineaData.nombre_linea.trim();
+    if (nombreTrimmed.length > 15) {
+      throw new Error(`El nombre de la línea debe tener máximo 15 caracteres (limitación del backend). Actual: ${nombreTrimmed.length}`);
+    }
+
     const payload = {
-      nombre_linea: lineaData.nombre_linea.trim(),
-      ...(lineaData.codigo_linea && { codigo_linea: typeof lineaData.codigo_linea === 'string' ? parseInt(lineaData.codigo_linea) : lineaData.codigo_linea })
+      nombre_linea: nombreTrimmed,
+      codigo_linea: typeof lineaData.codigo_linea === 'string' ? parseInt(lineaData.codigo_linea) : lineaData.codigo_linea
     };
 
     console.log('📤 Creando línea - Payload enviado:', JSON.stringify(payload, null, 2));

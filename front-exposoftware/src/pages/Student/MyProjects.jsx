@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import * as ProjectsService from "../../Services/ProjectsService";
+import EventosService from "../../Services/EventosService";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function MyProjects() {
@@ -10,13 +11,17 @@ export default function MyProjects() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState(null);
+  const [eventoInfo, setEventoInfo] = useState(null); 
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
 
   // Cargar proyectos del usuario al montar el componente
   useEffect(() => {
     const cargarMisProyectos = async () => {
-      if (!user || !user.id_usuario) {
+      // Verificar que tengamos el id_estudiante (ID del backend, no Firebase)
+      const idEstudiante = user?.id_estudiante || user?.id_usuario;
+      
+      if (!user || !idEstudiante) {
         console.log('⏳ Esperando datos del usuario...');
         return;
       }
@@ -24,9 +29,22 @@ export default function MyProjects() {
       try {
         setLoadingProjects(true);
         setError(null);
-        console.log('🔍 Cargando proyectos del usuario:', user.id_usuario);
+        console.log('🔍 Cargando proyectos del estudiante:', idEstudiante);
+        console.log('📋 Datos del usuario:', { 
+          id_estudiante: user.id_estudiante, 
+          id_usuario: user.id_usuario,
+          rol: user.rol 
+        });
         
-        const misProyectos = await ProjectsService.obtenerMisProyectos(user.id_usuario);
+        let misProyectos = await ProjectsService.obtenerMisProyectos(idEstudiante);
+        
+        // � DEBUG: Ver qué datos están llegando del backend
+        console.log('🔍 DEBUG - Proyectos recibidos del backend:', misProyectos);
+        if (misProyectos.length > 0) {
+          console.log('🔍 DEBUG - Primer proyecto completo:', JSON.stringify(misProyectos[0], null, 2));
+          console.log('� DEBUG - Estudiantes del primer proyecto:', misProyectos[0].id_estudiantes);
+        }
+        
         setProjects(misProyectos);
         
         console.log('✅ Proyectos cargados:', misProyectos.length);
@@ -41,7 +59,7 @@ export default function MyProjects() {
     if (!loading && user) {
       cargarMisProyectos();
     }
-  }, [user?.id_usuario, loading]); // Solo depende del ID, no del objeto completo
+  }, [user?.id_estudiante, user?.id_usuario, loading]); // Depende de ambos IDs
 
   // Handler para cerrar sesión
   const handleLogout = async () => {
@@ -55,14 +73,38 @@ export default function MyProjects() {
     }
   };
 
-  const handleViewDetails = (project) => {
+  const handleViewDetails = async (project) => {
     setSelectedProject(project);
     setShowModal(true);
+    setEventoInfo(null); // Reset evento info
+    
+    // Cargar información del evento si existe id_evento
+    if (project.id_evento) {
+      try {
+        console.log('🔍 Cargando info del evento:', project.id_evento);
+        
+        const todosEventos = await EventosService.obtenerEventos();
+        console.log('📋 Total eventos disponibles:', todosEventos.length);
+        
+        const evento = todosEventos.find(e => e.id_evento === project.id_evento);
+        
+        if (evento) {
+          console.log('✅ Evento encontrado:', evento);
+          setEventoInfo(evento);
+        } else {
+          console.warn('⚠️ Evento no encontrado en la lista:', project.id_evento);
+        }
+      } catch (error) {
+        console.warn('⚠️ No se pudo cargar el evento:', error);
+        // No bloqueamos la visualización del proyecto
+      }
+    }
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedProject(null);
+    setEventoInfo(null); // Limpiar info del evento
   };
 
   // Mostrar loading mientras se cargan los datos del usuario
@@ -158,11 +200,6 @@ export default function MyProjects() {
                 )}
                 {user?.semestre && (
                   <p className="text-xs text-gray-400">Semestre: {user.semestre}</p>
-                )}
-                {user?.correo && (
-                  <p className="text-xs text-gray-400 mt-2 truncate" title={user.correo}>
-                    {user.correo}
-                  </p>
                 )}
               </div>
             </div>
@@ -414,7 +451,9 @@ export default function MyProjects() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Docente</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.id_docente || 'No asignado'}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedProject.id_docente?.nombre || selectedProject.id_docente?.uid_docente || 'No asignado'}
+                      </p>
                     </div>
                     {selectedProject.calificacion && (
                       <div>
@@ -447,15 +486,30 @@ export default function MyProjects() {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Línea de Investigación</p>
-                      <p className="text-sm font-medium text-gray-900">Código: {selectedProject.codigo_linea}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedProject.nombre_linea || `Código: ${selectedProject.codigo_linea}`}
+                      </p>
+                      {selectedProject.nombre_linea && (
+                        <p className="text-xs text-gray-400 mt-1">Código: {selectedProject.codigo_linea}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Sublínea</p>
-                      <p className="text-sm font-medium text-gray-900">Código: {selectedProject.codigo_sublinea}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedProject.nombre_sublinea || `Código: ${selectedProject.codigo_sublinea}`}
+                      </p>
+                      {selectedProject.nombre_sublinea && (
+                        <p className="text-xs text-gray-400 mt-1">Código: {selectedProject.codigo_sublinea}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Área Temática</p>
-                      <p className="text-sm font-medium text-gray-900">Código: {selectedProject.codigo_area}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedProject.nombre_area || `Código: ${selectedProject.codigo_area}`}
+                      </p>
+                      {selectedProject.nombre_area && (
+                        <p className="text-xs text-gray-400 mt-1">Código: {selectedProject.codigo_area}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -469,18 +523,31 @@ export default function MyProjects() {
                     Participantes ({selectedProject.id_estudiantes.length})
                   </h5>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProject.id_estudiantes.map((estudiante, idx) => (
-                      <span 
-                        key={idx}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium"
-                        style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
-                      >
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.3)' }}>
-                          <i className="pi pi-user text-xs"></i>
-                        </div>
-                        {estudiante.nombre || estudiante.email || estudiante.id_estudiante}
-                      </span>
-                    ))}
+                    {selectedProject.id_estudiantes.map((estudiante, idx) => {
+                      // Manejar tanto objetos {id_estudiante, nombre} como strings
+                      console.log(`🔍 Renderizando estudiante [${idx}]:`, estudiante);
+                      console.log(`   - Tipo: ${typeof estudiante}`);
+                      console.log(`   - nombre: ${estudiante?.nombre}`);
+                      
+                      const nombreEstudiante = typeof estudiante === 'object' 
+                        ? (estudiante.nombre || estudiante.email || estudiante.id_estudiante)
+                        : estudiante;
+                      
+                      console.log(`   - Mostrando: ${nombreEstudiante}`);
+                      
+                      return (
+                        <span 
+                          key={idx}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium"
+                          style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
+                        >
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.3)' }}>
+                            <i className="pi pi-user text-xs"></i>
+                          </div>
+                          {nombreEstudiante || 'Estudiante sin nombre'}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -514,14 +581,47 @@ export default function MyProjects() {
                 </div>
               )}
 
-              {/* Evento */}
+              {/* Evento Asociado */}
               {selectedProject.id_evento && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <i className="pi pi-calendar-plus text-blue-600"></i>
-                    <h5 className="text-sm font-semibold text-blue-900">Evento Asociado</h5>
+                <div>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <i className="pi pi-calendar-plus" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
+                    Evento Asociado
+                  </h5>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 0.2)' }}>
+                        <i className="pi pi-calendar" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
+                      </div>
+                      <div className="flex-1">
+                        {eventoInfo ? (
+                          <>
+                            <p className="text-sm font-medium text-gray-900">
+                              {eventoInfo.nombre_evento || 'Evento sin nombre'}
+                            </p>
+                            {eventoInfo.descripcion && (
+                              <p className="text-xs text-gray-600 mt-1">{eventoInfo.descripcion}</p>
+                            )}
+                            {eventoInfo.fecha_inicio && eventoInfo.fecha_fin && (
+                              <p className="text-xs text-gray-500 mt-2">
+                                {new Date(eventoInfo.fecha_inicio).toLocaleDateString('es-ES')} - {new Date(eventoInfo.fecha_fin).toLocaleDateString('es-ES')}
+                              </p>
+                            )}
+                            {eventoInfo.lugar && (
+                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                <i className="pi pi-map-marker"></i>
+                                {eventoInfo.lugar}
+                              </p>
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-sm font-medium text-gray-900 animate-pulse">
+                            Cargando información del evento...
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm text-blue-800">ID: {selectedProject.id_evento}</p>
                 </div>
               )}
             </div>

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import RegisterProjectService from "../../Services/RegisterProjectService";
+import EventosService from "../../Services/EventosService";
 
 export default function RegisterProject() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
-  const { user, getAuthToken } = useAuth();
+  const { user, getAuthToken, getFullName } = useAuth();
 
   const [form, setForm] = useState({
     titulo_proyecto: "",
@@ -18,7 +19,7 @@ export default function RegisterProject() {
     codigo_linea: "",
     codigo_sublinea: "",
     codigo_area: "",
-    id_evento: "1jAZE5TKXakRd9ymq1Xu",
+    id_evento: "", // Ahora será seleccionado por el usuario
     archivoPDF: null,
     archivoExtra: null, // Para póster o imagen según tipo
   });
@@ -58,6 +59,7 @@ export default function RegisterProject() {
   const [sublineas, setSublineas] = useState([]);
   const [sublineasFiltradas, setSublineasFiltradas] = useState([]);
   const [areas, setAreas] = useState([]);
+  const [eventos, setEventos] = useState([]); // Nuevo estado para eventos
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState(null);
@@ -72,82 +74,160 @@ export default function RegisterProject() {
       setError(null);
 
       try {
-        // 🚧 MODO PRUEBA: Comentar APIs y usar datos hardcodeados
+        console.log('🔄 Cargando catálogos desde el backend...');
+        console.log('👤 Usuario actual:', user);
+
+        // 🔥 CARGAR DATOS REALES DESDE EL BACKEND
         
-        /* DESCOMENTAR ESTO PARA VOLVER A USAR LAS APIS
-        const [
-          estudiantesData,
-          docentesData,
-          lineasData,
-          sublineasData,
-          areasData,
-          materiasData,
-          gruposData,
-        ] = await Promise.all([
-          RegisterProjectService.obtenerEstudiantes(),
-          RegisterProjectService.obtenerDocentes(),
-          RegisterProjectService.obtenerLineasInvestigacion(),
-          RegisterProjectService.obtenerSublineasInvestigacion(),
-          RegisterProjectService.obtenerAreasTematicas(),
-          RegisterProjectService.obtenerMaterias().catch(() => []),
-          RegisterProjectService.obtenerGrupos().catch(() => []),
-        ]);
+        // 1️⃣ Cargar árbol de investigación (líneas, sublíneas, áreas)
+        const arbolInvestigacion = await RegisterProjectService.obtenerArbolInvestigacion();
+        
+        // Extraer líneas
+        const lineasData = arbolInvestigacion.map(linea => ({
+          codigo: linea.codigo_linea,
+          nombre: linea.nombre_linea,
+        }));
 
-        // 🔥 Si la API devuelve results dentro de data
-        const listaEstudiantes = estudiantesData?.data?.results || estudiantesData || [];
-        const listaDocentes = docentesData?.data?.results || docentesData || [];
+        console.log('📊 Árbol recibido para procesar:', arbolInvestigacion);
 
-        setEstudiantes(listaEstudiantes);
-        setDocentes(listaDocentes);
-        setLineas(lineasData);
-        setSublineas(sublineasData);
-        setAreas(areasData);
-        setMaterias(materiasData);
-        setGrupos(gruposData);
-        */
-
-        // 🧪 DATOS DE PRUEBA HARDCODEADOS (estructura corregida)
-        const listaEstudiantes = [
-          { 
-            id: "CUaUUmOxHsbsv047JO9bNSoLrUh2", 
-            usuario: { nombres: "Estudiante", apellidos: "Prueba", correo: "estudiante@test.com" }
+        // Extraer sublíneas con referencia a línea
+        const sublineasData = [];
+        arbolInvestigacion.forEach((linea, indexLinea) => {
+          console.log(`🔍 Procesando línea ${indexLinea + 1}:`, {
+            codigo: linea.codigo_linea,
+            nombre: linea.nombre_linea,
+            tiene_sublineas: !!linea.sublineas,
+            tipo_sublineas: Array.isArray(linea.sublineas) ? 'array' : typeof linea.sublineas,
+            cantidad_sublineas: linea.sublineas?.length || 0
+          });
+          
+          if (Array.isArray(linea.sublineas)) {
+            linea.sublineas.forEach((sublinea, indexSub) => {
+              console.log(`  📌 Sublínea ${indexSub + 1}:`, {
+                codigo: sublinea.codigo_sublinea,
+                nombre: sublinea.nombre_sublinea,
+                tiene_areas: !!sublinea.areas_tematicas,
+                cantidad_areas: sublinea.areas_tematicas?.length || 0
+              });
+              
+              sublineasData.push({
+                codigo: sublinea.codigo_sublinea,
+                nombre: sublinea.nombre_sublinea,
+                codigoLinea: linea.codigo_linea,
+              });
+            });
+          } else {
+            console.warn(`⚠️ Línea ${linea.nombre_linea} no tiene sublíneas o no es un array`);
           }
-        ];
-        const listaDocentes = [
-          { 
-            id: "c5i6cZpo7vhBzgfyLhmOAfh22Yh2", 
-            nombre: "Docente Prueba",
-            usuario: { nombres: "Docente", apellidos: "Prueba", correo: "docente@test.com" }
-          }
-        ];
-        const lineasData = [
-          { codigo_linea: 1, nombre_linea: "Línea Prueba 1" }
-        ];
-        const sublineasData = [
-          { codigo_sublinea: 2, nombre_sublinea: "Sublínea Prueba 2", codigoLinea: 1 }
-        ];
-        const areasData = [
-          { codigo_area: 1, nombre_area: "Área Prueba 1", codigoSublinea: 2 }
-        ];
-        const materiasData = [
-          { codigo_materia: "FIS201", nombre_materia: "Física 201" }
-        ];
-        const gruposData = [
-          { id_grupo: 203, nombre_grupo: "Grupo 203", codigoMateria: "FIS201" }
-        ];
-
-        setEstudiantes(listaEstudiantes);
-        setDocentes(listaDocentes);
-        setLineas(lineasData);
-        setSublineas(sublineasData);
-        setAreas(areasData);
-        setMaterias(materiasData);
-        setGrupos(gruposData);
-
-        console.log("✅ Catálogos cargados (MODO PRUEBA):", {
-          estudiantes: listaEstudiantes.length,
-          docentes: listaDocentes.length,
         });
+
+        // Extraer áreas temáticas con referencia a sublínea
+        const areasData = [];
+        arbolInvestigacion.forEach(linea => {
+          linea.sublineas?.forEach(sublinea => {
+            sublinea.areas_tematicas?.forEach(area => {
+              areasData.push({
+                codigo: area.codigo_area,
+                nombre: area.nombre_area,
+                codigoSublinea: sublinea.codigo_sublinea,
+              });
+            });
+          });
+        });
+
+        console.log('🌳 Árbol de investigación cargado:', {
+          lineas: lineasData.length,
+          sublineas: sublineasData.length,
+          areas: areasData.length,
+        });
+
+        // 2️⃣ Cargar docentes
+        const docentesData = await RegisterProjectService.obtenerDocentes();
+        console.log('👨‍🏫 Docentes cargados:', docentesData.length);
+
+        // 3️⃣ Cargar materias del programa del estudiante
+        let materiasData = [];
+        if (user?.codigo_programa) {
+          // Extraer facultad del código de programa (ej: "ING_SIS" -> "ING")
+          const facultyId = user.codigo_programa.split('_')[0];
+          materiasData = await RegisterProjectService.obtenerMateriasPorPrograma(
+            facultyId, 
+            user.codigo_programa
+          );
+          console.log('📚 Materias cargadas:', materiasData.length);
+        } else {
+          console.warn('⚠️ No se pudo determinar el programa del estudiante');
+        }
+
+        // 4️⃣ Cargar todos los estudiantes disponibles
+        const todosLosEstudiantes = await RegisterProjectService.obtenerTodosLosEstudiantes();
+        console.log('� Total de estudiantes disponibles:', todosLosEstudiantes.length);
+
+        // Agregar estudiante actual a la lista si no está
+        const estudianteActual = user ? {
+          id: user.id_estudiante || user.id_usuario,
+          nombreCompleto: user.nombre_completo || `${user.primer_nombre || ''} ${user.primer_apellido || ''}`.trim(),
+          correo: user.correo,
+          codigoEstudiante: user.codigo_estudiante,
+          programa: user.codigo_programa,
+        } : null;
+
+        let listaEstudiantes = [...todosLosEstudiantes];
+        
+        // Si el estudiante actual no está en la lista, agregarlo al inicio
+        if (estudianteActual && estudianteActual.id) {
+          const yaExiste = listaEstudiantes.some(est => est.id === estudianteActual.id);
+          if (!yaExiste) {
+            listaEstudiantes = [estudianteActual, ...listaEstudiantes];
+          }
+        }
+
+        console.log('👥 Lista de estudiantes construida:', listaEstudiantes.length);
+
+        // 5️⃣ Cargar eventos disponibles
+        let eventosData = await EventosService.obtenerEventos();
+        
+        // Filtrar solo eventos activos o futuros (opcional)
+        const hoy = new Date();
+        eventosData = eventosData.filter(evento => {
+          if (!evento.fecha_fin) return true; // Si no tiene fecha, mostrar
+          const fechaFin = new Date(evento.fecha_fin);
+          return fechaFin >= hoy; // Mostrar solo eventos que no han terminado
+        });
+        
+        console.log('📅 Eventos disponibles:', eventosData.length);
+
+        // Actualizar estados
+        setEstudiantes(listaEstudiantes);
+        setDocentes(docentesData);
+        setLineas(lineasData);
+        setSublineas(sublineasData);
+        setAreas(areasData);
+        setMaterias(materiasData);
+        setEventos(eventosData);
+
+        console.log('📊 Estados actualizados:', {
+          estudiantes: listaEstudiantes.length,
+          docentes: docentesData.length,
+          lineas: lineasData.length,
+          sublineas: sublineasData.length,
+          areas: areasData.length,
+          materias: materiasData.length,
+          eventos: eventosData.length
+        });
+
+        // Auto-agregar estudiante actual al proyecto
+        if (user?.id_estudiante) {
+          console.log('✅ Auto-agregando estudiante al proyecto:', user.id_estudiante);
+          setForm(prev => ({
+            ...prev,
+            id_estudiantes: [user.id_estudiante],
+          }));
+        } else {
+          console.warn('⚠️ No se pudo auto-agregar estudiante. id_estudiante no disponible en user:', user);
+        }
+
+        console.log("✅ Catálogos cargados exitosamente");
       } catch (error) {
         console.error("❌ Error cargando catálogos:", error);
         
@@ -155,7 +235,7 @@ export default function RegisterProject() {
         if (error.message && error.message.includes('rol de estudiante no tiene permisos')) {
           setError(error.message);
         } else {
-          setError("Error al cargar los datos. Por favor, intenta de nuevo.");
+          setError(error.message || "Error al cargar los datos. Por favor, intenta de nuevo.");
         }
       } finally {
         setLoadingData(false);
@@ -163,7 +243,7 @@ export default function RegisterProject() {
     };
 
     cargarCatalogos();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (form.codigo_linea) {
@@ -176,13 +256,93 @@ export default function RegisterProject() {
     }
   }, [form.codigo_linea, sublineas]);
 
+  // 🔥 Cargar grupos cuando se selecciona una materia
+  useEffect(() => {
+    const cargarGrupos = async () => {
+      if (form.codigo_materia) {
+        console.log('🔄 Cargando grupos de la materia:', form.codigo_materia);
+        try {
+          const gruposData = await RegisterProjectService.obtenerGruposPorMateria(form.codigo_materia);
+          setGrupos(gruposData);
+          console.log('👥 Grupos cargados:', gruposData.length);
+        } catch (error) {
+          console.error('❌ Error cargando grupos:', error);
+          setGrupos([]);
+        }
+      } else {
+        setGrupos([]);
+        // Limpiar grupo y docente si se deselecciona la materia
+        setForm(prev => ({ ...prev, id_grupo: "", id_docente: "" }));
+      }
+    };
+
+    cargarGrupos();
+  }, [form.codigo_materia]);
+
+  // 🔥 Asignar docente automáticamente cuando se selecciona un grupo
+  useEffect(() => {
+    const asignarDocenteDelGrupo = () => {
+      if (form.id_grupo) {
+        const grupoSeleccionado = grupos.find(g => g.id === form.id_grupo);
+        
+        if (grupoSeleccionado && grupoSeleccionado.idDocente) {
+          console.log('✅ Grupo seleccionado:', grupoSeleccionado);
+          console.log('✅ Asignando docente del grupo:', grupoSeleccionado.idDocente);
+          console.log('📝 Nombre del docente:', grupoSeleccionado.nombreDocente);
+          
+          // Buscar el docente en la lista de docentes disponibles
+          let docenteEnLista = docentes.find(d => d.id === grupoSeleccionado.idDocente);
+          
+          if (!docenteEnLista && grupoSeleccionado.nombreDocente) {
+            // Si no está en la lista pero el grupo trae el nombre, agregarlo
+            console.log('� Agregando docente del grupo a la lista:', grupoSeleccionado.nombreDocente);
+            const nuevoDocente = {
+              id: grupoSeleccionado.idDocente,
+              nombre: grupoSeleccionado.nombreDocente,
+              correo: '',
+            };
+            
+            setDocentes(prev => {
+              // Evitar duplicados
+              const existe = prev.find(d => d.id === nuevoDocente.id);
+              if (existe) return prev;
+              console.log('✅ Docente agregado a la lista de docentes disponibles');
+              return [...prev, nuevoDocente];
+            });
+            
+            docenteEnLista = nuevoDocente;
+          }
+          
+          if (docenteEnLista) {
+            console.log('✅ Docente encontrado/agregado:', docenteEnLista.nombre);
+          } else {
+            console.warn('⚠️ No se pudo obtener información del docente');
+          }
+          
+          // Asignar el ID del docente al formulario
+          setForm(prev => ({ ...prev, id_docente: grupoSeleccionado.idDocente }));
+        }
+      } else {
+        // Limpiar docente si se deselecciona el grupo
+        setForm(prev => ({ ...prev, id_docente: "" }));
+      }
+    };
+
+    asignarDocenteDelGrupo();
+  }, [form.id_grupo, grupos]);
+
+  // Filtrar áreas por sublínea seleccionada
   const areasFiltradas = form.codigo_sublinea
     ? areas.filter((a) => a.codigoSublinea === parseInt(form.codigo_sublinea))
     : [];
 
-  const gruposFiltrados = form.codigo_materia
-    ? grupos.filter((g) => g.codigoMateria === form.codigo_materia)
-    : [];
+  // Los grupos ya están filtrados por materia (se cargan cuando se selecciona materia)
+  const gruposFiltrados = grupos;
+
+  // Obtener el docente actual del grupo seleccionado
+  const docenteDelGrupo = form.id_grupo 
+    ? grupos.find(g => g.id === form.id_grupo)
+    : null;
 
   const toggleStudent = (idEstudiante) => {
     setForm((s) => {
@@ -248,6 +408,10 @@ export default function RegisterProject() {
       alert("Debe seleccionar un área temática");
       return;
     }
+    if (!form.id_evento) {
+      alert("Debe seleccionar un evento");
+      return;
+    }
     if (!form.archivoPDF) {
       alert("Debe adjuntar el artículo en PDF");
       return;
@@ -278,16 +442,77 @@ export default function RegisterProject() {
     setLoading(true);
 
     try {
-      // 🔥 Agregar automáticamente el ID del usuario logueado como participante
+      // 🔥 Agregar automáticamente el ID_ESTUDIANTE del usuario logueado como participante
       const participantes = [...form.id_estudiantes];
-      if (user?.id_usuario && !participantes.includes(user.id_usuario)) {
-        participantes.push(user.id_usuario);
-        console.log('👤 Agregando usuario actual como participante:', user.id_usuario);
+      const nombresParticipantes = [];
+      
+      console.log('🔍 DEBUG - Estudiantes seleccionados inicialmente:', form.id_estudiantes);
+      console.log('🔍 DEBUG - Usuario actual:', {
+        id_estudiante: user?.id_estudiante,
+        id_usuario: user?.id_usuario
+      });
+      
+      // Obtener nombres de los estudiantes seleccionados
+      form.id_estudiantes.forEach(idEst => {
+        const estudiante = estudiantes.find(e => e.id_estudiante === idEst);
+        if (estudiante) {
+          const nombreEstudiante = `${estudiante.nombres} ${estudiante.apellidos}`.trim();
+          nombresParticipantes.push(nombreEstudiante);
+          console.log(`   📝 Estudiante encontrado: ${idEst} -> ${nombreEstudiante}`);
+        } else {
+          console.warn(`   ⚠️ Estudiante NO encontrado en lista: ${idEst}`);
+        }
+      });
+      
+      console.log('📋 Nombres recopilados hasta ahora:', nombresParticipantes);
+      
+      // ✅ IMPORTANTE: Usar id_estudiante (backend), NO id_usuario (Firebase)
+      const idEstudianteActual = user?.id_estudiante;
+      
+      console.log('🔍 Verificando si agregar usuario actual:', {
+        idEstudianteActual,
+        yaEstaEnLista: participantes.includes(idEstudianteActual),
+        participantesActuales: participantes
+      });
+      
+      if (idEstudianteActual && !participantes.includes(idEstudianteActual)) {
+        participantes.push(idEstudianteActual);
+        
+        // Usar getFullName() del contexto que ya tiene la lógica correcta
+        const nombreCompleto = getFullName();
+        
+        console.log('👤 Agregando usuario actual como participante:', {
+          id_estudiante: idEstudianteActual,
+          nombre: nombreCompleto,
+          user_fields: {
+            primer_nombre: user?.primer_nombre,
+            segundo_nombre: user?.segundo_nombre,
+            primer_apellido: user?.primer_apellido,
+            segundo_apellido: user?.segundo_apellido
+          }
+        });
+        
+        nombresParticipantes.push(nombreCompleto || 'Usuario actual');
+      } else if (!idEstudianteActual) {
+        console.warn('⚠️ El usuario no tiene id_estudiante, usando id_usuario como fallback');
+
+        const idUsuario = user?.id_usuario;
+        if (idUsuario && !participantes.includes(idUsuario)) {
+          participantes.push(idUsuario);
+          nombresParticipantes.push('Usuario actual');
+          console.warn('⚠️ Usando id_usuario como participante:', idUsuario);
+        }
       }
+
+      // Obtener nombre del docente
+      const docenteSeleccionado = docentes.find(d => d.id_docente === form.id_docente);
+      const nombreDocente = docenteSeleccionado?.nombre || '';
 
       const proyectoData = {
         id_docente: form.id_docente,
-        id_estudiantes: participantes, // Incluye al usuario actual
+        nombre_docente: nombreDocente, // ✅ NUEVO: Nombre del docente
+        id_estudiantes: participantes, // Incluye al usuario actual (con id_estudiante)
+        nombres_estudiantes: nombresParticipantes, // ✅ NUEVO: Nombres de estudiantes
         id_grupo: form.id_grupo,
         codigo_area: form.codigo_area,
         id_evento: form.id_evento,
@@ -300,7 +525,13 @@ export default function RegisterProject() {
       };
 
       console.log("📤 Enviando proyecto:", proyectoData);
-      console.log("� Participantes (incluyendo creador):", participantes);
+      console.log("👥 Participantes (incluyendo creador):", participantes);
+      console.log("📝 Nombres de participantes:", nombresParticipantes);
+      console.log("👨‍🏫 Docente:", nombreDocente);
+      console.log("🆔 IDs de usuario:", {
+        id_estudiante: user?.id_estudiante,
+        id_usuario: user?.id_usuario
+      });
       console.log("📎 Archivos:", {
         pdf: form.archivoPDF?.name,
         extra: form.archivoExtra?.name
@@ -448,14 +679,18 @@ export default function RegisterProject() {
               <div className="flex gap-2 flex-wrap mb-2">
                 {form.id_estudiantes.map((idEst) => {
                   const est = estudiantes.find((e) => e.id === idEst);
+                  
+                  // Debug logging
+                  if (!est) {
+                    console.warn('⚠️ No se encontró estudiante con ID:', idEst, 'en lista:', estudiantes);
+                  }
+                  
                   return (
                     <span
                       key={idEst}
                       className="inline-flex items-center gap-2 bg-teal-50 text-teal-800 px-3 py-1 rounded-full text-sm"
                     >
-                      {est?.usuario
-                        ? `${est.usuario.nombres} ${est.usuario.apellidos}`
-                        : idEst}
+                      {est?.nombre || est?.correo || `ID: ${idEst}`}
                       <button
                         type="button"
                         onClick={() => removeParticipant(idEst)}
@@ -468,7 +703,7 @@ export default function RegisterProject() {
                 })}
                 {form.id_estudiantes.length === 0 && (
                   <span className="text-sm text-gray-400">
-                    No hay participantes agregados
+                    No hay participantes agregados (el estudiante actual debería aparecer aquí)
                   </span>
                 )}
               </div>
@@ -477,30 +712,56 @@ export default function RegisterProject() {
             </div>
           </div>
 
-          {/* Docente */}
+          {/* EVENTO - Ahora primero */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Docente asignado <span className="text-red-500">*</span>
+              Evento <span className="text-red-500">*</span>
             </label>
             <select
-              value={form.id_docente}
+              value={form.id_evento}
               onChange={(e) =>
-                setForm((s) => ({ ...s, id_docente: e.target.value }))
+                setForm((s) => ({ ...s, id_evento: e.target.value }))
               }
               className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
               required
             >
-              <option value="">Seleccionar docente</option>
-              {docentes.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {doc.nombre || `${doc.usuario?.nombres} ${doc.usuario?.apellidos}`}
-                </option>
-              ))}
+              <option value="">Seleccionar evento</option>
+              {eventos.map((evento, index) => {
+                const fechaInicio = evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-CO', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                }) : '';
+                const fechaFin = evento.fecha_fin ? new Date(evento.fecha_fin).toLocaleDateString('es-CO', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                }) : '';
+                
+                const eventoKey = evento.id_evento || `evento-${index}`;
+                
+                return (
+                  <option key={eventoKey} value={evento.id_evento}>
+                    {evento.nombre_evento} {fechaInicio && `(${fechaInicio}${fechaFin && fechaFin !== fechaInicio ? ' - ' + fechaFin : ''})`}
+                  </option>
+                );
+              })}
             </select>
+            {eventos.length === 0 && (
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ No hay eventos disponibles. Contacta al administrador.
+              </p>
+            )}
+            {form.id_evento && eventos.find(e => e.id_evento === form.id_evento) && (
+              <div className="mt-2 p-2 bg-teal-50 rounded text-xs text-teal-800">
+                <strong>Evento seleccionado:</strong> {eventos.find(e => e.id_evento === form.id_evento)?.nombre_evento}
+                {eventos.find(e => e.id_evento === form.id_evento)?.lugar && (
+                  <> • 📍 {eventos.find(e => e.id_evento === form.id_evento)?.lugar}</>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Materia, Grupo, Línea, Sublinea y Área */}
-          
           {/* Materia */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -509,14 +770,14 @@ export default function RegisterProject() {
             <select
               value={form.codigo_materia}
               onChange={(e) =>
-                setForm((s) => ({ ...s, codigo_materia: e.target.value, id_grupo: "" }))
+                setForm((s) => ({ ...s, codigo_materia: e.target.value, id_grupo: "", id_docente: "" }))
               }
               className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="">Seleccionar materia</option>
               {materias.map((mat) => (
-                <option key={mat.codigo_materia} value={mat.codigo_materia}>
-                  {mat.codigo_materia} - {mat.nombre_materia}
+                <option key={mat.codigo} value={mat.codigo}>
+                  {mat.codigo} - {mat.nombre}
                 </option>
               ))}
             </select>
@@ -537,12 +798,32 @@ export default function RegisterProject() {
             >
               <option value="">Seleccionar grupo</option>
               {gruposFiltrados.map((grupo) => (
-                <option key={grupo.id_grupo} value={grupo.id_grupo}>
-                  Grupo {grupo.id_grupo}
+                <option key={grupo.id} value={grupo.id}>
+                  {grupo.nombre}
                 </option>
               ))}
             </select>
+            {!form.codigo_materia && (
+              <p className="text-xs text-gray-500 mt-1">
+                Primero selecciona una materia
+              </p>
+            )}
           </div>
+
+          {/* Docente - Solo lectura, se asigna automáticamente del grupo */}
+          {docenteDelGrupo && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Docente asignado
+              </label>
+              <div className="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2 text-gray-700">
+                👨‍🏫 {docenteDelGrupo.nombreDocente || docenteDelGrupo.idDocente}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                El docente se asigna automáticamente del grupo seleccionado
+              </p>
+            </div>
+          )}
 
           {/* Línea de Investigación */}
           <div>
@@ -564,8 +845,8 @@ export default function RegisterProject() {
             >
               <option value="">Seleccionar línea</option>
               {lineas.map((linea) => (
-                <option key={linea.codigo_linea} value={linea.codigo_linea}>
-                  {linea.nombre_linea}
+                <option key={linea.codigo} value={linea.codigo}>
+                  {linea.nombre}
                 </option>
               ))}
             </select>
@@ -591,8 +872,8 @@ export default function RegisterProject() {
             >
               <option value="">Seleccionar sublínea</option>
               {sublineasFiltradas.map((sublinea) => (
-                <option key={sublinea.codigo_sublinea} value={sublinea.codigo_sublinea}>
-                  {sublinea.nombre_sublinea}
+                <option key={sublinea.codigo} value={sublinea.codigo}>
+                  {sublinea.nombre}
                 </option>
               ))}
             </select>
@@ -614,8 +895,8 @@ export default function RegisterProject() {
             >
               <option value="">Seleccionar área</option>
               {areasFiltradas.map((area) => (
-                <option key={area.codigo_area} value={area.codigo_area}>
-                  {area.nombre_area}
+                <option key={area.codigo} value={area.codigo}>
+                  {area.nombre}
                 </option>
               ))}
             </select>
@@ -697,9 +978,7 @@ function ParticipantCombo({ students, onAdd }) {
   const [q, setQ] = useState("");
 
   const filtered = students.filter((s) =>
-    `${s.usuario?.nombres || ""} ${s.usuario?.apellidos || ""} ${
-      s.usuario?.correo || ""
-    }`.toLowerCase().includes(q.toLowerCase())
+    `${s.nombreCompleto || ""} ${s.correo || ""}`.toLowerCase().includes(q.toLowerCase())
   );
 
   return (
@@ -723,12 +1002,11 @@ function ParticipantCombo({ students, onAdd }) {
               className="w-full text-left py-2 px-2 text-sm hover:bg-gray-50 rounded flex justify-between items-center"
             >
               <span>
-                <span className="font-medium">
-                  {s.usuario?.nombres} {s.usuario?.apellidos}
-                </span>
-                <span className="text-gray-500 text-xs ml-2">
-                  {s.usuario?.correo}
-                </span>
+                <div className="font-medium">{s.nombreCompleto}</div>
+                <div className="text-xs text-gray-500">{s.correo}</div>
+                {s.codigoEstudiante && (
+                  <div className="text-xs text-gray-400">Código: {s.codigoEstudiante}</div>
+                )}
               </span>
               <span className="text-teal-600 text-xs">+ Agregar</span>
             </button>

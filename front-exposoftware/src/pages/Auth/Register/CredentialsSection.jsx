@@ -18,8 +18,9 @@ const CredentialsSection = ({
     <>
       <div className="col-span-2 border-l-4 border-green-600 pl-2 mt-4 mb-2">
         <h2 className="text-lg font-semibold text-gray-700">
-          Credenciales de Acceso
+          🔐 Credenciales de Acceso
         </h2>
+        <p className="text-sm text-gray-500 mt-1">Crea una contraseña segura para tu cuenta</p>
       </div>
 
       <div className="relative">
@@ -30,7 +31,7 @@ const CredentialsSection = ({
           <input
             name="contraseña"
             type={showPassword ? "text" : "password"}
-            placeholder="Contraseña"
+            placeholder="Mínimo 8 caracteres"
             value={formData.contraseña}
             onChange={handleChange}
             disabled={cargando}
@@ -55,6 +56,9 @@ const CredentialsSection = ({
             {errors.contraseña}
           </p>
         )}
+        <p className="text-xs text-gray-500 mt-1">
+          Debe tener al menos 8 caracteres
+        </p>
       </div>
 
       <div className="relative">
@@ -65,7 +69,7 @@ const CredentialsSection = ({
           <input
             name="confirmarcontraseña"
             type={showConfirmPassword ? "text" : "password"}
-            placeholder="Confirmar Contraseña"
+            placeholder="Repite tu contraseña"
             value={formData.confirmarcontraseña}
             onChange={handleChange}
             disabled={cargando}

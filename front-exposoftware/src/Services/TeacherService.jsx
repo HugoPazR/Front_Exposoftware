@@ -2,66 +2,268 @@ import { API_BASE_URL } from "../utils/constants";
 import * as AuthService from "./AuthService";
 
 /**
- * Obtener perfil del docente autenticado
- * @returns {Promise<Object>} Datos del perfil del docente
+ * Obtener informacion del docente autenticado desde /api/v1/auth/me
+ * Este endpoint devuelve toda la informacion del usuario autenticado
+ * @returns {Promise<Object>} Datos completos del docente autenticado
  */
 export const getTeacherProfile = async () => {
   try {
-    console.log('📥 Cargando perfil del docente...');
+    console.log('Cargando perfil del docente autenticado...');
     const headers = AuthService.getAuthHeaders();
     
-    // Obtener el usuario actual del AuthService
-    const userData = AuthService.getUserData();
-    console.log('👤 Datos del usuario desde AuthService:', userData);
-    console.log('📋 userData completo (JSON):', JSON.stringify(userData, null, 2));
-    
-    if (!userData) {
-      throw new Error("No hay sesión activa");
+    if (!headers.Authorization) {
+      throw new Error("No hay sesion activa - token no encontrado");
     }
 
-    // El ID del docente puede estar en diferentes propiedades según la respuesta del backend
-    // Priorizar user.id_usuario que es donde está en Firebase Auth
-    const docenteId = userData.user?.id_usuario || 
-                      userData.user?.identificacion || 
-                      userData.id_usuario || 
-                      userData.id || 
-                      userData.identificacion || 
-                      userData.usuario?.identificacion ||
-                      userData.docente_id;
-    
-    console.log('🔍 ID del docente:', docenteId);
-    console.log('🔍 Claves disponibles en userData:', Object.keys(userData));
-    console.log('🔍 user object:', userData.user);
-    
-    if (!docenteId) {
-      throw new Error("No se encontró el ID del docente en la sesión. Intente cerrar sesión y volver a iniciar.");
-    }
-
-    // Endpoint correcto según OpenAPI: /api/v1/teachers/{teacher_id}/profile
-    const url = `${API_BASE_URL}/api/v1/teachers/${docenteId}/profile`;
-    console.log('📡 URL del perfil:', url);
+    const url = `${API_BASE_URL}/api/v1/auth/me`;
+    console.log('URL:', url);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
 
-    console.log('📡 Respuesta del servidor - Status:', response.status);
+    console.log('Respuesta - Status:', response.status);
 
     if (response.ok) {
       const result = await response.json();
       const docente = result.data || result;
-      console.log('✅ Perfil del docente cargado:', docente);
+      
+      console.log('Informacion del docente obtenida:', docente);
+      console.log('Estructura completa:', JSON.stringify(docente, null, 2));
+      
       return docente;
     } else if (response.status === 404) {
       throw new Error("Perfil de docente no encontrado");
     } else if (response.status === 401) {
-      throw new Error("No autorizado. Por favor, inicie sesión nuevamente");
+      throw new Error("No autorizado. Por favor, inicie sesion nuevamente");
     } else {
-      throw new Error(`Error al cargar perfil: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || `Error al cargar perfil: ${response.statusText}`);
     }
   } catch (error) {
-    console.error('❌ Error al cargar perfil del docente:', error);
+    console.error('Error al cargar perfil del docente:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener informacion detallada del docente por id_docente
+ * GET /api/v1/teachers/{teacher_id}/profile
+ * @param {string} teacherId - ID del docente
+ * @returns {Promise<Object>} Perfil detallado del docente
+ */
+export const getTeacherProfileById = async (teacherId) => {
+  try {
+    console.log('Obteniendo perfil del docente:', teacherId);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/profile`;
+    console.log('URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const perfil = result.data || result;
+      console.log('Perfil del docente:', perfil);
+      return perfil;
+    } else if (response.status === 404) {
+      throw new Error("Docente no encontrado");
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener perfil');
+    }
+  } catch (error) {
+    console.error('Error al obtener perfil del docente:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener todas las materias asignadas al docente
+ * GET /api/v1/teachers/{teacher_id}/subjects
+ * @param {string} teacherId - ID del docente
+ * @returns {Promise<Array>} Lista de materias del docente
+ */
+export const getTeacherSubjects = async (teacherId) => {
+  try {
+    console.log('Obteniendo materias del docente:', teacherId);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/subjects`;
+    console.log('URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const materias = result.data || result;
+      console.log(`Materias obtenidas: ${materias.length}`);
+      return materias;
+    } else if (response.status === 404) {
+      console.warn('No se encontraron materias para el docente');
+      return [];
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener materias');
+    }
+  } catch (error) {
+    console.error('Error al obtener materias del docente:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener grupos de una materia especifica del docente
+ * GET /api/v1/teachers/{teacher_id}/subjects/{subject_code}/groups
+ * @param {string} teacherId - ID del docente
+ * @param {string} subjectCode - Codigo de la materia
+ * @returns {Promise<Array>} Lista de grupos de la materia
+ */
+export const getTeacherSubjectGroups = async (teacherId, subjectCode) => {
+  try {
+    console.log(`Obteniendo grupos de materia ${subjectCode} para docente ${teacherId}`);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/subjects/${subjectCode}/groups`;
+    console.log('URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const grupos = result.data || result;
+      console.log(`Grupos obtenidos: ${grupos.length}`);
+      return grupos;
+    } else if (response.status === 404) {
+      console.warn('No se encontraron grupos para esta materia');
+      return [];
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener grupos');
+    }
+  } catch (error) {
+    console.error('Error al obtener grupos de la materia:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener todos los proyectos del docente
+ * GET /api/v1/teachers/{teacher_id}/projects
+ * @param {string} teacherId - ID del docente
+ * @returns {Promise<Array>} Lista de proyectos del docente
+ */
+export const getTeacherProjects = async (teacherId) => {
+  try {
+    console.log('Obteniendo proyectos del docente:', teacherId);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/projects`;
+    console.log('URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const proyectos = result.data || result;
+      console.log(`Proyectos obtenidos: ${proyectos.length}`);
+      return proyectos;
+    } else if (response.status === 404) {
+      console.warn('No se encontraron proyectos para el docente');
+      return [];
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener proyectos');
+    }
+  } catch (error) {
+    console.error('Error al obtener proyectos del docente:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener detalle de un proyecto especifico del docente
+ * GET /api/v1/teachers/{teacher_id}/projects/{project_id}
+ * @param {string} teacherId - ID del docente
+ * @param {string} projectId - ID del proyecto
+ * @returns {Promise<Object>} Detalle completo del proyecto
+ */
+export const getTeacherProjectDetail = async (teacherId, projectId) => {
+  try {
+    console.log(`Obteniendo detalle del proyecto ${projectId} para docente ${teacherId}`);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/projects/${projectId}`;
+    console.log('URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const proyecto = result.data || result;
+      console.log('Detalle del proyecto obtenido:', proyecto);
+      return proyecto;
+    } else if (response.status === 404) {
+      throw new Error("Proyecto no encontrado");
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener detalle del proyecto');
+    }
+  } catch (error) {
+    console.error('Error al obtener detalle del proyecto:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener todos los proyectos (endpoint general)
+ * GET /api/v1/teachers/projects
+ * @returns {Promise<Array>} Lista de todos los proyectos
+ */
+export const getAllProjects = async () => {
+  try {
+    console.log('Obteniendo todos los proyectos...');
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/teachers/projects`;
+    console.log('URL:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      const proyectos = result.data || result;
+      console.log(`Total de proyectos: ${proyectos.length}`);
+      return proyectos;
+    } else if (response.status === 404) {
+      console.warn('No se encontraron proyectos');
+      return [];
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al obtener proyectos');
+    }
+  } catch (error) {
+    console.error('Error al obtener proyectos:', error);
     throw error;
   }
 };
@@ -74,16 +276,14 @@ export const getTeacherProfile = async () => {
  */
 export const procesarDatosDocente = (datosCrudos) => {
   if (!datosCrudos) {
-    console.warn('⚠️ No hay datos crudos para procesar');
+    console.warn('No hay datos crudos para procesar');
     return {};
   }
 
-  console.log('🔄 Procesando datos del docente:', datosCrudos);
+  console.log('Procesando datos del docente:', datosCrudos);
 
-  // Los datos vienen con estructura anidada: docente.usuario
   const usuario = datosCrudos.usuario || {};
   
-  // Concatenar nombres y apellidos
   const nombres = [usuario.primer_nombre, usuario.segundo_nombre]
     .filter(Boolean)
     .join(' ');
@@ -93,13 +293,10 @@ export const procesarDatosDocente = (datosCrudos) => {
     .join(' ');
 
   const datosProcesados = {
-    // Campos propios de Docentes
     id_docente: datosCrudos.id_docente || "",
     id_usuario: datosCrudos.id_usuario || "",
     categoria_docente: datosCrudos.categoria_docente || "Interno",
     codigo_programa: datosCrudos.codigo_programa || "",
-    
-    // Campos heredados de Usuarios (desde usuario anidado)
     tipo_documento: usuario.tipo_documento || "CC",
     identificacion: usuario.identificacion || "",
     nombres: nombres || "",
@@ -108,8 +305,6 @@ export const procesarDatosDocente = (datosCrudos) => {
     identidad_sexual: usuario.identidad_sexual || "",
     fecha_nacimiento: usuario.fecha_nacimiento || "",
     telefono: usuario.telefono || "",
-    
-    // Ubicación
     pais: usuario.pais_residencia || "CO",
     nacionalidad: usuario.nacionalidad || "CO",
     departamento_residencia: usuario.departamento_residencia || "",
@@ -118,30 +313,28 @@ export const procesarDatosDocente = (datosCrudos) => {
     departamento: usuario.departamento_residencia || "",
     municipio: usuario.ciudad_residencia || "",
     ciudad: usuario.ciudad_residencia || "",
-    
-    // Institucional
     correo: usuario.correo || "",
     anio_ingreso: new Date().getFullYear(),
     periodo: 1,
     rol: usuario.rol || "Docente"
   };
 
-  console.log('✅ Datos procesados:', datosProcesados);
+  console.log('Datos procesados:', datosProcesados);
   return datosProcesados;
 };
 
 /**
  * Actualizar perfil del docente
- * @param {string} identificacion - Identificación del docente
+ * PUT /api/v1/teachers/{teacher_id}/profile
+ * @param {string} identificacion - Identificacion del docente
  * @param {Object} datosActualizados - Datos a actualizar
  * @returns {Promise<Object>} Datos actualizados
  */
 export const updateTeacherProfile = async (identificacion, datosActualizados) => {
   try {
-    console.log('📤 Actualizando perfil del docente:', identificacion);
+    console.log('Actualizando perfil del docente:', identificacion);
     const headers = AuthService.getAuthHeaders();
 
-    // Separar nombres y apellidos
     const nombres = datosActualizados.nombres?.split(' ') || [];
     const apellidos = datosActualizados.apellidos?.split(' ') || [];
 
@@ -168,9 +361,8 @@ export const updateTeacherProfile = async (identificacion, datosActualizados) =>
       codigo_programa: datosActualizados.codigo_programa || ""
     };
 
-    console.log('📦 Payload:', payload);
+    console.log('Payload:', payload);
 
-    // Endpoint correcto según OpenAPI: /api/v1/teachers/{teacher_id}/profile
     const response = await fetch(
       `${API_BASE_URL}/api/v1/teachers/${identificacion}/profile`,
       {
@@ -182,14 +374,14 @@ export const updateTeacherProfile = async (identificacion, datosActualizados) =>
 
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Perfil actualizado:', data);
+      console.log('Perfil actualizado:', data);
       return { success: true, data };
     } else {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(`Error al actualizar perfil (${response.status}): ${errorData.message || errorData.detail || 'Error desconocido'}`);
     }
   } catch (error) {
-    console.error('❌ Error al actualizar perfil:', error);
+    console.error('Error al actualizar perfil:', error);
     throw error;
   }
 };

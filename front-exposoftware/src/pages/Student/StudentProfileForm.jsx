@@ -53,15 +53,15 @@ export default function StudentProfileForm({
             />
           </div>
 
-          {/* Nombres */}
+          {/* Primer Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombres <span className="text-red-500">*</span>
+              Primer Nombre <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              value={profileData.nombres}
-              onChange={(e) => handleInputChange('nombres', e.target.value)}
+              value={profileData.primer_nombre}
+              onChange={(e) => handleInputChange('primer_nombre', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
@@ -69,19 +69,53 @@ export default function StudentProfileForm({
             />
           </div>
 
-          {/* Apellidos */}
+          {/* Segundo Nombre */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Apellidos <span className="text-red-500">*</span>
+              Segundo Nombre
             </label>
             <input
               type="text"
-              value={profileData.apellidos}
-              onChange={(e) => handleInputChange('apellidos', e.target.value)}
+              value={profileData.segundo_nombre || ''}
+              onChange={(e) => handleInputChange('segundo_nombre', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
               disabled={!isEditing}
+              placeholder="Opcional"
+            />
+          </div>
+
+          {/* Primer Apellido */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Primer Apellido <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={profileData.primer_apellido}
+              onChange={(e) => handleInputChange('primer_apellido', e.target.value)}
+              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
+                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
+              }`}
+              disabled={!isEditing}
+            />
+          </div>
+
+          {/* Segundo Apellido */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Segundo Apellido
+            </label>
+            <input
+              type="text"
+              value={profileData.segundo_apellido || ''}
+              onChange={(e) => handleInputChange('segundo_apellido', e.target.value)}
+              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
+                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
+              }`}
+              disabled={!isEditing}
+              placeholder="Opcional"
             />
           </div>
 
@@ -279,72 +313,6 @@ export default function StudentProfileForm({
             />
           </div>
 
-          {/* Departamento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Departamento
-            </label>
-            <select
-              value={profileData.departamento}
-              onChange={(e) => {
-                handleInputChange('departamento', e.target.value);
-                handleInputChange('municipio', '');
-              }}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
-            >
-              <option value="">Seleccionar departamento</option>
-              {colombiaData.map((dept) => (
-                <option key={dept.departamento} value={dept.departamento}>
-                  {dept.departamento}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Municipio */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Municipio
-            </label>
-            <select
-              value={profileData.municipio}
-              onChange={(e) => handleInputChange('municipio', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing || !profileData.departamento}
-            >
-              <option value="">
-                {!profileData.departamento 
-                  ? 'Selecciona departamento primero' 
-                  : 'Seleccionar municipio'}
-              </option>
-              {municipios.map((municipio) => (
-                <option key={municipio} value={municipio}>
-                  {municipio}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Ciudad */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ciudad
-            </label>
-            <input
-              type="text"
-              value={profileData.ciudad}
-              onChange={(e) => handleInputChange('ciudad', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
-            />
-          </div>
         </div>
       </div>
 

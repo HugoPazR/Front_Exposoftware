@@ -201,14 +201,14 @@ export const AuthProvider = ({ children }) => {
   const getFullName = () => {
     if (!user) return '';
     
-    // Si tiene nombres y apellidos del backend, usarlos
-    if (user.nombres && user.apellidos) {
-      return `${user.nombres} ${user.apellidos}`.trim();
-    }
-    
-    // Si tiene nombre_completo, usarlo
+    // Si tiene nombre_completo del backend procesado, usarlo
     if (user.nombre_completo) {
       return user.nombre_completo;
+    }
+    
+    // Si tiene campos separados, construir nombre completo
+    if (user.primer_nombre || user.primer_apellido) {
+      return `${user.primer_nombre || ''} ${user.segundo_nombre || ''} ${user.primer_apellido || ''} ${user.segundo_apellido || ''}`.trim().replace(/\s+/g, ' ');
     }
     
     // Fallback: buscar en el token de Firebase (podría tener displayName)
@@ -226,11 +226,11 @@ export const AuthProvider = ({ children }) => {
     if (user?.iniciales) return user.iniciales;
     if (!user) return '';
     
-    // Si tiene nombres y apellidos del backend
-    if (user.nombres && user.apellidos) {
-      const nombres = user.nombres?.split(' ')[0] || '';
-      const apellidos = user.apellidos?.split(' ')[0] || '';
-      return `${nombres.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
+    // Si tiene campos separados del backend (primer_nombre, primer_apellido)
+    if (user.primer_nombre || user.primer_apellido) {
+      const nombre = (user.primer_nombre || '').trim();
+      const apellido = (user.primer_apellido || '').trim();
+      return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
     }
     
     // Si tiene nombre_completo, extraer iniciales
