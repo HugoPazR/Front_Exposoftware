@@ -7,7 +7,7 @@ import EventosService from "../../Services/EventosService";
 export default function RegisterProject() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
-  const { user, getAuthToken } = useAuth();
+  const { user, getAuthToken, getFullName } = useAuth();
 
   const [form, setForm] = useState({
     titulo_proyecto: "",
@@ -446,27 +446,56 @@ export default function RegisterProject() {
       const participantes = [...form.id_estudiantes];
       const nombresParticipantes = [];
       
+      console.log('🔍 DEBUG - Estudiantes seleccionados inicialmente:', form.id_estudiantes);
+      console.log('🔍 DEBUG - Usuario actual:', {
+        id_estudiante: user?.id_estudiante,
+        id_usuario: user?.id_usuario
+      });
+      
       // Obtener nombres de los estudiantes seleccionados
       form.id_estudiantes.forEach(idEst => {
         const estudiante = estudiantes.find(e => e.id_estudiante === idEst);
         if (estudiante) {
-          nombresParticipantes.push(`${estudiante.nombres} ${estudiante.apellidos}`.trim());
+          const nombreEstudiante = `${estudiante.nombres} ${estudiante.apellidos}`.trim();
+          nombresParticipantes.push(nombreEstudiante);
+          console.log(`   📝 Estudiante encontrado: ${idEst} -> ${nombreEstudiante}`);
+        } else {
+          console.warn(`   ⚠️ Estudiante NO encontrado en lista: ${idEst}`);
         }
       });
+      
+      console.log('📋 Nombres recopilados hasta ahora:', nombresParticipantes);
       
       // ✅ IMPORTANTE: Usar id_estudiante (backend), NO id_usuario (Firebase)
       const idEstudianteActual = user?.id_estudiante;
       
+      console.log('🔍 Verificando si agregar usuario actual:', {
+        idEstudianteActual,
+        yaEstaEnLista: participantes.includes(idEstudianteActual),
+        participantesActuales: participantes
+      });
+      
       if (idEstudianteActual && !participantes.includes(idEstudianteActual)) {
         participantes.push(idEstudianteActual);
-        const nombreUsuario = user.nombres && user.apellidos 
-          ? `${user.nombres} ${user.apellidos}`.trim()
-          : 'Usuario actual';
-        nombresParticipantes.push(nombreUsuario);
-        console.log('👤 Agregando usuario actual como participante (id_estudiante):', idEstudianteActual);
+        
+        // Usar getFullName() del contexto que ya tiene la lógica correcta
+        const nombreCompleto = getFullName();
+        
+        console.log('👤 Agregando usuario actual como participante:', {
+          id_estudiante: idEstudianteActual,
+          nombre: nombreCompleto,
+          user_fields: {
+            primer_nombre: user?.primer_nombre,
+            segundo_nombre: user?.segundo_nombre,
+            primer_apellido: user?.primer_apellido,
+            segundo_apellido: user?.segundo_apellido
+          }
+        });
+        
+        nombresParticipantes.push(nombreCompleto || 'Usuario actual');
       } else if (!idEstudianteActual) {
         console.warn('⚠️ El usuario no tiene id_estudiante, usando id_usuario como fallback');
-        // Fallback: Si no tiene id_estudiante, intentar con id_usuario
+
         const idUsuario = user?.id_usuario;
         if (idUsuario && !participantes.includes(idUsuario)) {
           participantes.push(idUsuario);
@@ -870,44 +899,6 @@ export default function RegisterProject() {
                   {area.nombre}
                 </option>
               ))}
-            </select>
-          </div>
-
-          {/* Evento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Evento <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={form.id_evento}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, id_evento: e.target.value }))
-              }
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              required
-            >
-              <option value="">Seleccionar evento</option>
-              {eventos.map((evento, index) => {
-                const fechaInicio = evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-CO', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                }) : '';
-                const fechaFin = evento.fecha_fin ? new Date(evento.fecha_fin).toLocaleDateString('es-CO', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                }) : '';
-                
-                // Usar id_evento o fallback a index si no existe
-                const eventoKey = evento.id_evento || `evento-${index}`;
-                
-                return (
-                  <option key={eventoKey} value={evento.id_evento}>
-                    {evento.nombre_evento} {fechaInicio && `(${fechaInicio}${fechaFin && fechaFin !== fechaInicio ? ' - ' + fechaFin : ''})`}
-                  </option>
-                );
-              })}
             </select>
           </div>
 

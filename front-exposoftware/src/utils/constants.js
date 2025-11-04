@@ -27,10 +27,8 @@ export const API_ENDPOINTS = {
   
   // Docentes/Profesores
   DOCENTES: `${API_BASE_URL}/api/v1/docentes`,
-  TEACHERS: `${API_BASE_URL}/api/v1/teachers`, // Endpoint público para estudiantes
   PROFESORES: `${API_BASE_URL}/api/v1/admin/profesores`,
   DOCENTE_BY_ID: (id) => `${API_BASE_URL}/api/v1/docentes/${id}`,
-  TEACHER_BY_ID: (id) => `${API_BASE_URL}/api/v1/teachers/${id}`,
   PROFESOR_BY_ID: (id) => `${API_BASE_URL}/api/v1/admin/profesores/${id}`,
   
   // Asignaciones Docente-Materia (para asociar grupos con materias)
