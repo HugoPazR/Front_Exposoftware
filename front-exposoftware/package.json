@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "classnames": "^2.5.1",
-    "libphonenumber-js": "^1.12.25",
     "html5-qrcode": "^2.3.8",
+    "libphonenumber-js": "^1.12.25",
     "lucide-react": "^0.545.0",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.7",

@@ -49,6 +49,11 @@ export const API_ENDPOINTS = {
   ADMIN_ESTUDIANTES_POR_PROGRAMA: (codigoPrograma) => `${API_BASE_URL}/api/v1/admin/estudiantes/programa/${codigoPrograma}`,
   ADMIN_ESTUDIANTE_ASIGNAR_EXISTENTE: `${API_BASE_URL}/api/v1/admin/estudiantes/asignar-existente`,
   
+  // Asistencias
+  GENERAR_QR_EVENTO: (idEvento) => `${API_BASE_URL}/api/v1/asistencia/generar-qr/${idEvento}`,
+  REGISTRAR_ASISTENCIA: (idEvento) => `${API_BASE_URL}/api/v1/asistencia/registrar/${idEvento}`,
+  OBTENER_ASISTENCIAS_EVENTO: (idEvento) => `${API_BASE_URL}/api/v1/asistencia/evento/${idEvento}`,
+  
   // Proyectos
   PROYECTOS: `${API_BASE_URL}/proyectos`,
   PROYECTO_BY_ID: (id) => `${API_BASE_URL}/proyectos/${id}`,
