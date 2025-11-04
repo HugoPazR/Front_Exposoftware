@@ -280,58 +280,6 @@ export default function ProfileForm({
             />
           </div>
 
-          {/* Departamento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Departamento
-            </label>
-            <select
-              value={profileData.departamento}
-              onChange={(e) => {
-                handleInputChange('departamento', e.target.value);
-                handleInputChange('municipio', ''); // Reset municipio
-                handleInputChange('ciudad', ''); // Reset ciudad
-              }}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
-            >
-              <option value="">Seleccionar departamento</option>
-              {colombiaData.map((dept) => (
-                <option key={dept.id} value={dept.departamento}>
-                  {dept.departamento}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Municipio */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Municipio
-            </label>
-            <select
-              value={profileData.municipio}
-              onChange={(e) => handleInputChange('municipio', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing || !profileData.departamento}
-            >
-              <option value="">
-                {!profileData.departamento 
-                  ? 'Selecciona departamento primero' 
-                  : 'Seleccionar municipio'}
-              </option>
-              {municipios.map((municipio, idx) => (
-                <option key={idx} value={municipio}>
-                  {municipio}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Ciudad */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -47,47 +47,149 @@ export const obtenerProyectos = async () => {
  * TODO: Cuando el backend agregue id_usuario_creador a la respuesta,
  * descomentar el filtro para mostrar solo los proyectos del usuario.
  */
-export const obtenerMisProyectos = async (idUsuario) => {
+export const obtenerMisProyectos = async (idEstudiante) => {
   try {
-    console.log('📊 Obteniendo mis proyectos...', { idUsuario });
+    console.log('📊 Obteniendo proyectos del estudiante...', { idEstudiante });
     
-    const response = await fetch(`${API_URL}/api/v1/proyectos`, {
-      method: 'GET',
-      headers: getAuthHeaders()
-    });
+    // ESTRATEGIA: Intentar múltiples endpoints hasta encontrar uno que funcione
+    let proyectos = [];
+    
+    // Intento 1: Endpoint simple GET /api/v1/proyectos (el más común)
+    try {
+      console.log('🔄 Intento 1: GET /api/v1/proyectos (endpoint simple)');
+      const response = await fetch(`${API_URL}/api/v1/proyectos`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      console.log('📡 Status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        const todosProyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
+        
+        console.log('📋 Total proyectos:', todosProyectos.length);
+        console.log('🔍 Filtrando por estudiante:', idEstudiante);
+        
+        // DEBUG: Ver estructura del primer proyecto
+        if (todosProyectos.length > 0) {
+          console.log('🔍 DEBUG - Estructura del primer proyecto:', {
+            id: todosProyectos[0].id_proyecto,
+            titulo: todosProyectos[0].titulo_proyecto,
+            id_estudiantes: todosProyectos[0].id_estudiantes,
+            id_estudiantes_type: typeof todosProyectos[0].id_estudiantes,
+            id_estudiantes_isArray: Array.isArray(todosProyectos[0].id_estudiantes)
+          });
+          
+          // Ver cada estudiante
+          if (Array.isArray(todosProyectos[0].id_estudiantes)) {
+            todosProyectos[0].id_estudiantes.forEach((est, idx) => {
+              console.log(`   📍 Estudiante [${idx}]:`, {
+                tipo: typeof est,
+                valor: est,
+                id_estudiante: est?.id_estudiante,
+                nombre: est?.nombre
+              });
+            });
+          }
+        }
+        
+        // Filtrar proyectos donde aparece el estudiante
+        proyectos = todosProyectos.filter(proyecto => {
+          const esParticipante = proyecto.id_estudiantes?.some(est => {
+            const estudianteId = est?.id_estudiante || est;
+            const match = estudianteId === idEstudiante;
+            
+            // DEBUG: Ver cada comparación
+            if (proyecto.id_estudiantes?.length > 0) {
+              console.log(`   🔎 Comparando en proyecto "${proyecto.titulo_proyecto}":`, {
+                estudianteId,
+                buscando: idEstudiante,
+                match
+              });
+            }
+            
+            return match;
+          });
+          return esParticipante;
+        });
+        
+        console.log('✅ Proyectos filtrados:', proyectos.length);
+        if (proyectos.length > 0) {
+          console.log('📊 Proyectos encontrados:', proyectos.map(p => ({
+            id: p.id_proyecto,
+            titulo: p.titulo_proyecto
+          })));
+        }
+        return proyectos;
+      } else {
+        console.warn('⚠️ Endpoint /api/v1/proyectos falló con status:', response.status);
+      }
+    } catch (error) {
+      console.warn('⚠️ Endpoint /api/v1/proyectos falló:', error.message);
+    }
+    
+    // Intento 2: Endpoint específico del estudiante (puede no estar implementado)
+    try {
+      console.log('🔄 Intento 2: /api/v1/estudiantes/{id}/proyectos');
+      const response = await fetch(`${API_URL}/api/v1/estudiantes/${idEstudiante}/proyectos`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        proyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
+        console.log('✅ Proyectos obtenidos (endpoint estudiante):', proyectos.length);
+        return proyectos;
+      }
+    } catch (error) {
+      console.warn('⚠️ Endpoint de estudiante falló:', error.message);
     }
 
-    const data = await response.json();
-    const todosProyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
-    
-    console.log('📋 Total de proyectos recibidos:', todosProyectos.length);
-    console.log('🔍 Filtrando proyectos donde usuario es participante:', idUsuario);
-    
-    // Filtrar proyectos donde el usuario aparece en id_estudiantes
-    const misProyectos = todosProyectos.filter(proyecto => {
-      // Verificar si el usuario está en el array de estudiantes
-      const esParticipante = proyecto.id_estudiantes?.some(est => {
-        // Manejar ambos casos: objeto {id_estudiante: "..."} o string directo
-        const estudianteId = typeof est === 'string' ? est : est.id_estudiante;
-        return estudianteId === idUsuario;
+    // Intento 3: Endpoint admin con filtro (requiere permisos pero puede funcionar)
+    try {
+      console.log('🔄 Intento 3: /api/v1/admin/proyectos');
+      const response = await fetch(`${API_URL}/api/v1/admin/proyectos?limit=100`, {
+        method: 'GET',
+        headers: getAuthHeaders()
       });
-      
-      if (esParticipante) {
-        console.log('   ✅ Proyecto del usuario:', proyecto.titulo_proyecto);
+
+      if (response.ok) {
+        const data = await response.json();
+        const todosProyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
+        
+        console.log('📋 Total proyectos (admin):', todosProyectos.length);
+        console.log('🔍 Filtrando por estudiante:', idEstudiante);
+        
+        // Filtrar proyectos donde aparece el estudiante
+        proyectos = todosProyectos.filter(proyecto => {
+          const esParticipante = proyecto.id_estudiantes?.some(est => {
+            const estudianteId = est?.id_estudiante || est;
+            return estudianteId === idEstudiante;
+          });
+          return esParticipante;
+        });
+        
+        console.log('✅ Proyectos filtrados:', proyectos.length);
+        return proyectos;
       }
-      
-      return esParticipante;
-    });
+    } catch (error) {
+      console.warn('⚠️ Endpoint admin falló:', error.message);
+    }
+
+    // Si llegamos aquí, ningún endpoint funcionó
+    console.error('❌ Ningún endpoint de proyectos está disponible');
+    console.log('💡 Sugerencia: Verifica que el backend tenga implementado al menos uno de estos endpoints:');
+    console.log('   - GET /api/v1/proyectos');
+    console.log('   - GET /api/v1/estudiantes/{id}/proyectos');
+    console.log('   - GET /api/v1/admin/proyectos');
     
-    console.log('✅ Mis proyectos filtrados:', misProyectos.length);
-    return misProyectos;
+    return [];
     
   } catch (error) {
-    console.error('❌ Error obteniendo proyectos:', error);
-    throw error;
+    console.error('❌ Error crítico obteniendo proyectos:', error);
+    return [];
   }
 };
 

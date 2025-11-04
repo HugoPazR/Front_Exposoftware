@@ -371,13 +371,20 @@ class RegisterProjectService {
       // Preparar FormData para envío multipart
       const formData = new FormData();
 
-      // Preparar payload del proyecto (sin calificación)
+      // Preparar payload del proyecto según el NUEVO FORMATO del backend
       const payload = {
-        id_docente: proyectoData.id_docente,
-        id_estudiantes: proyectoData.id_estudiantes.map(id => ({ 
-          id_estudiante: id 
+        // ✅ NUEVO: id_docente como objeto con uid_docente y nombre
+        id_docente: {
+          uid_docente: proyectoData.id_docente,
+          nombre: proyectoData.nombre_docente || "" // Necesitamos el nombre del docente
+        },
+        // ✅ NUEVO: id_estudiantes como array de objetos con id_estudiante y nombre
+        id_estudiantes: proyectoData.id_estudiantes.map((id, index) => ({
+          id_estudiante: id,
+          nombre: proyectoData.nombres_estudiantes?.[index] || "" // Necesitamos los nombres
         })),
-        id_grupo: parseInt(proyectoData.id_grupo),
+        // ✅ NUEVO: id_grupo es STRING, no number
+        id_grupo: proyectoData.id_grupo.toString(),
         codigo_area: parseInt(proyectoData.codigo_area),
         id_evento: proyectoData.id_evento || '1jAZE5TKXakRd9ymq1Xu',
         codigo_materia: proyectoData.codigo_materia,
@@ -385,9 +392,32 @@ class RegisterProjectService {
         codigo_sublinea: parseInt(proyectoData.codigo_sublinea),
         titulo_proyecto: proyectoData.titulo_proyecto.trim(),
         tipo_actividad: parseInt(proyectoData.tipo_actividad),
-        // No incluir calificacion - la asigna el profesor
-        // No incluir id_usuario_creador - no lo devuelve el backend
+        // Campos opcionales (el backend los puede llenar)
+        estado_calificacion: "Pendiente",
+        // No incluir calificacion - la asigna el profesor después
       };
+      
+      console.log('🔍 VERIFICACIÓN FINAL (NUEVO FORMATO):');
+      console.log('   - id_docente:', payload.id_docente);
+      console.log('   - id_estudiantes:', payload.id_estudiantes);
+      console.log('   - id_grupo:', payload.id_grupo, '(tipo:', typeof payload.id_grupo + ')');
+      console.log('');
+
+      console.log('📦 PAYLOAD COMPLETO A ENVIAR:');
+      console.log(JSON.stringify(payload, null, 2));
+      console.log('');
+      console.log('📋 VALIDACIÓN DEL PAYLOAD:');
+      console.log('   ✓ id_docente:', payload.id_docente, '(tipo:', typeof payload.id_docente + ')');
+      console.log('   ✓ id_estudiantes:', payload.id_estudiantes, '(cantidad:', payload.id_estudiantes.length + ')');
+      console.log('   ✓ id_grupo:', payload.id_grupo, '(tipo:', typeof payload.id_grupo + ')');
+      console.log('   ✓ codigo_area:', payload.codigo_area, '(tipo:', typeof payload.codigo_area + ')');
+      console.log('   ✓ id_evento:', payload.id_evento);
+      console.log('   ✓ codigo_materia:', payload.codigo_materia);
+      console.log('   ✓ codigo_linea:', payload.codigo_linea, '(tipo:', typeof payload.codigo_linea + ')');
+      console.log('   ✓ codigo_sublinea:', payload.codigo_sublinea, '(tipo:', typeof payload.codigo_sublinea + ')');
+      console.log('   ✓ titulo_proyecto:', payload.titulo_proyecto);
+      console.log('   ✓ tipo_actividad:', payload.tipo_actividad, '(tipo:', typeof payload.tipo_actividad + ')');
+      console.log('');
 
       // Agregar proyecto_data como JSON string
       formData.append('proyecto_data', JSON.stringify(payload));
@@ -401,7 +431,7 @@ class RegisterProjectService {
       console.log('📤 Enviando proyecto (FormData):', payload);
       console.log('📤 JSON que se envía:', JSON.stringify(payload, null, 2));
 
-      const response = await fetch(`${API_URL}/api/v1/proyectos/`, {
+      const response = await fetch(`${API_URL}/api/v1/proyectos`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -413,9 +443,28 @@ class RegisterProjectService {
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         console.error('❌ Error del backend:', err);
+        console.error('❌ Error completo (JSON):', JSON.stringify(err, null, 2));
+        console.error('❌ Status:', response.status);
+        console.error('❌ StatusText:', response.statusText);
+        
+        // Extraer mensaje de error detallado
+        let errorMessage = 'Error desconocido';
+        if (err.detail) {
+          if (typeof err.detail === 'string') {
+            errorMessage = err.detail;
+          } else if (Array.isArray(err.detail)) {
+            errorMessage = err.detail.map(e => e.msg || e.message || JSON.stringify(e)).join(', ');
+          } else {
+            errorMessage = JSON.stringify(err.detail);
+          }
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        console.error('❌ Mensaje de error procesado:', errorMessage);
         
         // 🔥 Si el error es "docente no existe", dar mensaje más claro
-        if (err.detail && err.detail.includes('No existe ningún docente')) {
+        if (errorMessage.includes('No existe ningún docente')) {
           throw new Error(
             `❌ El docente asignado al grupo no existe en el sistema.\n\n` +
             `Esto es un problema del backend. Contacta al administrador.\n\n` +
@@ -424,11 +473,25 @@ class RegisterProjectService {
           );
         }
         
-        throw new Error(err.detail || err.message || `Error ${response.status}: ${response.statusText}`);
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      console.log('✅ Proyecto creado exitosamente:', result);
+      console.log('✅ Proyecto creado exitosamente!');
+      console.log('');
+      console.log('📊 RESPUESTA DEL BACKEND:');
+      console.log(JSON.stringify(result, null, 2));
+      console.log('');
+      console.log('📋 DATOS DEL PROYECTO CREADO:');
+      console.log('   ✓ id_proyecto:', result.id_proyecto);
+      console.log('   ✓ titulo_proyecto:', result.titulo_proyecto);
+      console.log('   ✓ id_docente:', result.id_docente);
+      console.log('   ✓ id_estudiantes:', result.id_estudiantes);
+      console.log('   ✓ archivo_pdf:', result.archivo_pdf);
+      console.log('   ✓ fecha_subida:', result.fecha_subida);
+      console.log('   ✓ activo:', result.activo);
+      console.log('');
+      
       return result;
     } catch (error) {
       console.error('❌ Error creando proyecto:', error);

@@ -442,16 +442,48 @@ export default function RegisterProject() {
     setLoading(true);
 
     try {
-      // 🔥 Agregar automáticamente el ID del usuario logueado como participante
+      // 🔥 Agregar automáticamente el ID_ESTUDIANTE del usuario logueado como participante
       const participantes = [...form.id_estudiantes];
-      if (user?.id_usuario && !participantes.includes(user.id_usuario)) {
-        participantes.push(user.id_usuario);
-        console.log('👤 Agregando usuario actual como participante:', user.id_usuario);
+      const nombresParticipantes = [];
+      
+      // Obtener nombres de los estudiantes seleccionados
+      form.id_estudiantes.forEach(idEst => {
+        const estudiante = estudiantes.find(e => e.id_estudiante === idEst);
+        if (estudiante) {
+          nombresParticipantes.push(`${estudiante.nombres} ${estudiante.apellidos}`.trim());
+        }
+      });
+      
+      // ✅ IMPORTANTE: Usar id_estudiante (backend), NO id_usuario (Firebase)
+      const idEstudianteActual = user?.id_estudiante;
+      
+      if (idEstudianteActual && !participantes.includes(idEstudianteActual)) {
+        participantes.push(idEstudianteActual);
+        const nombreUsuario = user.nombres && user.apellidos 
+          ? `${user.nombres} ${user.apellidos}`.trim()
+          : 'Usuario actual';
+        nombresParticipantes.push(nombreUsuario);
+        console.log('👤 Agregando usuario actual como participante (id_estudiante):', idEstudianteActual);
+      } else if (!idEstudianteActual) {
+        console.warn('⚠️ El usuario no tiene id_estudiante, usando id_usuario como fallback');
+        // Fallback: Si no tiene id_estudiante, intentar con id_usuario
+        const idUsuario = user?.id_usuario;
+        if (idUsuario && !participantes.includes(idUsuario)) {
+          participantes.push(idUsuario);
+          nombresParticipantes.push('Usuario actual');
+          console.warn('⚠️ Usando id_usuario como participante:', idUsuario);
+        }
       }
+
+      // Obtener nombre del docente
+      const docenteSeleccionado = docentes.find(d => d.id_docente === form.id_docente);
+      const nombreDocente = docenteSeleccionado?.nombre || '';
 
       const proyectoData = {
         id_docente: form.id_docente,
-        id_estudiantes: participantes, // Incluye al usuario actual
+        nombre_docente: nombreDocente, // ✅ NUEVO: Nombre del docente
+        id_estudiantes: participantes, // Incluye al usuario actual (con id_estudiante)
+        nombres_estudiantes: nombresParticipantes, // ✅ NUEVO: Nombres de estudiantes
         id_grupo: form.id_grupo,
         codigo_area: form.codigo_area,
         id_evento: form.id_evento,
@@ -464,7 +496,13 @@ export default function RegisterProject() {
       };
 
       console.log("📤 Enviando proyecto:", proyectoData);
-      console.log("� Participantes (incluyendo creador):", participantes);
+      console.log("👥 Participantes (incluyendo creador):", participantes);
+      console.log("📝 Nombres de participantes:", nombresParticipantes);
+      console.log("👨‍🏫 Docente:", nombreDocente);
+      console.log("🆔 IDs de usuario:", {
+        id_estudiante: user?.id_estudiante,
+        id_usuario: user?.id_usuario
+      });
       console.log("📎 Archivos:", {
         pdf: form.archivoPDF?.name,
         extra: form.archivoExtra?.name

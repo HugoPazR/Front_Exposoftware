@@ -16,7 +16,10 @@ export default function MyProjects() {
   // Cargar proyectos del usuario al montar el componente
   useEffect(() => {
     const cargarMisProyectos = async () => {
-      if (!user || !user.id_usuario) {
+      // Verificar que tengamos el id_estudiante (ID del backend, no Firebase)
+      const idEstudiante = user?.id_estudiante || user?.id_usuario;
+      
+      if (!user || !idEstudiante) {
         console.log('⏳ Esperando datos del usuario...');
         return;
       }
@@ -24,9 +27,14 @@ export default function MyProjects() {
       try {
         setLoadingProjects(true);
         setError(null);
-        console.log('🔍 Cargando proyectos del usuario:', user.id_usuario);
+        console.log('🔍 Cargando proyectos del estudiante:', idEstudiante);
+        console.log('📋 Datos del usuario:', { 
+          id_estudiante: user.id_estudiante, 
+          id_usuario: user.id_usuario,
+          rol: user.rol 
+        });
         
-        const misProyectos = await ProjectsService.obtenerMisProyectos(user.id_usuario);
+        const misProyectos = await ProjectsService.obtenerMisProyectos(idEstudiante);
         setProjects(misProyectos);
         
         console.log('✅ Proyectos cargados:', misProyectos.length);
@@ -41,7 +49,7 @@ export default function MyProjects() {
     if (!loading && user) {
       cargarMisProyectos();
     }
-  }, [user?.id_usuario, loading]); // Solo depende del ID, no del objeto completo
+  }, [user?.id_estudiante, user?.id_usuario, loading]); // Depende de ambos IDs
 
   // Handler para cerrar sesión
   const handleLogout = async () => {
@@ -402,7 +410,9 @@ export default function MyProjects() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Docente</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.id_docente || 'No asignado'}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedProject.id_docente?.nombre || selectedProject.id_docente?.uid_docente || 'No asignado'}
+                      </p>
                     </div>
                     {selectedProject.calificacion && (
                       <div>
@@ -457,18 +467,25 @@ export default function MyProjects() {
                     Participantes ({selectedProject.id_estudiantes.length})
                   </h5>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProject.id_estudiantes.map((estudiante, idx) => (
-                      <span 
-                        key={idx}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium"
-                        style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
-                      >
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.3)' }}>
-                          <i className="pi pi-user text-xs"></i>
-                        </div>
-                        {estudiante.nombre || estudiante.email || estudiante.id_estudiante}
-                      </span>
-                    ))}
+                    {selectedProject.id_estudiantes.map((estudiante, idx) => {
+                      // Manejar tanto objetos {id_estudiante, nombre} como strings
+                      const nombreEstudiante = typeof estudiante === 'object' 
+                        ? (estudiante.nombre || estudiante.email || estudiante.id_estudiante)
+                        : estudiante;
+                      
+                      return (
+                        <span 
+                          key={idx}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium"
+                          style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
+                        >
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.3)' }}>
+                            <i className="pi pi-user text-xs"></i>
+                          </div>
+                          {nombreEstudiante || 'Estudiante sin nombre'}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
