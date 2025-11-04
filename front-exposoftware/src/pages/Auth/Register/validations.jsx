@@ -1,3 +1,6 @@
+/**
+ * Valida un campo individual del formulario
+ */
 export const validateField = (name, value, formData = {}, rol = "") => {
   let error = "";
 
@@ -6,19 +9,19 @@ export const validateField = (name, value, formData = {}, rol = "") => {
 
   // 💡 Todos los campos (menos los opcionales) deben tener valor
   const requiredFields = [
-    "nombres",
-    "apellidos",
+    "primerNombre",
+    "primerApellido",
+    "segundoApellido",
     "telefono",
-    "sexo",
+    "genero",
     "orientacionSexual",
     "fechaNacimiento",
     "fechaIngreso",
     "fechaFinalizacion",
-    "departamentoNacimiento",
-    "ciudadNacimiento",
-    "nacionalidad",
-    "paisResidencia",
+    "departamentoResidencia",
     "ciudadResidencia",
+    "nacionalidad",
+    "paisNacimiento",
     "direccionResidencia",
     "rol",
     "tipoDocumento",
@@ -26,13 +29,14 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     "correo",
     "contraseña",
     "confirmarcontraseña",
-    "codigoPrograma",
+    "programa",
+    "facultad",
     "semestre",
     "tipoDocente",
     "sector",
     "nombreEmpresa",
     "titulado",
-    "periodo"
+    "periodo",
   ];
 
   if (requiredFields.includes(name) && (!val || String(val).trim() === "")) {
@@ -41,9 +45,11 @@ export const validateField = (name, value, formData = {}, rol = "") => {
 
   // ⚙️ Validaciones específicas por campo
   switch (name) {
-    case "nombres":
-    case "apellidos":
-    case "ciudadResidencia":
+    case "primerNombre":
+    case "segundoNombre":
+    case "primerApellido":
+    case "segundoApellido":
+    case "intitucionOrigen":
       // 🔹 Validar que NO contenga números
       if (/\d/.test(val)) {
         error = "No se permiten números en este campo.";
@@ -54,11 +60,27 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       }
       break;
 
-    case "codigoPrograma":
-      if (!/^[a-zA-Z0-9\s-]*$/.test(val)) {
-        error = "Solo se permiten letras, números, espacios y guiones.";
-      } else if (val.trim().length > 0 && val.trim().length < 3) {
-        error = "Debe tener al menos 3 caracteres.";
+    case "ciudadResidencia":
+      // Solo validar si nacionalidad es Colombia
+      if (formData.nacionalidad === "CO") {
+        if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
+          error = "Solo se permiten letras y espacios.";
+        } else if (val.trim().length > 0 && val.trim().length < 3) {
+          error = "Debe tener al menos 3 letras.";
+        }
+      }
+      break;
+
+    case "direccionResidencia":
+      // 🏠 Validación de dirección colombiana con nombres completos (sin abreviaturas)
+      const direccionRegex =
+        /^(?:(?:calle|carrera|diagonal|transversal|avenida|autopista|bulevar)\s*\d+[a-zA-Z]?(?:\s*[#-]\s*\d+[a-zA-Z]?(?:\s*-\s*\d+)?)?(?:\s*[a-zA-Z0-9\s]*)?)$/i;
+
+      if (!direccionRegex.test(val.trim())) {
+        error =
+          "Formato de dirección inválido. Ejemplo válido: 'Calle 10 #15-30' o 'Carrera 7A - 45'.";
+      } else if (val.trim().length < 6) {
+        error = "La dirección debe tener al menos 6 caracteres.";
       }
       break;
 
@@ -69,33 +91,23 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       break;
 
     case "telefono":
-      // Debe iniciar con "+" seguido de al menos un dígito (código de país)
-      if (!/^\+\d+/.test(val)) {
-        error = "Debe incluir el prefijo internacional (+XX).";
-        break;
-      }
+      // Convertir a string y extraer solo los dígitos
+      const phoneStr = String(val || "");
+      const digits = phoneStr.replace(/\D/g, "");
 
-      // Extraemos código y número
-      const match = val.match(/^\+(\d{1,4})(\d*)$/);
-      if (!match) {
-        error = "Formato inválido de teléfono.";
-        break;
-      }
+      // Si empieza con 57 → Colombia
+      const isColombia = digits.startsWith("57");
 
-      const code = match[1];   // Ejemplo: "57"
-      const number = match[2]; // Ejemplo: "3001234567"
+      if (isColombia) {
+        // Remover el código de país (57)
+        const number = digits.slice(2);
 
-      // 🇨🇴 Validación especial para Colombia
-      if (code === "57") {
-        if (number && !number.startsWith("3")) {
-          error = "El número colombiano debe comenzar con 3.";
-        } else if (number.length > 0 && number.length !== 10) {
-          error = "El número colombiano debe tener exactamente 10 dígitos.";
+        if (!number.startsWith("3") || number.length !== 10) {
+          error = "El número colombiano debe comenzar con 3 y tener 10 dígitos.";
         }
       } else {
-        // 🌍 Validación genérica para otros países
-        if (number.length > 0 && (number.length < 6 || number.length > 15)) {
-          error = "El número debe tener entre 6 y 15 dígitos (sin el prefijo).";
+        if (digits.length < 6) {
+          error = "Debe tener mínimo 6 dígitos.";
         }
       }
       break;
@@ -125,7 +137,8 @@ export const validateField = (name, value, formData = {}, rol = "") => {
 
     case "contraseña":
       if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(val)) {
-        error = "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
+        error =
+          "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
       }
       break;
 
@@ -148,73 +161,24 @@ export const validateField = (name, value, formData = {}, rol = "") => {
   return error;
 };
 
-// 🔹 Función específica para validar teléfono con código de país
-export const validatePhone = (value, countryCode, setErrors) => {
-  const numberWithoutPrefix = value.slice(countryCode.length);
-
-  // 🇨🇴 Validación para Colombia
-  if (countryCode === "57") {
-    if (numberWithoutPrefix && numberWithoutPrefix[0] !== "3") {
-      setErrors((prev) => ({
-        ...prev,
-        telefono: "El número colombiano debe comenzar con 3.",
-      }));
-      return false;
-    } else if (numberWithoutPrefix.length > 0 && numberWithoutPrefix.length < 10) {
-      setErrors((prev) => ({
-        ...prev,
-        telefono: "El número debe tener 10 dígitos.",
-      }));
-      return false;
-    } else if (numberWithoutPrefix.length === 10) {
-      setErrors((prev) => ({ ...prev, telefono: "" }));
-      return true;
-    }
-  } else {
-    // 🌍 Validación genérica para otros países
-    if (numberWithoutPrefix.length > 0 && numberWithoutPrefix.length < 7) {
-      setErrors((prev) => ({
-        ...prev,
-        telefono: "El número debe tener al menos 7 dígitos.",
-      }));
-      return false;
-    } else if (numberWithoutPrefix.length >= 7) {
-      setErrors((prev) => ({ ...prev, telefono: "" }));
-      return true;
-    }
-  }
-
-  return false;
-};
-
-// 🔹 Función para formatear teléfono colombiano (fuerza el 3 inicial)
-export const formatColombianPhone = (phone, countryCode) => {
-  const numberWithoutPrefix = phone.slice(countryCode.length);
-  
-  // Si está vacío o no empieza con 3, forzar el 3
-  if (!numberWithoutPrefix || !numberWithoutPrefix.startsWith("3")) {
-    return countryCode + "3" + numberWithoutPrefix.replace(/^3*/, "");
-  }
-  
-  return phone;
-};
-
+/**
+ * Valida todos los campos del formulario según el rol
+ */
 export const validateAllFields = (formData, rol) => {
   const errors = {};
 
   // Campos básicos comunes
   const basicFields = [
-    "nombres",
-    "apellidos",
+    "primerNombre",
+    "intitucionOrigen",
+    "primerApellido",
+    "segundoApellido",
     "telefono",
-    "sexo",
+    "genero",
     "orientacionSexual",
     "fechaNacimiento",
-    "departamentoNacimiento",
-    "ciudadNacimiento",
     "nacionalidad",
-    "paisResidencia",
-    "ciudadResidencia",
+    "paisNacimiento",
     "direccionResidencia",
     "rol",
     "tipoDocumento",
@@ -223,44 +187,72 @@ export const validateAllFields = (formData, rol) => {
     "confirmarcontraseña",
   ];
 
+  // Validar campos básicos
   basicFields.forEach((field) => {
     const error = validateField(field, formData[field], formData, rol);
     if (error) errors[field] = error;
   });
 
-  // Dependiendo del rol, se agregan campos extra
-  if (rol === "estudiante") {
-    ["correo", "codigoPrograma", "semestre", "fechaIngreso", "periodo"].forEach((f) => {
-      const err = validateField(f, formData[f], formData, rol);
-      if (err) errors[f] = err;
+  // Validar campos de residencia según nacionalidad
+  if (formData.nacionalidad === "CO") {
+    ["departamentoResidencia", "ciudadResidencia"].forEach((field) => {
+      const error = validateField(field, formData[field], formData, rol);
+      if (error) errors[field] = error;
     });
   }
 
+  // Dependiendo del rol, se agregan campos extra
+  if (rol === "estudiante") {
+    ["correo", "programa", "facultad", "semestre", "fechaIngreso", "periodo"].forEach(
+      (f) => {
+        const err = validateField(f, formData[f], formData, rol);
+        if (err) errors[f] = err;
+      }
+    );
+  }
+
   if (rol === "invitado") {
-    ["correo", "sector", "nombreEmpresa"].forEach((f) => {
+    ["correo", "sector", "nombreEmpresa", "intitucionOrigen"].forEach((f) => {
       const err = validateField(f, formData[f], formData, rol);
       if (err) errors[f] = err;
     });
   }
 
   if (rol === "egresado") {
-    ["correo", "titulado", "fechaFinalizacion", "periodo"].forEach((f) => {
+    ["correo", "titulado", "fechaFinalizacion", "periodo", "programa", "facultad"].forEach((f) => {
       const err = validateField(f, formData[f], formData, rol);
       if (err) errors[f] = err;
     });
   }
 
+  // OPCIONALES que SI SE VALIDAN si el usuario los llena
+  ["segundoNombre"].forEach((field) => {
+    if (formData[field] && formData[field].trim() !== "") {
+      const error = validateField(field, formData[field], formData, rol);
+      if (error) errors[field] = error;
+    }
+  });
+
   return errors;
 };
 
+/**
+ * Verifica si un campo es numérico
+ */
 export const isNumericField = (fieldName) => {
   return ["numeroDocumento", "semestre"].includes(fieldName);
 };
 
+/**
+ * Verifica si un campo es alfabético
+ */
 export const isAlphabeticField = (fieldName) => {
-  return ["nombres", "apellidos", "ciudadResidencia"].includes(fieldName);
+  return ["primerNombre", "segundoNombre", "primerApellido", "segundoApellido"].includes(fieldName);
 };
 
+/**
+ * Verifica si hay errores en el objeto de errores
+ */
 export const hasErrors = (errors) => {
   return Object.values(errors).some((error) => error !== "");
 };

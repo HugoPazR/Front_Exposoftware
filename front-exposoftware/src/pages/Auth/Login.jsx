@@ -1,207 +1,283 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import * as AuthService from "../../Services/AuthService";
+import { useAuth } from "../../contexts/AuthContext";
 
-function LoginPage() {
-  const images = [
-    "https://elpilon2024.s3.us-west-2.amazonaws.com/2024/12/IMG_0427.jpeg",
-    "https://elpilon2024.s3.us-west-2.amazonaws.com/2025/04/upc-2.jpg",
-  ];
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+export default function LoginPage() {
+  const navigate = useNavigate();
+  const { login: loginContext } = useAuth();
+  
+  // Estados del formulario
   const [correo, setCorreo] = useState("");
-  const [contraseña, setContraseña] = useState("");
-  const [errores, setErrores] = useState({});
+  const [password, setPassword] = useState("");
+  const [recordarme, setRecordarme] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Carrusel automático
+  // Si ya está autenticado
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex === images.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [images.length]);
-
-  // Validar campos individualmente
-  const validarCampo = (nombre, valor) => {
-    let error = "";
-    const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-
-    if (nombre === "correo") {
-      if (!valor.trim()) {
-        error = "El correo electrónico es obligatorio.";
-      } else if (!correoValido.test(valor)) {
-        error = "Por favor ingresa un correo electrónico válido.";
+    const token = AuthService.getToken();
+    if (token) {
+      const userData = AuthService.getUserData();
+      if (userData && userData.rol) {
+        // Redirigir según el rol
+        switch(userData.rol.toLowerCase()) {
+          case 'estudiante':
+            navigate('/student/dashboard');
+            break;
+          case 'docente':
+          case 'profesor':
+            navigate('/teacher/dashboard');
+            break;
+          case 'administrador':
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'egresado':
+            navigate('/graduate/dashboard');
+            break;
+          case 'invitado':
+            navigate('/guest/dashboard');
+            break;
+          default:
+            navigate('/');
+        }
       }
     }
+  }, [navigate]);
 
-    if (nombre === "contraseña") {
-      if (!valor.trim()) {
-        error = "La contraseña es obligatoria.";
-      } else if (valor.length < 8) {
-        error = "La contraseña debe tener al menos 8 caracteres.";
-      }
+  // Cargar correo guardado
+  useEffect(() => {
+    const correoGuardado = localStorage.getItem("correoRecordado");
+    if (correoGuardado) {
+      setCorreo(correoGuardado);
+      setRecordarme(true);
     }
+  }, []);
 
-    setErrores((prev) => ({ ...prev, [nombre]: error }));
-  };
-
-  // Validar todos antes de enviar
-  const validarCampos = () => {
-    const nuevosErrores = {};
-    const correoValido = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-
-    if (!correo.trim()) {
-      nuevosErrores.correo = "El correo electrónico es obligatorio.";
-    } else if (!correoValido.test(correo)) {
-      nuevosErrores.correo = "Por favor ingresa un correo electrónico válido.";
-    }
-
-    if (!contraseña.trim()) {
-      nuevosErrores.contraseña = "La contraseña es obligatoria.";
-    } else if (contraseña.length < 8) {
-      nuevosErrores.contraseña = "La contraseña debe tener al menos 8 caracteres.";
-    }
-
-    setErrores(nuevosErrores);
-    return Object.keys(nuevosErrores).length === 0;
-  };
-
-  // Manejar envío
-  const manejarSubmit = (e) => {
+  // Manejar submit del formulario
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validarCampos()) {
-      console.log("✅ Inicio de sesión exitoso con:", { correo, contraseña });
-      // Aquí iría la lógica real del login (fetch o axios)
+    
+    // Validaciones básicas
+    if (!correo.trim()) {
+      setError("El correo electrónico es obligatorio");
+      return;
+    }
+    
+    if (!password.trim()) {
+      setError("La contraseña es obligatoria");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      console.log("📤 Intentando iniciar sesión con:", correo);
+      
+      // ✅ Usar el contexto de autenticación para hacer login
+      const resultado = await loginContext({
+        correo: correo,
+        password: password
+      });
+      
+      console.log("✅ Login exitoso:", resultado);
+
+      if (!resultado.success) {
+        throw new Error(resultado.error || "Error al iniciar sesión");
+      }
+
+      // Guardar correo si "Recordarme" está activado
+      if (recordarme) {
+        localStorage.setItem("correoRecordado", correo);
+      } else {
+        localStorage.removeItem("correoRecordado");
+      }
+
+      // Obtener rol del usuario
+      const userRole = AuthService.getUserRole();
+      
+      console.log(" userRole obtenido:", userRole);
+      
+      if (!userRole) {
+        throw new Error("No se pudo obtener el rol del usuario");
+      }
+
+      // ⏱️ Pequeño delay para asegurar que el estado se propagó
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Redirigir según el rol
+      const rol = userRole.toLowerCase();
+      console.log("🔀 Redirigiendo usuario con rol:", rol);
+
+      switch(rol) {
+        case 'estudiante':
+          navigate('/student/dashboard');
+          break;
+        case 'docente':
+        case 'profesor':
+          navigate('/teacher/dashboard');
+          break;
+        case 'administrador':
+        case 'admin':
+          navigate('/admin/dashboard');
+          break;
+        case 'egresado':
+          navigate('/graduate/dashboard');
+          break;
+        case 'invitado':
+          navigate('/guest/dashboard');
+          break;
+        default:
+          console.warn("⚠️ Rol no reconocido:", rol);
+          navigate('/');
+      }
+
+    } catch (err) {
+      console.error("❌ Error en login:", err);
+      
+      // Manejar diferentes tipos de errores
+      if (err.message.includes('502') || err.message.includes('503')) {
+        setError("⚠️ El servidor no está disponible temporalmente. Por favor, intenta más tarde.");
+      } else if (err.message.includes('conexión') || err.message.includes('network')) {
+        setError("🌐 Error de conexión. Verifica tu conexión a internet.");
+      } else if (err.message.includes('401') || err.message.includes('credenciales')) {
+        setError("❌ Correo o contraseña incorrectos. Por favor, verifica tus datos.");
+      } else {
+        setError(err.message || "Error al iniciar sesión. Por favor, intenta nuevamente.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Fondo con transición */}
-      {images.map((img, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-in-out ${
-            index === currentImageIndex
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-105"
-          }`}
-          style={{ backgroundImage: `url(${img})` }}
-        ></div>
-      ))}
+    <main className="min-h-screen flex items-center justify-center bg-green-50">
+      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
 
-      {/* Capa translúcida */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/80 to-green-50/85"></div>
-
-      {/* Contenido */}
-      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden relative z-10">
-        {/* Panel informativo */}
-        <aside className="w-1/2 bg-gradient-to-r from-green-500 to-green-700 text-white p-10 flex flex-col justify-center">
+  
+        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center">
           <header className="mb-6">
-            <h1 className="text-3xl font-bold">&lt;/&gt; Expo-Software 2025</h1>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold">&lt;/&gt;</span>
+              </div>
+              <h1 className="text-3xl font-bold">Expo-Software 2025</h1>
+            </div>
+            <div className="h-1 w-20 bg-white rounded-full"></div>
           </header>
 
-          <article>
-            <p className="text-lg mb-3">
-              Descubre los proyectos más innovadores desarrollados por
-              estudiantes y profesores.
-            </p>
-            <p className="text-sm mb-10">
-              Una vitrina digital de talento tecnológico y creatividad
-              académica.
-            </p>
-          </article>
+          <p className="text-lg leading-relaxed">
+            Descubre los proyectos más innovadores desarrollados por estudiantes y profesores.
+          </p>
+          <p className="text-sm mt-2 text-green-100">
+            Una vitrina digital de talento tecnológico y creatividad académica.
+          </p>
 
-          <footer className="flex gap-6 mt-auto">
-            <div className="flex flex-col items-center">
-              <Leaf className="mb-1" size={28} />
-              <p className="text-xl font-semibold">150+</p>
+          <footer className="flex gap-8 mt-10">
+            <div className="text-center">
+              <Leaf size={30} className="mx-auto mb-2" />
+              <p className="font-bold text-2xl">150+</p>
               <p className="text-sm">Proyectos</p>
             </div>
-            <div className="flex flex-col items-center">
-              <Users className="mb-1" size={28} />
-              <p className="text-xl font-semibold">500+</p>
+            <div className="text-center">
+              <Users size={30} className="mx-auto mb-2" />
+              <p className="font-bold text-2xl">500+</p>
               <p className="text-sm">Participantes</p>
             </div>
-            <div className="flex flex-col items-center">
-              <Trophy className="mb-1" size={28} />
-              <p className="text-xl font-semibold">15</p>
+            <div className="text-center">
+              <Trophy size={30} className="mx-auto mb-2" />
+              <p className="font-bold text-2xl">15</p>
               <p className="text-sm">Premios</p>
             </div>
           </footer>
         </aside>
 
-        {/* Panel de login */}
+        {/* Panel Derecho */}
         <section className="w-1/2 p-10 flex flex-col justify-center">
           <header className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Iniciar Sesión
-            </h2>
+            <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
             <p className="text-gray-500">Bienvenido de nuevo a Exposoftware</p>
+            
+            {/* Mostrar error si existe */}
+            {error && (
+              <div className={`mt-4 border px-4 py-3 rounded-lg text-sm ${
+                error.includes('servidor') || error.includes('502') || error.includes('503')
+                  ? 'bg-yellow-50 border-yellow-300 text-yellow-800'
+                  : 'bg-red-50 border-red-200 text-red-700'
+              }`}>
+                <div className="flex items-start gap-2">
+                  {error.includes('servidor') || error.includes('502') || error.includes('503') ? (
+                    <span className="text-xl">⚠️</span>
+                  ) : error.includes('conexión') ? (
+                    <span className="text-xl">🌐</span>
+                  ) : (
+                    <span className="text-xl">❌</span>
+                  )}
+                  <div>
+                    <p className="font-semibold">{error.includes('servidor') ? 'Servidor no disponible' : 'Error'}</p>
+                    <p>{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </header>
 
-          <form className="space-y-5" onSubmit={manejarSubmit}>
-            {/* CORREO */}
-            <fieldset>
-              <label className="block text-sm font-medium mb-1 text-gray-600">
-                Correo Electrónico
-              </label>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Correo</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
                   type="email"
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-green-500"
+                  placeholder="usuario@unicesar.edu.co"
                   value={correo}
-                  onChange={(e) => {
-                    setCorreo(e.target.value);
-                    validarCampo("correo", e.target.value);
-                  }}
-                  placeholder="tu@email.com"
-                  className={`w-full border ${
-                    errores.correo ? "border-red-500" : "border-gray-300"
-                  } rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 ${
-                    errores.correo ? "focus:ring-red-500" : "focus:ring-green-500"
-                  }`}
+                  onChange={(e) => setCorreo(e.target.value)}
+                  disabled={loading}
                 />
               </div>
-              {errores.correo && (
-                <p className="text-red-500 text-sm mt-1">{errores.correo}</p>
-              )}
-            </fieldset>
+            </div>
 
-            {/* CONTRASEÑA */}
-            <fieldset>
-              <label className="block text-sm font-medium mb-1 text-gray-600">
-                Contraseña
-              </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Contraseña</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
-                  type="password"
-                  value={contraseña}
-                  onChange={(e) => {
-                    setContraseña(e.target.value);
-                    validarCampo("contraseña", e.target.value);
-                  }}
+                  type={showPassword ? "text" : "password"}
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-2 focus:ring-2 focus:ring-green-500"
                   placeholder="********"
-                  className={`w-full border ${
-                    errores.contraseña ? "border-red-500" : "border-gray-300"
-                  } rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 ${
-                    errores.contraseña
-                      ? "focus:ring-red-500"
-                      : "focus:ring-green-500"
-                  }`}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
               </div>
-              {errores.contraseña && (
-                <p className="text-red-500 text-sm mt-1">{errores.contraseña}</p>
-              )}
-            </fieldset>
+            </div>
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2">
-                <input type="checkbox" className="accent-green-600" />
+                <input
+                  type="checkbox"
+                  checked={recordarme}
+                  onChange={(e) => setRecordarme(e.target.checked)}
+                  className="accent-green-600"
+                />
                 Recordarme
               </label>
               <a href="#" className="text-green-700 hover:underline">
@@ -211,25 +287,21 @@ function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition"
+              disabled={loading}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
-              Iniciar Sesión
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </button>
           </form>
 
-          <footer className="text-sm text-center mt-5 text-gray-600">
+          <p className="text-sm text-gray-600 text-center mt-6">
             ¿No tienes una cuenta?{" "}
-            <Link
-              to="/register"
-              className="text-green-700 font-semibold hover:underline"
-            >
+            <Link to="/register" className="text-green-700 font-semibold hover:underline">
               Regístrate aquí
             </Link>
-          </footer>
+          </p>
         </section>
       </section>
     </main>
   );
 }
-
-export default LoginPage;

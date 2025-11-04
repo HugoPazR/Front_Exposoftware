@@ -1,66 +1,43 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/Logo-unicesar.png";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
 
 // Main Dashboard Component
 export default function TeacherDashboard() {
+  const { user, getFullName, getInitials, logout, loading } = useAuth();
+  const navigate = useNavigate();
   const [selectedMateria, setSelectedMateria] = useState("Todas");
   const [selectedGrupo, setSelectedGrupo] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Datos para gráfica de barras - Estudiantes por Grupo
-  const barChartData = [
-    { name: "G1 Software", estudiantes: 45 },
-    { name: "G2 Redes", estudiantes: 28 },
-    { name: "G3 IA", estudiantes: 52 },
-    { name: "G4 SO", estudiantes: 38 },
-    { name: "G5 BD", estudiantes: 35 },
-  ];
-
-  // Datos para gráfica de dona - Estado de Proyectos
-  const donutChartData = [
-    { name: "Aprobado", value: 15, color: "#10b981" },
-    { name: "Pendiente", value: 90, color: "#fbbf24" },
-    { name: "Rechazado", value: 5, color: "#ef4444" },
-  ];
-
-  const totalProyectos = donutChartData.reduce((sum, item) => sum + item.value, 0);
-  const COLORS = ["#10b981", "#fbbf24", "#ef4444"];
-
-  const estudiantesData = [
-    { nombre: "Ana López", materia: "Ingeniería de Software", grupo: "G1", estado: "Activo" },
-    { nombre: "Carlos Ruiz", materia: "Redes de Computadoras", grupo: "G2", estado: "Activo" },
-    { nombre: "Elena Mendoza", materia: "Inteligencia Artificial", grupo: "G3", estado: "Inactivo" },
-    { nombre: "Fernando Vargas", materia: "Sistemas Operativos", grupo: "G4", estado: "Activo" },
-    { nombre: "Gabriela Díaz", materia: "Ingeniería de Software", grupo: "G1", estado: "Activo" },
-  ];
-
-  // Conteos rápidos para las tarjetas
-  const total = totalProyectos;
-  const aprobados = donutChartData.find(d => d.name === 'Aprobado')?.value || 0;
-  const pendientes = donutChartData.find(d => d.name === 'Pendiente')?.value || 0;
-
+  // useMemo DEBE estar antes del if loading
   const filteredEstudiantes = useMemo(() => {
-    return estudiantesData.filter(e => {
-      const matchesSearch = e.nombre.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesMateria = selectedMateria === 'Todas' || e.materia === selectedMateria;
-      const matchesGrupo = selectedGrupo === 'Todos' || e.grupo === selectedGrupo;
-      return matchesSearch && matchesMateria && matchesGrupo;
-    });
+    return [];
   }, [searchQuery, selectedMateria, selectedGrupo]);
+
+  // Handler para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      navigate('/login');
+    }
+  };
+
+  // Mostrar loading mientras se cargan los datos del usuario
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -77,17 +54,24 @@ export default function TeacherDashboard() {
 
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors">
+              <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800 transition-colors">
                 Registrar Asistencia
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">M</span>
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <span className="text-emerald-600 font-bold text-lg">{getInitials()}</span>
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
+                  <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Docente'}</p>
                 </div>
               </div>
 
-                <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -104,7 +88,7 @@ export default function TeacherDashboard() {
               <nav className="space-y-1">
                 <Link
                   to="/teacher/dashboard"
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-green-50 text-green-700"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-emerald-50 text-emerald-700"
                 >
                   <i className="pi pi-home text-base"></i>
                   Dashboard
@@ -126,17 +110,27 @@ export default function TeacherDashboard() {
               </nav>
             </div>
 
+            {/* User Info */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <h3 className="font-semibold text-gray-900">María</h3>
-                <p className="text-sm text-gray-500">Profesora</p>
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-emerald-600 font-bold text-2xl">{getInitials()}</span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Docente'}</p>
+                {user?.categoria_docente && (
+                  <p className="text-xs text-gray-400 mt-1">Categoría: {user.categoria_docente}</p>
+                )}
+                {user?.codigo_programa && (
+                  <p className="text-xs text-gray-400">Código: {user.codigo_programa}</p>
+                )}
               </div>
             </div>
           </aside>
 
           <main className="lg:col-span-3">
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Bienvenido, María</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Bienvenido, {user?.nombres || 'Docente'}</h2>
               <p className="text-sm text-gray-500">Resumen rápido de la convocatoria y proyectos</p>
             </div>
 
@@ -145,27 +139,27 @@ export default function TeacherDashboard() {
               <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total proyectos</p>
-                  <h3 className="text-2xl font-bold text-gray-900">{total}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">—</h3>
                 </div>
-                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                  <i className="pi pi-folder-open text-green-600 text-xl"></i>
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-folder-open text-emerald-600 text-xl"></i>
                 </div>
               </div>
 
               <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Aprobados</p>
-                  <h3 className="text-2xl font-bold text-gray-900">{aprobados}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">—</h3>
                 </div>
-                <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center">
-                  <i className="pi pi-check text-green-600 text-xl"></i>
+                <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center">
+                  <i className="pi pi-check text-emerald-600 text-xl"></i>
                 </div>
               </div>
 
               <div className="bg-white rounded-lg border border-gray-200 p-4 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Pendientes</p>
-                  <h3 className="text-2xl font-bold text-gray-900">{pendientes}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">—</h3>
                 </div>
                 <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
                   <i className="pi pi-clock text-yellow-600 text-xl"></i>
@@ -174,81 +168,24 @@ export default function TeacherDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Gráfica de Barras - Estudiantes por Grupo */}
+              {/* Espacio reservado para gráficas del backend */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">
                   Estudiantes por Grupo y Materia
                 </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={barChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="estudiantes" 
-                      fill="#16a34a" 
-                      radius={[8, 8, 0, 0]}
-                      name="Estudiantes"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                  <p className="text-gray-500 text-center">Esperando datos del backend...</p>
+                </div>
               </div>
 
-              {/* Gráfica de Dona - Estado de Proyectos */}
+              {/* Espacio reservado para gráficas del backend */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">
                   Resumen de Proyectos Registrados
                 </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={donutChartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {donutChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      formatter={(value, entry) => (
-                        <span className="text-sm text-gray-700">
-                          {value} ({entry.payload.value})
-                        </span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                  <p className="text-gray-500 text-center">Esperando datos del backend...</p>
+                </div>
               </div>
             </div>
 
@@ -261,13 +198,13 @@ export default function TeacherDashboard() {
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Buscar estudiante..."
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
 
                   <select 
                     value={selectedMateria}
                     onChange={(e) => setSelectedMateria(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Todas">Todas las materias</option>
                     <option value="Ingeniería de Software">Ingeniería de Software</option>
@@ -278,7 +215,7 @@ export default function TeacherDashboard() {
                   <select 
                     value={selectedGrupo}
                     onChange={(e) => setSelectedGrupo(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   >
                     <option value="Todos">Todos los grupos</option>
                     <option value="G1">G1</option>
@@ -308,7 +245,7 @@ export default function TeacherDashboard() {
                         <td className="py-3 px-4">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             estudiante.estado === "Activo" 
-                              ? "bg-green-100 text-green-800" 
+                              ? "bg-emerald-100 text-emerald-800" 
                               : "bg-gray-100 text-gray-800"
                           }`}>
                             {estudiante.estado}

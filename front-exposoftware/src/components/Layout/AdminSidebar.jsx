@@ -19,17 +19,17 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
     {
       to: "/admin/dash",
       icon: "pi-home",
-      label: "Dashboard"
+      label: "Dashboard Admin"
     },
     {
       to: "/admin/crear-materia",
       icon: "pi-book",
-      label: "Crear Materia"
+      label: "Gestión de Materias"
     },
     {
       to: "/admin/crear-grupo",
       icon: "pi-users",
-      label: "Crear Grupo"
+      label: "Gestión de Grupos"
     },
     {
       to: "/admin/crear-profesor",
@@ -37,14 +37,45 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Gestión de Profesores"
     },
     {
+      to: "/admin/estudiantes",
+      icon: "pi-graduation-cap",
+      label: "Gestión de Estudiantes"
+    },
+    {
       to: "/admin/lineas-investigacion",
       icon: "pi-lightbulb",
       label: "Gestión de Líneas de Investigación"
+    },
+    // 🔹 Nuevo apartado: Evento
+    {
+      to: "/admin/evento",
+      icon: "pi-calendar",
+      label: "Evento Exposoftware"
     },
     {
       to: "/admin/asistencia",
       icon: "pi-qrcode",
       label: "Registro de Asistencia"
+    },
+    {
+      to: "/admin/crear-facultad",
+      icon: "pi-building",
+      label: "Gestión de Facultades"
+    },
+    {
+      to: "/admin/crear-programa",
+      icon: "pi-book",
+      label: "Gestión de Programas"
+    },
+    {
+      to: "/admin/registrar-eventos",
+      icon: "pi-calendar",
+      label: "Gestión de Eventos"
+    },
+    {
+      to: "/admin/gestionar-eventos",
+      icon: "pi-calendar-plus",
+      label: "Administrar Eventos"
     },
     {
       to: "/admin/profile",
@@ -64,7 +95,7 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
               to={item.to}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive(item.to)
-                  ? "bg-green-50 text-green-700"
+                  ? "bg-teal-50 text-green-700"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
             >

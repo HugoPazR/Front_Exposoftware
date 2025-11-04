@@ -2,48 +2,50 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/Logo-unicesar.png";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Log para debug
+  console.log('🎯 StudentDashboard - Estado actual:');
+  console.log('   - Loading:', loading);
+  console.log('   - User:', user);
+  console.log('   - FullName:', getFullName());
+  console.log('   - Initials:', getInitials());
+
   // Handler para cerrar sesión
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      console.log('🚪 Iniciando cierre de sesión...');
+      await logout();
+      console.log('✅ Sesión cerrada, redirigiendo...');
+      navigate('/login');
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      // Redirigir de todas formas
+      navigate('/login');
+    }
   };
 
-  // Datos para gráfica de barras - Proyectos por Materia
-  const proyectosPorMateria = [
-    { name: "Ing. Software", proyectos: 12 },
-    { name: "Desarrollo Web", proyectos: 8 },
-    { name: "Móvil", proyectos: 6 },
-    { name: "IA", proyectos: 5 },
-    { name: "Redes", proyectos: 4 },
-  ];
+  // TODO: Estos datos vendrán del backend
+  // const proyectosPorMateria = [];
+  // const estadoInscripciones = [];
+  // const totalProyectos = 0;
+  // const misProyectos = 0;
+  // const diasRestantes = 0;
 
-  // Datos para gráfica de dona - Estado de Inscripciones
-  const estadoInscripciones = [
-    { name: "Confirmados", value: 28, color: "#16a34a" },
-    { name: "Pendientes", value: 10, color: "#fbbf24" },
-    { name: "En Revisión", value: 4, color: "#3b82f6" },
+  // Colores representativos de la universidad
+  const universityColors = [
+    "#16a34a", 
+    "rgba(12, 183, 106, 1)", // Verde agua (más verdoso)
+    "#22c55e", // Verde medio
+    "#86efac", // Verde pastel
+    "#3b82f6", // Azul
+    "#fbbf24", 
+    "#1f2937", // Negro/gris oscuro
   ];
-
-  const totalProyectos = estadoInscripciones.reduce((sum, item) => sum + item.value, 0);
-  const COLORS = ["#16a34a", "#fbbf24", "#3b82f6"];
 
   // Mostrar loading mientras se cargan los datos del usuario
   if (loading) {
@@ -73,10 +75,13 @@ export default function StudentDashboard() {
 
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
+              <button className="text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors" style={{ backgroundColor: 'rgba(13, 97, 59, 1)' }}>
+                Registrar Asistencia
+              </button>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">{getInitials()}</span>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-lg" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
                 </div>
                 <div className="hidden md:block">
                   <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
@@ -105,10 +110,12 @@ export default function StudentDashboard() {
               <nav className="space-y-1">
                 <button
                   onClick={() => setActiveTab("dashboard")}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "dashboard"
-                      ? "bg-green-50 text-green-700"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === "dashboard"
+                      ? ""
                       : "text-gray-700 hover:bg-gray-50"
-                    }`}
+                  }`}
+                  style={activeTab === "dashboard" ? { backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' } : {}}
                 >
                   <i className="pi pi-home text-base"></i>
                   Dashboard
@@ -120,6 +127,10 @@ export default function StudentDashboard() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
+                <Link to="/student/asistencia" className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}>
+                                  <i className="pi pi-qrcode text-base"></i>
+                                  Registrar Asistencia
+                                </Link>
                 <Link
                   to="/student/profile"
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}
@@ -131,9 +142,10 @@ export default function StudentDashboard() {
             </div>
 
             {/* --- BOTÓN MOVIDO AQUÍ --- */}
-            <Link
-              to="/student/register-project"
-              className="w-full inline-block text-center bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-300 transform animate-pulse hover:animate-none mt-4"
+            <Link 
+              to="/student/register-project" 
+              className="w-full inline-block text-center text-white py-3 rounded-lg font-semibold hover:opacity-90 hover:shadow-lg hover:scale-105 transition-all duration-300 transform animate-pulse hover:animate-none mt-4"
+              style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}
             >
               <span className="flex items-center justify-center gap-2">
                 <i className="pi pi-plus-circle"></i>
@@ -145,8 +157,8 @@ export default function StudentDashboard() {
             {/* User Info */}
             <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
               <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-600 font-bold text-2xl">{getInitials()}</span>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-2xl" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
                 </div>
                 <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
                 <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
@@ -164,12 +176,12 @@ export default function StudentDashboard() {
           <main className="lg:col-span-3">
 
             {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 mb-6 text-white">
+            <div className="rounded-lg p-6 mb-6 text-white" style={{ background: 'linear-gradient(to right, rgba(12, 183, 106, 1), rgba(12, 183, 106, 0.8))' }}>
               <h2 className="text-2xl font-bold mb-2">¡Bienvenido, {user?.nombres || 'Estudiante'}!</h2>
-              <p className="text-green-50 mb-1">
+              <p className="mb-1" style={{ color: 'rgba(255, 255, 255, 0.95)' }}>
                 XXI Jornada de Investigación
               </p>
-              <p className="text-green-50 text-sm">
+              <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>
                 Evento de innovación y tecnología de la UPC
               </p>
             </div>
@@ -179,140 +191,82 @@ export default function StudentDashboard() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   {/* Card 1 - Proyectos Inscritos */}
-                  <div className="bg-gradient-to-br from-green-50 to-white rounded-lg border border-gray-200 p-6">
+                  <div className="rounded-lg border border-gray-200 p-6" style={{ background: 'linear-gradient(to bottom right, rgba(12, 183, 106, 0.05), white)' }}>
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Proyectos Inscritos</p>
-                        <h3 className="text-3xl font-bold text-gray-900">{totalProyectos}</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">-</h3>
                         <div className="flex items-center gap-1 mt-2">
-                          <i className="pi pi-arrow-up text-xs text-green-600"></i>
-                          <span className="text-xs text-green-600 font-medium">+12% este mes</span>
+                          <span className="text-xs text-gray-500">Próximamente</span>
                         </div>
                       </div>
-                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                        <i className="pi pi-chart-line text-xl text-green-600"></i>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                        <i className="pi pi-chart-line text-xl" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                       </div>
                     </div>
                   </div>
 
                   {/* Card 2 - Mis Proyectos */}
-                  <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg border border-gray-200 p-6">
+                  <div className="rounded-lg border border-gray-200 p-6" style={{ background: 'linear-gradient(to bottom right, rgba(12, 183, 106, 0.03), white)' }}>
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Mis Proyectos</p>
-                        <h3 className="text-3xl font-bold text-gray-900">3</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">-</h3>
                         <div className="flex items-center gap-1 mt-2">
-                          <span className="text-xs text-gray-500">2 aprobados</span>
+                          <span className="text-xs text-gray-500">Próximamente</span>
                         </div>
                       </div>
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <i className="pi pi-book text-xl text-blue-600"></i>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                        <i className="pi pi-book text-xl" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                       </div>
                     </div>
                   </div>
 
                   {/* Card 3 - Días Restantes */}
-                  <div className="bg-gradient-to-br from-purple-50 to-white rounded-lg border border-gray-200 p-6">
+                  <div className="bg-gradient-to-br from-sky-50 to-white rounded-lg border border-gray-200 p-6">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Días Restantes</p>
-                        <h3 className="text-3xl font-bold text-gray-900">45</h3>
+                        <h3 className="text-3xl font-bold text-gray-900">-</h3>
                         <div className="flex items-center gap-1 mt-2">
-                          <span className="text-xs text-gray-500">Hasta el cierre</span>
+                          <span className="text-xs text-gray-500">Próximamente</span>
                         </div>
                       </div>
-                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                        <i className="pi pi-calendar text-xl text-purple-600"></i>
+                      <div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center">
+                        <i className="pi pi-calendar text-xl text-sky-600"></i>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Charts Row */}
+                {/* Charts Row - Comentado hasta que lleguen datos del backend */}
+                {/* 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  {/* Gráfica de Barras - Proyectos por Materia */}
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">
                       Proyectos por Materia
                     </h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={proyectosPorMateria}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis
-                          dataKey="name"
-                          tick={{ fontSize: 12 }}
-                          stroke="#6b7280"
-                        />
-                        <YAxis
-                          tick={{ fontSize: 12 }}
-                          stroke="#6b7280"
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#fff',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                        <Bar
-                          dataKey="proyectos"
-                          fill="#16a34a"
-                          radius={[8, 8, 0, 0]}
-                          name="Proyectos"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <div className="h-64 flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <i className="pi pi-chart-pie text-4xl mb-2"></i>
+                        <p className="text-sm">Datos no disponibles</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Gráfica de Dona - Estado de Inscripciones */}
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">
                       Estado de Inscripciones
                     </h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={estadoInscripciones}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {estadoInscripciones.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: '#fff',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '12px'
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-
-                    {/* Leyenda personalizada */}
-                    <div className="mt-4 space-y-2">
-                      {estadoInscripciones.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: item.color }}
-                            ></div>
-                            <span className="text-gray-700">{item.name}</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">{item.value}</span>
-                        </div>
-                      ))}
+                    <div className="h-64 flex items-center justify-center text-gray-400">
+                      <div className="text-center">
+                        <i className="pi pi-chart-pie text-4xl mb-2"></i>
+                        <p className="text-sm">Datos no disponibles</p>
+                      </div>
                     </div>
                   </div>
                 </div>
+                */}
               </>
             )}
 
@@ -330,14 +284,14 @@ export default function StudentDashboard() {
                         Cierre: 30 de Noviembre de 2025
                       </div>
                     </div>
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>
                       Activa
                     </span>
                   </div>
 
                   <div className="border-t border-gray-100 pt-4 mb-4">
                     <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                      <i className="pi pi-book text-green-600"></i>
+                      <i className="pi pi-book" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                       Descripción
                     </h4>
                     <p className="text-sm text-gray-600 leading-relaxed">
@@ -347,17 +301,17 @@ export default function StudentDashboard() {
 
                   <div className="border-t border-gray-100 pt-4 mb-4">
                     <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <i className="pi pi-check-circle text-green-600"></i>
+                      <i className="pi pi-check-circle" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
                       Información Útil
                     </h4>
                     <div className="space-y-2">
-                      <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
+                      <a href="#" className="block text-sm hover:underline" style={{ color: 'rgba(12, 183, 106, 1)' }}>
                         → Bases de la Convocatoria
                       </a>
-                      <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
+                      <a href="#" className="block text-sm hover:underline" style={{ color: 'rgba(12, 183, 106, 1)' }}>
                         → Guía de Postulación
                       </a>
-                      <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
+                      <a href="#" className="block text-sm hover:underline" style={{ color: 'rgba(12, 183, 106, 1)' }}>
                         → Preguntas Frecuentes
                       </a>
                     </div>
@@ -365,8 +319,8 @@ export default function StudentDashboard() {
 
                   <div className="border-t border-gray-100 pt-4 mb-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                      <i className="pi pi-users text-green-600"></i>
-                      Proyectos Registrados: <span className="font-semibold">42</span>
+                      <i className="pi pi-users" style={{ color: 'rgba(12, 183, 106, 1)' }}></i>
+                      Proyectos Registrados: <span className="font-semibold">-</span>
                     </div>
                   </div>
 
@@ -381,7 +335,7 @@ export default function StudentDashboard() {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-gray-900">Mis Proyectos</h3>
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                  <button className="text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
                     Nuevo Proyecto
                   </button>
                 </div>
@@ -390,7 +344,7 @@ export default function StudentDashboard() {
                     <i className="pi pi-book text-4xl text-gray-400"></i>
                   </div>
                   <p className="text-gray-500 mb-4">No tienes proyectos registrados aún</p>
-                  <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                  <button className="text-sm font-medium hover:opacity-80" style={{ color: 'rgba(12, 183, 106, 1)' }}>
                     Registrar mi primer proyecto →
                   </button>
                 </div>
@@ -411,18 +365,18 @@ export default function StudentDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Notificaciones</label>
                     <div className="flex items-center gap-3">
                       <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" className="form-checkbox text-green-600" />
+                        <input type="checkbox" className="form-checkbox" style={{ accentColor: 'rgba(12, 183, 106, 1)' }} />
                         Recibir correos
                       </label>
                       <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" className="form-checkbox text-green-600" />
+                        <input type="checkbox" className="form-checkbox" style={{ accentColor: 'rgba(12, 183, 106, 1)' }} />
                         Notificaciones en la app
                       </label>
                     </div>
                   </div>
 
                   <div className="pt-2">
-                    <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">Guardar cambios</button>
+                    <button className="text-white px-4 py-2 rounded-lg hover:opacity-90 transition-colors" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>Guardar cambios</button>
                   </div>
                 </div>
               </div>

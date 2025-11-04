@@ -1,63 +1,52 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { obtenerMiPerfilInvitado } from "../../Services/GuestService";
 import logo from "../../assets/Logo-unicesar.png";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 
 export default function GuestDashboard() {
-  // Datos del invitado (simulados - vendrían del backend/Firebase)
-  const invitadoData = {
-    // Atributos propios de Invitado
-    id_invitado: "INV-2025-001",
-    id_usuario: "USR-2025-456", // FK a Usuarios
-    id_sector: "empresarial", // educativo, empresarial, social, gobierno
-    nombre_empresa: "Tech Solutions S.A.S",
-    
-    // Atributos heredados de Usuarios
-    tipo_documento: "CC",
-    identificacion: "1065987654",
-    nombres: "Andrés Felipe",
-    apellidos: "López Martínez",
-    genero: "Masculino",
-    identidad_sexual: "Heterosexual",
-    fecha_nacimiento: "1990-05-15",
-    direccion_residencia: "Calle 15 #23-45",
-    ciudad_residencia: "Valledupar",
-    departamento_residencia: "Cesar",
-    pais: "Colombia",
-    nacionalidad: "Colombiana",
-    telefono: "+57 300 123 4567",
-    correo: "andres.lopez@techsolutions.com",
-    rol: "Invitado" // ⭐ ROL FUNDAMENTAL para identificar tipo de usuario
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+  const [perfil, setPerfil] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    cargarPerfil();
+  }, []);
+
+  const cargarPerfil = async () => {
+    try {
+      setCargando(true);
+      setError(null);
+      const datos = await obtenerMiPerfilInvitado();
+      setPerfil(datos);
+      console.log('✅ Perfil cargado en Dashboard:', datos);
+    } catch (err) {
+      console.error('❌ Error cargando perfil:', err);
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  // Datos para gráficas - Proyectos Inscritos
-  const proyectosPorMateria = [
-    { name: "Ing. Software", proyectos: 18 },
-    { name: "Desarrollo Web", proyectos: 12 },
-    { name: "Móvil", proyectos: 9 },
-    { name: "IA", proyectos: 7 },
-    { name: "Redes", proyectos: 6 },
-  ];
+  const handleLogout = () => {
+    if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+      logout();
+      navigate("/login");
+    }
+  };
 
-  // Datos para gráfica de dona - Estado de inscripciones
-  const estadoInscripciones = [
-    { name: "Confirmados", value: 32, color: "#10b981" },
-    { name: "Pendientes", value: 15, color: "#fbbf24" },
-    { name: "Visitados", value: 5, color: "#3b82f6" },
-  ];
-
-  const totalProyectos = estadoInscripciones.reduce((sum, item) => sum + item.value, 0);
-  const COLORS = ["#10b981", "#fbbf24", "#3b82f6"];
+  // Datos del invitado - ahora desde el perfil real
+  const invitadoData = perfil || {
+    id_invitado: "Cargando...",
+    nombres: user?.primer_nombre || "Invitado",
+    apellidos: user?.primer_apellido || "Usuario",
+    nombre_empresa: "Cargando...",
+    id_sector: "...",
+    correo: user?.correo || user?.email || "",
+    rol: user?.rol || "Invitado"
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,7 +79,10 @@ export default function GuestDashboard() {
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -186,156 +178,93 @@ export default function GuestDashboard() {
           {/* Main Content */}
           <main className="lg:col-span-3">
             
-            {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 mb-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-2xl font-bold">
-                  ¡Bienvenido, {invitadoData.nombres}!
-                </h2>
-                <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
-                  👤 {invitadoData.rol}
-                </span>
+            {/* Estado de carga */}
+            {cargando && (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center mb-6">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+                <p className="text-gray-600">Cargando información del perfil...</p>
               </div>
-              <p className="text-green-50 mb-2">
-                Explora los increíbles proyectos de nuestros estudiantes en Expo-software 2025
-              </p>
-              <div className="flex items-center gap-4 mt-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <i className="pi pi-building"></i>
-                  <span>{invitadoData.nombre_empresa}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <i className="pi pi-tag"></i>
-                  <span className="capitalize">Sector {invitadoData.id_sector}</span>
-                </div>
-              </div>
-            </div>
+            )}
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              {/* Card 1 */}
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
+            {/* Error */}
+            {error && !cargando && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <i className="pi pi-exclamation-triangle text-red-600 text-xl"></i>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Proyectos Disponibles</p>
-                    <h3 className="text-2xl font-bold text-gray-900">52</h3>
-                  </div>
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-briefcase text-green-600"></i>
+                    <h3 className="text-sm font-semibold text-red-900">Error al cargar perfil</h3>
+                    <p className="text-sm text-red-700 mt-1">{error}</p>
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Card 2 */}
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Mis Inscripciones</p>
-                    <h3 className="text-2xl font-bold text-gray-900">{totalProyectos}</h3>
+            {/* Welcome Section - Solo si hay datos */}
+            {!cargando && perfil && (
+              <>
+                <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-6 mb-6 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-2xl font-bold">
+                      ¡Bienvenido, {invitadoData.nombres}!
+                    </h2>
+                    <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-semibold">
+                      👤 {invitadoData.rol}
+                    </span>
                   </div>
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-bookmark text-green-600"></i>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 3 */}
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Materias</p>
-                    <h3 className="text-2xl font-bold text-gray-900">5</h3>
-                  </div>
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-tags text-green-600"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Gráficas */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Gráfica de Proyectos por Materia */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                  Proyectos Inscritos por Materia
-                </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={proyectosPorMateria}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 11 }}
-                      stroke="#6b7280"
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      stroke="#6b7280"
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Bar 
-                      dataKey="proyectos" 
-                      fill="#16a34a" 
-                      radius={[8, 8, 0, 0]}
-                      name="Proyectos"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Gráfica de Estado de Inscripciones */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                  Estado de Inscripciones
-                </h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={estadoInscripciones}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {estadoInscripciones.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-1 gap-2 mt-4">
-                  {estadoInscripciones.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm text-gray-700">{item.name}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-gray-900">{item.value}</span>
+                  <p className="text-green-50 mb-2">
+                    Explora los increíbles proyectos de nuestros estudiantes en Expo-software 2025
+                  </p>
+                  <div className="flex items-center gap-4 mt-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-building"></i>
+                      <span>{invitadoData.nombre_empresa || 'No especificado'}</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-tag"></i>
+                      <span className="capitalize">Sector {invitadoData.id_sector || 'No especificado'}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Información del Perfil */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="pi pi-user text-green-600"></i>
+                    Información del Invitado
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                      <i className="pi pi-id-card text-green-600 text-lg mt-1"></i>
+                      <div>
+                        <p className="text-xs text-gray-500">ID Invitado</p>
+                        <p className="text-sm font-medium text-gray-900">{invitadoData.id_invitado}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                      <i className="pi pi-envelope text-green-600 text-lg mt-1"></i>
+                      <div>
+                        <p className="text-xs text-gray-500">Correo</p>
+                        <p className="text-sm font-medium text-gray-900">{invitadoData.correo}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                      <i className="pi pi-phone text-green-600 text-lg mt-1"></i>
+                      <div>
+                        <p className="text-xs text-gray-500">Teléfono</p>
+                        <p className="text-sm font-medium text-gray-900">{invitadoData.telefono || 'No especificado'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                      <i className="pi pi-map-marker text-green-600 text-lg mt-1"></i>
+                      <div>
+                        <p className="text-xs text-gray-500">Ciudad</p>
+                        <p className="text-sm font-medium text-gray-900">{invitadoData.ciudad_residencia || 'No especificado'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Información del Evento */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">

@@ -24,44 +24,42 @@ export default function EditTeacherModal({
   onSave,
   onCancel,
   // Listas dinámicas
-  ciudadesResidencia,
   municipios,
   opcionesPaises,
+  programas = [],
+  loadingProgramas = false,
   // Estados del formulario - Usuario
   tipoDocumento,
   setTipoDocumento,
   identificacion,
   setIdentificacion,
-  nombres,
-  setNombres,
-  apellidos,
-  setApellidos,
+  // Nombres y apellidos separados
+  primerNombre,
+  setPrimerNombre,
+  segundoNombre,
+  setSegundoNombre,
+  primerApellido,
+  setPrimerApellido,
+  segundoApellido,
+  setSegundoApellido,
   genero,
   setGenero,
   identidadSexual,
   setIdentidadSexual,
   fechaNacimiento,
   setFechaNacimiento,
-  direccionResidencia,
-  setDireccionResidencia,
-  anioIngreso,
-  setAnioIngreso,
-  periodo,
-  setPeriodo,
-  ciudadResidencia,
-  setCiudadResidencia,
-  departamentoResidencia,
-  setDepartamentoResidencia,
+  nacionalidad,
+  setNacionalidad,
+  pais,
+  setPais,
   departamento,
   setDepartamento,
   municipio,
   setMunicipio,
-  pais,
-  setPais,
-  nacionalidad,
-  setNacionalidad,
-  ciudad,
-  setCiudad,
+  ciudadResidencia,
+  setCiudadResidencia,
+  direccionResidencia,
+  setDireccionResidencia,
   telefono,
   setTelefono,
   correo,
@@ -80,8 +78,8 @@ export default function EditTeacherModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 bg-green-600">
+      <div className="bg-white rounded-xl shadow-xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 bg-teal-600">
           <h3 className="text-xl font-bold text-white">Editar Profesor</h3>
         </div>
 
@@ -89,7 +87,7 @@ export default function EditTeacherModal({
           {/* Información Personal */}
           <div>
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Información Personal</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* Tipo de Documento */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -98,7 +96,7 @@ export default function EditTeacherModal({
                 <select
                   value={tipoDocumento}
                   onChange={(e) => setTipoDocumento(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 bg-white"
                   required
                 >
                   <option value="">Seleccionar</option>
@@ -117,36 +115,70 @@ export default function EditTeacherModal({
                   type="text"
                   value={identificacion}
                   onChange={(e) => setIdentificacion(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
 
-              {/* Nombres */}
+              {/* Primer Nombre */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombres
+                  Primer Nombre <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={nombres}
-                  onChange={(e) => setNombres(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  value={primerNombre}
+                  onChange={(e) => setPrimerNombre(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: María"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
 
-              {/* Apellidos */}
+              {/* Segundo Nombre */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellidos
+                  Segundo Nombre
                 </label>
                 <input
                   type="text"
-                  value={apellidos}
-                  onChange={(e) => setApellidos(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  value={segundoNombre}
+                  onChange={(e) => setSegundoNombre(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: José"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              {/* Primer Apellido */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Primer Apellido <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={primerApellido}
+                  onChange={(e) => setPrimerApellido(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: Pérez"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
+                />
+              </div>
+
+              {/* Segundo Apellido */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Segundo Apellido
+                </label>
+                <input
+                  type="text"
+                  value={segundoApellido}
+                  onChange={(e) => setSegundoApellido(e.target.value)}
+                  maxLength={15}
+                  placeholder="Ej: García"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
@@ -158,7 +190,7 @@ export default function EditTeacherModal({
                 <select
                   value={genero}
                   onChange={(e) => setGenero(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 bg-white"
                   required
                 >
                   <option value="">Seleccionar</option>
@@ -176,7 +208,7 @@ export default function EditTeacherModal({
                 <select
                   value={identidadSexual}
                   onChange={(e) => setIdentidadSexual(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 bg-white"
                 >
                   <option value="">Seleccionar</option>
                   {IDENTIDADES_SEXUALES.map((id) => (
@@ -194,7 +226,7 @@ export default function EditTeacherModal({
                   type="date"
                   value={fechaNacimiento}
                   onChange={(e) => setFechaNacimiento(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
@@ -207,7 +239,7 @@ export default function EditTeacherModal({
                   type="tel"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -217,16 +249,16 @@ export default function EditTeacherModal({
           {/* Información de Ubicación y Residencia */}
           <div className="border-t pt-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Información de Ubicación y Residencia</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* País - Select dinámico */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  País
+                  País de Residencia
                 </label>
                 <Select
                   name="pais"
                   options={opcionesPaises}
-                  placeholder="Selecciona País"
+                  placeholder="Selecciona País de Residencia"
                   value={
                     pais
                       ? opcionesPaises.find(
@@ -249,15 +281,15 @@ export default function EditTeacherModal({
                 />
               </div>
 
-              {/* Nacionalidad - Select dinámico */}
+              {/* País de Nacimiento - Select dinámico */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nacionalidad
+                  País de Nacimiento
                 </label>
                 <Select
                   name="nacionalidad"
                   options={opcionesPaises}
-                  placeholder="Selecciona Nacionalidad"
+                  placeholder="Selecciona País de Nacimiento"
                   value={
                     nacionalidad
                       ? opcionesPaises.find(
@@ -280,55 +312,6 @@ export default function EditTeacherModal({
                 />
               </div>
 
-              {/* Departamento de Residencia */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Departamento de Residencia
-                </label>
-                <select
-                  value={departamentoResidencia}
-                  onChange={(e) => setDepartamentoResidencia(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
-                >
-                  <option value="">Seleccionar</option>
-                  {DEPARTAMENTOS_COLOMBIA.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Ciudad de Residencia - Select dinámico */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad de Residencia
-                </label>
-                <select
-                  value={ciudadResidencia}
-                  onChange={(e) => setCiudadResidencia(e.target.value)}
-                  disabled={!departamentoResidencia}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100"
-                >
-                  <option value="">Seleccionar ciudad</option>
-                  {ciudadesResidencia.map((ciudad) => (
-                    <option key={ciudad} value={ciudad}>{ciudad}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Dirección de Residencia */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dirección de Residencia
-                </label>
-                <input
-                  type="text"
-                  value={direccionResidencia}
-                  onChange={(e) => setDireccionResidencia(e.target.value)}
-                  maxLength={50}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-
               {/* Departamento */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -337,7 +320,7 @@ export default function EditTeacherModal({
                 <select
                   value={departamento}
                   onChange={(e) => setDepartamento(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 bg-white"
                 >
                   <option value="">Seleccionar</option>
                   {DEPARTAMENTOS_COLOMBIA.map((dept) => (
@@ -349,13 +332,13 @@ export default function EditTeacherModal({
               {/* Municipio - Select dinámico */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ciudad
+                  Municipio
                 </label>
                 <select
                   value={municipio}
                   onChange={(e) => setMunicipio(e.target.value)}
                   disabled={!departamento}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 bg-white disabled:bg-gray-100"
                 >
                   <option value="">Seleccionar municipio</option>
                   {municipios.map((mun) => (
@@ -364,49 +347,42 @@ export default function EditTeacherModal({
                 </select>
               </div>
 
-            </div>
-          </div>
-
-          {/* Información Académica */}
-          <div className="border-t pt-4">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Información Académica</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Año de Ingreso */}
+              {/* Ciudad de Residencia - Select dinámico */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Año de Ingreso
+                  Ciudad de Residencia
                 </label>
                 <input
                   type="text"
-                  value={anioIngreso}
-                  onChange={(e) => setAnioIngreso(e.target.value)}
-                  maxLength={4}
-                  pattern="[0-9]{4}"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  value={ciudadResidencia}
+                  onChange={(e) => setCiudadResidencia(e.target.value)}
+                  maxLength={50}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                  placeholder="Nombre de la ciudad"
                 />
               </div>
 
-              {/* Periodo */}
-              <div>
+              {/* Dirección de Residencia */}
+              <div className="md:col-span-2 lg:col-span-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Periodo
+                  Dirección de Residencia
                 </label>
                 <input
-                  type="number"
-                  value={periodo}
-                  onChange={(e) => setPeriodo(e.target.value)}
-                  min="1"
-                  max="10"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  type="text"
+                  value={direccionResidencia}
+                  onChange={(e) => setDireccionResidencia(e.target.value)}
+                  maxLength={50}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                 />
               </div>
+
             </div>
           </div>
 
           {/* Información del Docente */}
           <div className="border-t pt-4">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Información del Docente</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {/* Correo */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -416,7 +392,7 @@ export default function EditTeacherModal({
                   type="email"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -431,7 +407,7 @@ export default function EditTeacherModal({
                   value={contraseña}
                   onChange={(e) => setContraseña(e.target.value)}
                   placeholder="Dejar vacío para no cambiar"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
@@ -443,7 +419,7 @@ export default function EditTeacherModal({
                 <select
                   value={categoriaDocente}
                   onChange={(e) => setCategoriaDocente(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 bg-white"
                   required
                 >
                   <option value="">Seleccionar</option>
@@ -457,15 +433,30 @@ export default function EditTeacherModal({
               {categoriaDocente === "Interno" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Código Programa
+                    Código del Programa <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    value={codigoPrograma}
-                    onChange={(e) => setCodigoPrograma(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
-                    required
-                  />
+                  {loadingProgramas ? (
+                    <div className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 text-gray-500">
+                      Cargando programas...
+                    </div>
+                  ) : (
+                    <select
+                      value={codigoPrograma}
+                      onChange={(e) => setCodigoPrograma(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
+                      required
+                    >
+                      <option value="">Seleccionar programa</option>
+                      {programas.map((programa) => (
+                        <option key={programa.codigo_programa} value={programa.codigo_programa}>
+                          {programa.codigo_programa}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {programas.length === 0 && !loadingProgramas && (
+                    <p className="text-xs text-gray-500 mt-1">No hay programas disponibles</p>
+                  )}
                 </div>
               )}
 
@@ -476,7 +467,7 @@ export default function EditTeacherModal({
                   id="activoModal"
                   checked={activo}
                   onChange={(e) => setActivo(e.target.checked)}
-                  className="w-4 h-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  className="w-4 h-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
                 />
                 <label htmlFor="activoModal" className="ml-2 block text-sm text-gray-700">
                   Docente Activo
@@ -496,7 +487,7 @@ export default function EditTeacherModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition"
+              className="px-6 py-2.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition"
             >
               💾 Guardar Cambios
             </button>

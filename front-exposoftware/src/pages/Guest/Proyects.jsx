@@ -1,117 +1,63 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { obtenerMiPerfilInvitado, obtenerTodosLosProyectos } from "../../Services/GuestService";
 import logo from "../../assets/Logo-unicesar.png";
 
-const MOCK_PROJECTS = [
-  {
-    id: 1,
-    title: "Sistema de Gestión de Bibliotecas con IA",
-    participants: ["Cristian Guzman", "Pedro Lopez", "Ana García"],
-    subject: "Programación Avanzada",
-    group: "Grupo A",
-    status: "Disponible",
-    description: "Sistema inteligente para gestión automatizada de bibliotecas universitarias utilizando técnicas de IA para recomendaciones personalizadas y búsqueda avanzada.",
-    professor: "Dr. Carlos Pérez",
-    line: "Inteligencia Artificial",
-    subline: "Aprendizaje Automático",
-    posterImage: "https://via.placeholder.com/800x1200/10b981/ffffff?text=Poster+Biblioteca+IA",
-    presentationDate: "25 Nov 2025, 10:00 AM",
-    location: "Auditorio 3",
-  },
-  {
-    id: 2,
-    title: "App Móvil para Gestión de Turnos",
-    participants: ["Karen Martinez", "Luis Rodríguez"],
-    subject: "Programación Móvil",
-    group: "Grupo B",
-    status: "Disponible",
-    description: "Aplicación móvil multiplataforma para la gestión eficiente de turnos en diferentes tipos de establecimientos, con sistema de notificaciones en tiempo real.",
-    professor: "Ing. María Ruiz",
-    line: "Ingeniería de Software",
-    subline: "Metodologías Ágiles",
-    posterImage: "https://via.placeholder.com/800x1200/3b82f6/ffffff?text=Poster+App+Turnos",
-    presentationDate: "25 Nov 2025, 2:00 PM",
-    location: "Sala 201",
-  },
-  {
-    id: 3,
-    title: "Plataforma de E-Learning con Gamificación",
-    participants: ["Andrea Silva", "Jorge Morales", "Diana Torres"],
-    subject: "Ingeniería de Software",
-    group: "Grupo C",
-    status: "Disponible",
-    description: "Plataforma educativa innovadora que integra elementos de gamificación para mejorar la experiencia de aprendizaje online, con seguimiento personalizado del progreso del estudiante.",
-    professor: "Dr. Roberto Sánchez",
-    line: "Tecnologías Educativas",
-    subline: "Gamificación y Aprendizaje",
-    posterImage: "https://via.placeholder.com/800x1200/8b5cf6/ffffff?text=Poster+E-Learning",
-    presentationDate: "26 Nov 2025, 9:00 AM",
-    location: "Auditorio 1",
-  },
-  {
-    id: 4,
-    title: "Sistema de Monitoreo Ambiental IoT",
-    participants: ["Miguel Ángel Castro", "Sofía Ramírez"],
-    subject: "Internet de las Cosas",
-    group: "Grupo D",
-    status: "Disponible",
-    description: "Red de sensores IoT para monitoreo en tiempo real de variables ambientales (temperatura, humedad, calidad del aire) con visualización de datos y alertas automáticas.",
-    professor: "Ing. Patricia Gómez",
-    line: "Internet de las Cosas",
-    subline: "Sistemas Embebidos",
-    posterImage: "https://via.placeholder.com/800x1200/f59e0b/ffffff?text=Poster+IoT+Ambiental",
-    presentationDate: "26 Nov 2025, 3:00 PM",
-    location: "Sala 105",
-  },
-  {
-    id: 5,
-    title: "Chatbot Asistente Virtual con NLP",
-    participants: ["Carolina Díaz", "Andrés Herrera"],
-    subject: "Inteligencia Artificial",
-    group: "Grupo E",
-    status: "Disponible",
-    description: "Asistente virtual inteligente basado en procesamiento de lenguaje natural para atención al cliente automatizada, capaz de comprender contexto y mantener conversaciones fluidas.",
-    professor: "Dr. Fernando López",
-    line: "Inteligencia Artificial",
-    subline: "Procesamiento de Lenguaje Natural",
-    posterImage: "https://via.placeholder.com/800x1200/ec4899/ffffff?text=Poster+Chatbot+NLP",
-    presentationDate: "27 Nov 2025, 11:00 AM",
-    location: "Auditorio 2",
-  },
-  {
-    id: 6,
-    title: "Sistema de Detección de Fraude Bancario",
-    participants: ["Ricardo Vega", "Natalia Ortiz", "Pablo Mendoza"],
-    subject: "Ciencia de Datos",
-    group: "Grupo F",
-    status: "Disponible",
-    description: "Sistema de detección de transacciones fraudulentas en tiempo real utilizando algoritmos de machine learning y análisis de patrones de comportamiento.",
-    professor: "Dra. Elena Vargas",
-    line: "Ciencia de Datos",
-    subline: "Análisis Predictivo",
-    posterImage: "https://via.placeholder.com/800x1200/06b6d4/ffffff?text=Poster+Deteccion+Fraude",
-    presentationDate: "27 Nov 2025, 4:00 PM",
-    location: "Sala 302",
-  },
-];
-
 export default function GuestProjects() {
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("all");
-  const [selectedLine, setSelectedLine] = useState("all");
-  const [selectedDate, setSelectedDate] = useState("all");
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  const [proyectos, setProyectos] = useState([]);
 
-  // Datos del invitado (simulados - vendrían del backend)
-  const invitadoData = {
-    id_invitado: "INV-2025-001",
-    nombres: "Andrés Felipe",
-    apellidos: "López Martínez",
-    nombre_empresa: "Tech Solutions S.A.S",
-    id_sector: "empresarial",
-    correo: "andres.lopez@techsolutions.com",
-    rol: "Invitado" // ⭐ ROL FUNDAMENTAL
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      setError(null);
+      
+      // Cargar perfil y proyectos en paralelo
+      const [datosPerfil, datosProyectos] = await Promise.all([
+        obtenerMiPerfilInvitado(),
+        obtenerTodosLosProyectos()
+      ]);
+      
+      setPerfil(datosPerfil);
+      setProyectos(datosProyectos);
+      
+      console.log('✅ Datos cargados - Perfil:', datosPerfil, 'Proyectos:', datosProyectos.length);
+    } catch (err) {
+      console.error('❌ Error cargando datos:', err);
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+      logout();
+      navigate("/login");
+    }
+  };
+
+  // Datos del invitado - desde el perfil real
+  const invitadoData = perfil || {
+    id_invitado: "Cargando...",
+    nombres: user?.primer_nombre || "Invitado",
+    apellidos: user?.primer_apellido || "Usuario",
+    nombre_empresa: "Cargando...",
+    id_sector: "...",
+    correo: user?.correo || user?.email || "",
+    rol: user?.rol || "Invitado"
   };
 
   const handleViewDetails = (project) => {
@@ -124,21 +70,15 @@ export default function GuestProjects() {
     setSelectedProject(null);
   };
 
-  // Obtener listas únicas para filtros
-  const subjects = ["all", ...new Set(MOCK_PROJECTS.map(p => p.subject))];
-  const lines = ["all", ...new Set(MOCK_PROJECTS.map(p => p.line))];
-  const dates = ["all", ...new Set(MOCK_PROJECTS.map(p => p.presentationDate.split(",")[0]))];
-
-  // Filtrar proyectos
-  const filteredProjects = MOCK_PROJECTS.filter(project => {
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.participants.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesSubject = selectedSubject === "all" || project.subject === selectedSubject;
-    const matchesLine = selectedLine === "all" || project.line === selectedLine;
-    const matchesDate = selectedDate === "all" || project.presentationDate.startsWith(selectedDate);
+  // Filtrar proyectos por búsqueda
+  const filteredProjects = proyectos.filter(project => {
+    if (!searchTerm) return true;
     
-    return matchesSearch && matchesSubject && matchesLine && matchesDate;
+    const searchLower = searchTerm.toLowerCase();
+    const matchesTitle = (project.nombre_proyecto || project.titulo || '').toLowerCase().includes(searchLower);
+    const matchesDescription = (project.descripcion || '').toLowerCase().includes(searchLower);
+    
+    return matchesTitle || matchesDescription;
   });
 
   return (
@@ -169,7 +109,10 @@ export default function GuestProjects() {
                 </div>
               </div>
               
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
@@ -269,174 +212,124 @@ export default function GuestProjects() {
               </div>
             </div>
 
-            {/* Panel de Filtros */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <i className="pi pi-filter text-green-600"></i>
-                Filtros de Búsqueda
-              </h3>
+            {/* Estado de carga */}
+            {cargando && (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center mb-6">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+                <p className="text-gray-600">Cargando proyectos...</p>
+              </div>
+            )}
 
-              {/* Barra de búsqueda */}
-              <div className="mb-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Buscar por título, descripción o participantes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                  <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            {/* Error */}
+            {error && !cargando && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <i className="pi pi-exclamation-triangle text-red-600 text-xl"></i>
+                  <div>
+                    <h3 className="text-sm font-semibold text-red-900">Error al cargar proyectos</h3>
+                    <p className="text-sm text-red-700 mt-1">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contenido - Solo si no hay error ni está cargando */}
+            {!cargando && !error && (
+              <>
+                {/* Panel de Filtros */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="pi pi-filter text-green-600"></i>
+                    Búsqueda
+                  </h3>
+
+                  {/* Barra de búsqueda */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Buscar por título o descripción..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                      <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm("")}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <i className="pi pi-times"></i>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Contador de resultados */}
                   {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <i className="pi pi-times"></i>
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-600">
+                        Mostrando {filteredProjects.length} de {proyectos.length} proyectos
+                      </p>
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1"
+                      >
+                        <i className="pi pi-times-circle"></i>
+                        Limpiar búsqueda
+                      </button>
+                    </div>
                   )}
                 </div>
-              </div>
 
-              {/* Filtros en grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Filtro por Materia */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <i className="pi pi-book text-green-600 mr-1"></i>
-                    Materia
-                  </label>
-                  <select
-                    value={selectedSubject}
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="all">Todas las materias</option>
-                    {subjects.filter(s => s !== "all").map(subject => (
-                      <option key={subject} value={subject}>{subject}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Grid de Proyectos */}
+                {filteredProjects.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredProjects.map(p => (
+                      <div key={p.id_proyecto} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                            {p.nombre_proyecto || p.titulo || 'Proyecto sin título'}
+                          </h3>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                          {p.descripcion || 'Sin descripción disponible'}
+                        </p>
 
-                {/* Filtro por Línea de Investigación */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <i className="pi pi-sitemap text-green-600 mr-1"></i>
-                    Línea de Investigación
-                  </label>
-                  <select
-                    value={selectedLine}
-                    onChange={(e) => setSelectedLine(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="all">Todas las líneas</option>
-                    {lines.filter(l => l !== "all").map(line => (
-                      <option key={line} value={line}>{line}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Filtro por Fecha */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <i className="pi pi-calendar text-green-600 mr-1"></i>
-                    Fecha de Presentación
-                  </label>
-                  <select
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="all">Todas las fechas</option>
-                    {dates.filter(d => d !== "all").map(date => (
-                      <option key={date} value={date}>{date}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Botón para limpiar filtros */}
-              {(searchTerm || selectedSubject !== "all" || selectedLine !== "all" || selectedDate !== "all") && (
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
-                    Mostrando {filteredProjects.length} de {MOCK_PROJECTS.length} proyectos
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setSelectedSubject("all");
-                      setSelectedLine("all");
-                      setSelectedDate("all");
-                    }}
-                    className="text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1"
-                  >
-                    <i className="pi pi-times-circle"></i>
-                    Limpiar filtros
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Grid de Proyectos */}
-            {filteredProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredProjects.map(p => (
-                  <div key={p.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900 flex-1">{p.title}</h3>
-                    </div>
-                    
-                    <div className="text-sm text-gray-600 mb-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <i className="pi pi-book text-green-600"></i>
-                        <span>{p.subject} - {p.group}</span>
+                        <button 
+                          onClick={() => handleViewDetails(p)}
+                          className="w-full border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+                        >
+                          <i className="pi pi-eye"></i> Ver detalles
+                        </button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <i className="pi pi-calendar text-green-600"></i>
-                        <span>{p.presentationDate}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <i className="pi pi-map-marker text-green-600"></i>
-                        <span>{p.location}</span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                      {p.description}
-                    </p>
-
-                    <button 
-                      onClick={() => handleViewDetails(p)}
-                      className="w-full border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-                    >
-                      <i className="pi pi-eye"></i> Ver detalles
-                    </button>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <i className="pi pi-search text-4xl text-gray-400"></i>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No se encontraron proyectos
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  No hay proyectos que coincidan con los filtros seleccionados.
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedSubject("all");
-                    setSelectedLine("all");
-                    setSelectedDate("all");
-                  }}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Limpiar filtros
-                </button>
-              </div>
+                ) : (
+                  <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <i className="pi pi-search text-4xl text-gray-400"></i>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {proyectos.length === 0 ? 'No hay proyectos disponibles' : 'No se encontraron proyectos'}
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      {proyectos.length === 0 
+                        ? 'Aún no se han registrado proyectos para el evento.'
+                        : 'No hay proyectos que coincidan con tu búsqueda.'}
+                    </p>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Limpiar búsqueda
+                      </button>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </main>
         </div>
@@ -445,7 +338,7 @@ export default function GuestProjects() {
       {/* Modal de Detalles del Proyecto */}
       {showModal && selectedProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-auto">
             {/* Header del modal */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
               <h3 className="text-xl font-bold text-gray-900">Detalles del Proyecto</h3>
@@ -459,112 +352,80 @@ export default function GuestProjects() {
 
             {/* Contenido del modal */}
             <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Columna Izquierda - Poster */}
-                <div className="order-2 lg:order-1">
-                  <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <i className="pi pi-image text-green-600"></i>
-                    Poster del Proyecto
-                  </h5>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
-                    <img 
-                      src={selectedProject.posterImage} 
-                      alt={`Poster de ${selectedProject.title}`}
-                      className="w-full h-auto"
-                    />
-                  </div>
+              <div className="space-y-6">
+                {/* Título */}
+                <div>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                    {selectedProject.nombre_proyecto || selectedProject.titulo || 'Proyecto sin título'}
+                  </h4>
                 </div>
 
-                {/* Columna Derecha - Información */}
-                <div className="order-1 lg:order-2 space-y-6">
-                  {/* Título y Estado */}
-                  <div>
-                    <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.title}</h4>
-                    <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
-                      <span className="flex items-center gap-1">
-                        <i className="pi pi-calendar"></i>
-                        {selectedProject.presentationDate}
-                      </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <i className="pi pi-map-marker"></i>
-                        {selectedProject.location}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Descripción */}
+                {/* Descripción */}
+                {selectedProject.descripcion && (
                   <div>
                     <h5 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
                       <i className="pi pi-align-left text-green-600"></i>
                       Descripción
                     </h5>
                     <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
-                      {selectedProject.description}
+                      {selectedProject.descripcion}
                     </p>
                   </div>
+                )}
 
-                  {/* Participantes */}
-                  <div>
-                    <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <i className="pi pi-users text-green-600"></i>
-                      Participantes
-                    </h5>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedProject.participants.map((participant, idx) => (
-                        <span 
-                          key={idx}
-                          className="inline-flex items-center gap-2 bg-green-50 text-green-800 px-3 py-2 rounded-full text-sm font-medium"
-                        >
-                          <div className="w-6 h-6 bg-green-200 rounded-full flex items-center justify-center">
-                            <span className="text-green-800 font-bold text-xs">
-                              {participant.split(' ').map(n => n[0]).join('')}
-                            </span>
-                          </div>
-                          {participant}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Información Académica */}
+                {/* Información adicional disponible */}
+                {(selectedProject.objetivo || selectedProject.justificacion || selectedProject.alcance) && (
                   <div>
                     <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <i className="pi pi-info-circle text-green-600"></i>
-                      Información Académica
+                      Información del Proyecto
                     </h5>
                     <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Materia</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedProject.subject}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Grupo</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedProject.group}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Profesor</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedProject.professor}</p>
-                      </div>
+                      {selectedProject.objetivo && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Objetivo</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedProject.objetivo}</p>
+                        </div>
+                      )}
+                      {selectedProject.justificacion && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Justificación</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedProject.justificacion}</p>
+                        </div>
+                      )}
+                      {selectedProject.alcance && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Alcance</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedProject.alcance}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  {/* Línea de Investigación */}
-                  <div>
-                    <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <i className="pi pi-sitemap text-green-600"></i>
-                      Línea de Investigación
-                    </h5>
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Línea Principal</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedProject.line}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Sublínea</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedProject.subline}</p>
-                      </div>
+                {/* IDs del proyecto */}
+                <div>
+                  <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <i className="pi pi-id-card text-green-600"></i>
+                    Información Técnica
+                  </h5>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">ID Proyecto:</span>
+                      <span className="font-medium text-gray-900">{selectedProject.id_proyecto}</span>
                     </div>
+                    {selectedProject.id_linea && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">ID Línea de Investigación:</span>
+                        <span className="font-medium text-gray-900">{selectedProject.id_linea}</span>
+                      </div>
+                    )}
+                    {selectedProject.id_materia && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">ID Materia:</span>
+                        <span className="font-medium text-gray-900">{selectedProject.id_materia}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

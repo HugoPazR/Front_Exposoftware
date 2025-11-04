@@ -39,7 +39,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link to="/login" className="hover:text-green-600 transition">
+              <Link to="/contact" className="hover:text-green-600 transition">
                 Contacto
               </Link>
             </li>

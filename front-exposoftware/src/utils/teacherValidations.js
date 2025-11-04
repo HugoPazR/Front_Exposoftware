@@ -9,33 +9,16 @@ export const validateField = (name, value, formData = {}) => {
   // Si viene de react-select, tomamos el value real
   const val = typeof value === "object" && value !== null ? value.value : value;
 
-  // 💡 Campos obligatorios para docentes
+  // 💡 Campos obligatorios para docentes (según estructura del backend)
   const requiredFields = [
     "nombres",
     "apellidos",
     "tipoDocumento",
     "identificacion",
     "genero",
-    "identidadSexual",
-    "fechaNacimiento",
     "telefono",
     "correo",
-    "pais",
-    "nacionalidad",
-    "departamentoResidencia",
-    "ciudadResidencia",
-    "direccionResidencia",
-    "departamento",
-    "municipio",
-    "ciudad",
-    "codigoPrograma",
-    "tipoDocente",
-    "nivelAcademico",
-    "areaEspecializacion",
-    "tipoContrato",
-    "dedicacion",
-    "antiguedad",
-    "estado"
+    "categoriaDocente"
   ];
 
   if (requiredFields.includes(name) && (!val || String(val).trim() === "")) {
@@ -46,14 +29,19 @@ export const validateField = (name, value, formData = {}) => {
   switch (name) {
     case "nombres":
     case "apellidos":
-    case "ciudadResidencia":
-    case "ciudad":
-    case "municipio":
-    case "areaEspecializacion":
       if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
         error = "Solo se permiten letras y espacios.";
-      } else if (val && val.trim().length > 0 && val.trim().length < 3) {
-        error = "Debe tener al menos 3 letras.";
+      } else if (val && val.trim().length > 0 && val.trim().length < 2) {
+        error = "Debe tener al menos 2 letras.";
+      } else if (val && val.trim().length > 50) {
+        error = "No puede exceder 50 caracteres.";
+      }
+      break;
+
+    case "ciudadResidencia":
+    case "municipio":
+      if (val && val.trim().length > 50) {
+        error = "No puede exceder 50 caracteres.";
       }
       break;
 
@@ -73,9 +61,11 @@ export const validateField = (name, value, formData = {}) => {
       break;
 
     case "codigoPrograma":
-      if (val && !/^[A-Z0-9-]{3,20}$/.test(val)) {
-        error = "Formato inválido. Ej: ING-SIS, 12345";
+      // Solo requerido para docentes Internos
+      if (formData.categoriaDocente === 'Interno' && (!val || String(val).trim() === "")) {
+        error = "El código de programa es obligatorio para docentes internos.";
       }
+      // Eliminada la validación de formato para permitir cualquier código del backend
       break;
 
     case "correo":
@@ -101,17 +91,11 @@ export const validateField = (name, value, formData = {}) => {
       }
       break;
 
-    case "antiguedad":
-      if (val && !/^\d+$/.test(val)) {
-        error = "Solo se permiten números enteros.";
-      } else if (val && (parseInt(val) < 0 || parseInt(val) > 50)) {
-        error = "Debe estar entre 0 y 50 años.";
-      }
-      break;
-
     case "direccionResidencia":
-      if (val && val.trim().length < 10) {
+      if (val && val.trim().length > 0 && val.trim().length < 10) {
         error = "Debe tener al menos 10 caracteres.";
+      } else if (val && val.trim().length > 50) {
+        error = "No puede exceder 50 caracteres.";
       }
       break;
 
@@ -130,47 +114,45 @@ export const validateField = (name, value, formData = {}) => {
 export const validateAllFields = (formData) => {
   const errors = {};
 
-  // Campos obligatorios básicos
-  const basicFields = [
+  // Campos obligatorios según estructura del backend
+  const requiredFields = [
     "nombres",
     "apellidos",
     "tipoDocumento",
     "identificacion",
     "genero",
-    "identidadSexual",
-    "fechaNacimiento",
     "telefono",
     "correo",
-    "pais",
-    "nacionalidad",
-    "departamentoResidencia",
-    "ciudadResidencia",
-    "direccionResidencia",
-    "departamento",
-    "municipio",
-    "ciudad"
+    "categoriaDocente"
   ];
 
-  basicFields.forEach((field) => {
+  requiredFields.forEach((field) => {
     const error = validateField(field, formData[field], formData);
     if (error) errors[field] = error;
   });
 
-  // Campos académicos/institucionales
-  const academicFields = [
-    "codigoPrograma",
-    "tipoDocente",
-    "nivelAcademico",
-    "areaEspecializacion",
-    "tipoContrato",
-    "dedicacion",
-    "antiguedad",
-    "estado"
+  // Validar código de programa si es docente Interno
+  if (formData.categoriaDocente === 'Interno') {
+    const error = validateField('codigoPrograma', formData.codigoPrograma, formData);
+    if (error) errors.codigoPrograma = error;
+  }
+
+  // Campos opcionales con validación si tienen valor
+  const optionalFields = [
+    "identidadSexual",
+    "fechaNacimiento",
+    "nacionalidad",
+    "departamento",
+    "municipio",
+    "ciudadResidencia",
+    "direccionResidencia"
   ];
 
-  academicFields.forEach((field) => {
-    const error = validateField(field, formData[field], formData);
-    if (error) errors[field] = error;
+  optionalFields.forEach((field) => {
+    if (formData[field]) {
+      const error = validateField(field, formData[field], formData);
+      if (error) errors[field] = error;
+    }
   });
 
   return errors;
@@ -182,7 +164,7 @@ export const validateAllFields = (formData) => {
  * @returns {boolean}
  */
 export const isNumericField = (fieldName) => {
-  return ["identificacion", "telefono", "antiguedad"].includes(fieldName);
+  return ["identificacion", "telefono"].includes(fieldName);
 };
 
 /**
@@ -193,11 +175,7 @@ export const isNumericField = (fieldName) => {
 export const isTextOnlyField = (fieldName) => {
   return [
     "nombres",
-    "apellidos",
-    "ciudadResidencia",
-    "ciudad",
-    "municipio",
-    "areaEspecializacion"
+    "apellidos"
   ].includes(fieldName);
 };
 
