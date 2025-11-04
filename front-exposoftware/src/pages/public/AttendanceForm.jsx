@@ -23,7 +23,6 @@ export default function AsistenciaForm() {
             } else {
                 setMensaje("Correo no registrado. Redirigiendo al registro...");
                 setTimeout(() => {
-                    // Redirige a /register en la misma app
                     navigate("/register");
                 }, 2000);
             }

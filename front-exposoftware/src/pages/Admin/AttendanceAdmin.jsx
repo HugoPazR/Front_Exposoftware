@@ -150,7 +150,10 @@ export default function AttendanceAdmin() {
       const qrInfo = {
         evento: "Expo-Software 2025",
         fecha: today.toLocaleDateString("es-CO"),
-        hora: today.toLocaleTimeString("es-CO"),
+        hora: today.toLocaleTimeString("es-CO", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         id_sesion: idSesion,
         valido_hasta: validoHasta,
         link: qrUrlData,
@@ -345,7 +348,7 @@ export default function AttendanceAdmin() {
 
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-xs text-gray-500 mb-1">Hora de Generación</p>
-                      <p className="text-sm font-medium text-gray-900">{qrData.hora_generacion}</p>
+                      <p className="text-sm font-medium text-gray-900">{qrData.hora}</p>
                     </div>
 
                     <div className="bg-gray-50 rounded-lg p-4">
