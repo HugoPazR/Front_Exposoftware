@@ -317,9 +317,11 @@ export default function Profile() {
                 </div>
               </div>
 
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              <button
+              onClick={handleLogout}
+               className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
                 <i className="pi pi-sign-out"></i>
-                <span className="hidden sm:inline">Cerrar Sesión</span>
+                <span className="hidden sm:inline">Cerrar Sesión </span>
               </button>
             </div>
           </div>
@@ -344,7 +346,7 @@ export default function Profile() {
                   <i className="pi pi-qrcode text-base"></i>
                   Registrar Asistencia
                 </Link>
-                <Link to="/student/configuracion" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-teal-50 text-teal-700">
+                <Link to="/student/profile" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-teal-50 text-teal-700">
                   <i className="pi pi-cog text-base"></i>
                   Configuración
                 </Link>
