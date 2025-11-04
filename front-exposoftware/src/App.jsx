@@ -38,11 +38,13 @@ import Projects from "./pages/Home/Projects";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import StudentDetails from "./pages/Admin/StudentDetails";
 import EditStudent from "./pages/Admin/EditStudent";
+import Contacto from "./pages/Home/Contact";
 import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute, EstudianteOEgresadoRoute} from "./components/ProtectedRoute";
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+import { Contact } from "lucide-react";
 
 
 
@@ -109,6 +111,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/home-dinamico" element={<Home_dinamico />} />
+          <Route path="/contact" element={<Contacto />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
