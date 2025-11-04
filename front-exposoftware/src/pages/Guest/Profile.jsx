@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { obtenerMiPerfilInvitado, actualizarPerfilInvitado } from "../../Services/GuestService";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function GuestProfile() {
@@ -9,45 +10,87 @@ export default function GuestProfile() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState(null);
+  const [perfil, setPerfil] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    tipo_documento: '',
+    identificacion: '',
+    primer_nombre: '',
+    segundo_nombre: '',
+    primer_apellido: '',
+    segundo_apellido: '',
+    sexo: '',
+    identidad_sexual: '',
+    fecha_nacimiento: '',
+    nacionalidad: '',
+    pais_residencia: '',
+    departamento: '',
+    municipio: '',
+    ciudad_residencia: '',
+    direccion_residencia: '',
+    telefono: '',
+    correo: '',
+    id_sector: '',
+    nombre_empresa: ''
+  });
+
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
 
+  useEffect(() => {
+    cargarPerfil();
+  }, []);
+
+  const cargarPerfil = async () => {
+    try {
+      setCargando(true);
+      setError(null);
+      const datos = await obtenerMiPerfilInvitado();
+      setPerfil(datos);
+      
+      // Cargar datos en el formulario
+      setFormData({
+        tipo_documento: datos.tipo_documento || '',
+        identificacion: datos.identificacion || '',
+        primer_nombre: datos.primer_nombre || '',
+        segundo_nombre: datos.segundo_nombre || '',
+        primer_apellido: datos.primer_apellido || '',
+        segundo_apellido: datos.segundo_apellido || '',
+        sexo: datos.sexo || '',
+        identidad_sexual: datos.identidad_sexual || '',
+        fecha_nacimiento: datos.fecha_nacimiento || '',
+        nacionalidad: datos.nacionalidad || '',
+        pais_residencia: datos.pais_residencia || '',
+        departamento: datos.departamento || '',
+        municipio: datos.municipio || '',
+        ciudad_residencia: datos.ciudad_residencia || '',
+        direccion_residencia: datos.direccion_residencia || '',
+        telefono: datos.telefono || '',
+        correo: datos.correo || '',
+        id_sector: datos.id_sector || '',
+        nombre_empresa: datos.nombre_empresa || ''
+      });
+      
+      console.log('✅ Perfil cargado en Profile:', datos);
+    } catch (err) {
+      console.error('❌ Error cargando perfil:', err);
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   const handleLogout = () => {
     if (window.confirm("¿Estás seguro de que deseas cerrar sesión?")) {
       logout();
       navigate("/login");
     }
-  };
-
-  // Datos del invitado (combinando datos simulados con datos reales del usuario)
-  const invitadoData = {
-    // Atributos propios (simulados por ahora)
-    id_invitado: "INV-2025-001",
-    id_sector: "empresarial",
-    nombre_empresa: "Tech Solutions S.A.S",
-    
-    // Atributos del usuario autenticado
-    tipo_documento: user?.tipo_documento || "CC",
-    identificacion: user?.identificacion || "1065987654",
-    nombres: user?.nombres || user?.primer_nombre || "Invitado",
-    apellidos: user?.apellidos || user?.primer_apellido || "Usuario",
-    genero: user?.genero || user?.sexo || "No especificado",
-    identidad_sexual: user?.identidad_sexual || "No especificado",
-    fecha_nacimiento: user?.fecha_nacimiento || "1990-05-15",
-    direccion_residencia: user?.direccion_residencia || "Calle 15 #23-45",
-    ciudad_residencia: user?.ciudad_residencia || "Valledupar",
-    departamento_residencia: "Cesar",
-    departamento: "Cesar",
-    municipio: "Valledupar",
-    pais: "Colombia",
-    nacionalidad: "Colombiana",
-    ciudad: "Valledupar",
-    telefono: "+57 300 123 4567",
-    correo: "andres.lopez@techsolutions.com", // ❌ NO SE PUEDE EDITAR
-    rol: "Invitado"
   };
 
   // Catálogos
@@ -81,11 +124,61 @@ export default function GuestProfile() {
 
   const handleCancel = () => {
     setIsEditing(false);
+    // Restaurar datos originales
+    if (perfil) {
+      setFormData({
+        tipo_documento: perfil.tipo_documento || '',
+        identificacion: perfil.identificacion || '',
+        primer_nombre: perfil.primer_nombre || '',
+        segundo_nombre: perfil.segundo_nombre || '',
+        primer_apellido: perfil.primer_apellido || '',
+        segundo_apellido: perfil.segundo_apellido || '',
+        sexo: perfil.sexo || '',
+        identidad_sexual: perfil.identidad_sexual || '',
+        fecha_nacimiento: perfil.fecha_nacimiento || '',
+        nacionalidad: perfil.nacionalidad || '',
+        pais_residencia: perfil.pais_residencia || '',
+        departamento: perfil.departamento || '',
+        municipio: perfil.municipio || '',
+        ciudad_residencia: perfil.ciudad_residencia || '',
+        direccion_residencia: perfil.direccion_residencia || '',
+        telefono: perfil.telefono || '',
+        correo: perfil.correo || '',
+        id_sector: perfil.id_sector || '',
+        nombre_empresa: perfil.nombre_empresa || ''
+      });
+    }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    alert("Cambios guardados exitosamente");
+  const handleSave = async () => {
+    try {
+      setGuardando(true);
+      setError(null);
+      
+      if (!perfil?.id_invitado) {
+        throw new Error('No se pudo obtener el ID del invitado');
+      }
+      
+      await actualizarPerfilInvitado(perfil.id_invitado, formData);
+      setIsEditing(false);
+      alert("Cambios guardados exitosamente");
+      
+      // Recargar perfil
+      await cargarPerfil();
+    } catch (err) {
+      console.error('❌ Error guardando perfil:', err);
+      alert(`Error al guardar: ${err.message}`);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleOpenPasswordModal = () => {
@@ -133,6 +226,17 @@ export default function GuestProfile() {
 
     alert("Contraseña cambiada exitosamente");
     handleClosePasswordModal();
+  };
+
+  // Datos del invitado para mostrar en el sidebar
+  const invitadoData = perfil || {
+    id_invitado: "Cargando...",
+    nombres: formData.primer_nombre || "Invitado",
+    apellidos: formData.primer_apellido || "Usuario",
+    nombre_empresa: formData.nombre_empresa || "Cargando...",
+    id_sector: formData.id_sector || "...",
+    correo: formData.correo || "",
+    rol: user?.rol || "Invitado"
   };
 
   return (
@@ -221,46 +325,46 @@ export default function GuestProfile() {
           {/* Main content: Form de configuración de perfil */}
           <main className="lg:col-span-3">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Perfil de Invitado</h2>
-                  <p className="text-sm text-gray-500">Actualiza tu información personal y de empresa.</p>
+              {/* Estado de carga */}
+              {cargando && (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+                  <p className="text-gray-600">Cargando perfil...</p>
                 </div>
-                {!isEditing && (
-                  <button 
-                    onClick={handleEdit}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                  >
-                    <i className="pi pi-pencil"></i>
-                    Editar Perfil
-                  </button>
-                )}
-              </div>
+              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                {/* Avatar Section */}
-                <div className="md:col-span-1 flex flex-col items-center">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                    {/* Placeholder image */}
-                    <img 
-                      src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop&ixlib=rb-4.0.3" 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                  {isEditing && (
-                    <button className="mt-4 inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg text-sm hover:bg-green-50 transition-colors">
-                      Cambiar Foto
-                    </button>
-                  )}
-                  <div className="mt-6 text-center">
-                    <p className="text-sm font-medium text-gray-700">Invitado</p>
-                    <p className="text-xs text-gray-500 mt-1">Expo-software 2025</p>
+              {/* Error */}
+              {error && !cargando && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <i className="pi pi-exclamation-triangle text-red-600 text-xl"></i>
+                    <div>
+                      <h3 className="text-sm font-semibold text-red-900">Error al cargar perfil</h3>
+                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                {/* Form Section */}
-                <div className="md:col-span-2">
+              {/* Formulario - Solo si hay datos */}
+              {!cargando && perfil && (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">Perfil de Invitado</h2>
+                      <p className="text-sm text-gray-500">Actualiza tu información personal y de empresa.</p>
+                    </div>
+                    {!isEditing && (
+                      <button 
+                        onClick={handleEdit}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                      >
+                        <i className="pi pi-pencil"></i>
+                        Editar Perfil
+                      </button>
+                    )}
+                  </div>
+
                   <div className="space-y-4">
                     {/* Información Personal Básica */}
                     <div className="border-b pb-4">
@@ -271,11 +375,13 @@ export default function GuestProfile() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Nombres
+                            Primer Nombre
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.nombres}
+                            type="text"
+                            name="primer_nombre"
+                            value={formData.primer_nombre}
+                            onChange={handleInputChange}
                             maxLength={30}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -284,11 +390,43 @@ export default function GuestProfile() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Apellidos
+                            Segundo Nombre
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.apellidos}
+                            type="text"
+                            name="segundo_nombre"
+                            value={formData.segundo_nombre}
+                            onChange={handleInputChange}
+                            maxLength={30}
+                            className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
+                            disabled={!isEditing}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Primer Apellido
+                          </label>
+                          <input 
+                            type="text"
+                            name="primer_apellido"
+                            value={formData.primer_apellido}
+                            onChange={handleInputChange}
+                            maxLength={30}
+                            className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
+                            disabled={!isEditing}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Segundo Apellido
+                          </label>
+                          <input 
+                            type="text"
+                            name="segundo_apellido"
+                            value={formData.segundo_apellido}
+                            onChange={handleInputChange}
                             maxLength={30}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -299,8 +437,10 @@ export default function GuestProfile() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Tipo de Documento
                           </label>
-                          <select 
-                            defaultValue={invitadoData.tipo_documento}
+                          <select
+                            name="tipo_documento"
+                            value={formData.tipo_documento}
+                            onChange={handleInputChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
                           >
@@ -317,8 +457,8 @@ export default function GuestProfile() {
                             Número de Identificación ❌
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.identificacion}
+                            type="text"
+                            value={formData.identificacion}
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
                             disabled
                             readOnly
@@ -330,8 +470,10 @@ export default function GuestProfile() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Género
                           </label>
-                          <select 
-                            defaultValue={invitadoData.genero}
+                          <select
+                            name="sexo"
+                            value={formData.sexo}
+                            onChange={handleInputChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
                           >
@@ -345,8 +487,10 @@ export default function GuestProfile() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Identidad Sexual
                           </label>
-                          <select 
-                            defaultValue={invitadoData.identidad_sexual}
+                          <select
+                            name="identidad_sexual"
+                            value={formData.identidad_sexual}
+                            onChange={handleInputChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
                           >
@@ -361,8 +505,10 @@ export default function GuestProfile() {
                             Fecha de Nacimiento
                           </label>
                           <input 
-                            type="date" 
-                            defaultValue={invitadoData.fecha_nacimiento}
+                            type="date"
+                            name="fecha_nacimiento"
+                            value={formData.fecha_nacimiento}
+                            onChange={handleInputChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
                           />
@@ -373,8 +519,10 @@ export default function GuestProfile() {
                             Nacionalidad
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.nacionalidad}
+                            type="text"
+                            name="nacionalidad"
+                            value={formData.nacionalidad}
+                            onChange={handleInputChange}
                             maxLength={25}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -395,8 +543,8 @@ export default function GuestProfile() {
                             Correo Electrónico ❌
                           </label>
                           <input 
-                            type="email" 
-                            defaultValue={invitadoData.correo}
+                            type="email"
+                            value={formData.correo}
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
                             disabled
                             readOnly
@@ -409,8 +557,10 @@ export default function GuestProfile() {
                             Teléfono
                           </label>
                           <input 
-                            type="tel" 
-                            defaultValue={invitadoData.telefono}
+                            type="tel"
+                            name="telefono"
+                            value={formData.telefono}
+                            onChange={handleInputChange}
                             maxLength={15}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -431,8 +581,10 @@ export default function GuestProfile() {
                             Dirección de Residencia
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.direccion_residencia}
+                            type="text"
+                            name="direccion_residencia"
+                            value={formData.direccion_residencia}
+                            onChange={handleInputChange}
                             maxLength={50}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -444,8 +596,10 @@ export default function GuestProfile() {
                             País
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.pais}
+                            type="text"
+                            name="pais_residencia"
+                            value={formData.pais_residencia}
+                            onChange={handleInputChange}
                             maxLength={50}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -457,8 +611,10 @@ export default function GuestProfile() {
                             Departamento
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.departamento}
+                            type="text"
+                            name="departamento"
+                            value={formData.departamento}
+                            onChange={handleInputChange}
                             maxLength={50}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -470,8 +626,10 @@ export default function GuestProfile() {
                             Municipio
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.municipio}
+                            type="text"
+                            name="municipio"
+                            value={formData.municipio}
+                            onChange={handleInputChange}
                             maxLength={25}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -483,8 +641,10 @@ export default function GuestProfile() {
                             Ciudad
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.ciudad}
+                            type="text"
+                            name="ciudad_residencia"
+                            value={formData.ciudad_residencia}
+                            onChange={handleInputChange}
                             maxLength={30}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -505,8 +665,10 @@ export default function GuestProfile() {
                             Nombre de Empresa/Institución
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.nombre_empresa}
+                            type="text"
+                            name="nombre_empresa"
+                            value={formData.nombre_empresa}
+                            onChange={handleInputChange}
                             maxLength={40}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
@@ -518,8 +680,10 @@ export default function GuestProfile() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Sector
                           </label>
-                          <select 
-                            defaultValue={invitadoData.id_sector}
+                          <select
+                            name="id_sector"
+                            value={formData.id_sector}
+                            onChange={handleInputChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
                           >
@@ -537,8 +701,8 @@ export default function GuestProfile() {
                             ID de Invitado
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.id_invitado}
+                            type="text"
+                            value={perfil?.id_invitado || ''}
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
                             disabled
                             readOnly
@@ -551,8 +715,8 @@ export default function GuestProfile() {
                             Rol en el Sistema
                           </label>
                           <input 
-                            type="text" 
-                            defaultValue={invitadoData.rol}
+                            type="text"
+                            value={invitadoData.rol}
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
                             disabled
                             readOnly
@@ -595,21 +759,23 @@ export default function GuestProfile() {
                       <div className="pt-4 flex gap-3">
                         <button 
                           onClick={handleSave}
-                          className="flex-1 bg-green-700 text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition-colors"
+                          disabled={guardando}
+                          className="flex-1 bg-green-700 text-white py-3 rounded-lg font-semibold hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Guardar Cambios
+                          {guardando ? 'Guardando...' : 'Guardar Cambios'}
                         </button>
                         <button 
                           onClick={handleCancel}
-                          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                          disabled={guardando}
+                          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Cancelar
                         </button>
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </main>
         </div>

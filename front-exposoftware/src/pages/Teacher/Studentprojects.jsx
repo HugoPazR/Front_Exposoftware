@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getTeacherProjects, updateProjectStatus } from "../../Services/ProjectsService.jsx";
+import { getTeacherProfile } from "../../Services/TeacherService.jsx";
 import * as AuthService from "../../Services/AuthService";
 import logo from "../../assets/Logo-unicesar.png";
 
@@ -25,17 +26,61 @@ export default function StudentProjects() {
         setLoading(true);
         setError(null);
         
-        // Obtener el ID del usuario logueado
-        if (!user || !user.id_usuario) {
+        // Esperar a que tengamos los datos del usuario
+        if (!user) {
           console.log('⏳ Esperando datos del usuario...');
           return;
         }
         
-        console.log('� Usuario logueado:', user.id_usuario);
+        console.log('👨‍🏫 Datos completos del usuario docente:', user);
+        console.log('📋 IDs disponibles:', {
+          'user.id_usuario': user.id_usuario,
+          'user.user?.id_usuario': user.user?.id_usuario,
+          'user.id_docente': user.id_docente,
+          'user.uid': user.uid,
+          rol: user.rol
+        });
         
-        const data = await getTeacherProjects(user.id_usuario);
+
+        let docenteId = user.id_docente || user.user?.id_usuario || user.id_usuario || user.uid;
+        
+        // Si no tenemos id_docente, intentar obtenerlo del backend
+        if (!user.id_docente && docenteId) {
+          console.log('🔄 No se encontró id_docente, obteniendo perfil completo desde /api/v1/auth/me...');
+          try {
+            const perfilCompleto = await getTeacherProfile();
+            console.log('✅ Perfil completo obtenido:', perfilCompleto);
+            
+            // Actualizar el docenteId con el id_docente del perfil
+            if (perfilCompleto.id_docente) {
+              docenteId = perfilCompleto.id_docente;
+              console.log('✅ id_docente actualizado:', docenteId);
+              
+              // Opcional: Actualizar el contexto con el perfil completo
+              // Si tienes una función en AuthContext para actualizar el usuario
+              // updateUser({ ...user, ...perfilCompleto });
+            } else if (perfilCompleto.docente?.id_docente) {
+              docenteId = perfilCompleto.docente.id_docente;
+              console.log('✅ id_docente actualizado desde docente:', docenteId);
+            }
+          } catch (err) {
+            console.warn('⚠️ No se pudo obtener perfil completo, usando ID original:', err.message);
+            // Continuar con el ID que tenemos
+          }
+        }
+        
+        if (!docenteId) {
+          console.error('❌ No se encontró ID del docente');
+          console.error('📦 Usuario completo:', JSON.stringify(user, null, 2));
+          setError('No se pudo identificar al docente. Por favor, cierre sesión e inicie sesión nuevamente.');
+          return;
+        }
+        
+        console.log('🎯 Usando ID del docente:', docenteId);
+        
+        const data = await getTeacherProjects(docenteId);
         setProjects(data);
-        console.log('📊 Proyectos del docente cargados:', data.length);
+        console.log('✅ Proyectos del docente cargados:', data.length);
       } catch (err) {
         console.error('❌ Error al cargar proyectos:', err);
         setError(err.message);
@@ -46,7 +91,7 @@ export default function StudentProjects() {
     };
 
     loadProjects();
-  }, [user?.id_usuario]);
+  }, [user]);
 
   // Handler para cerrar sesión
   const handleLogout = async () => {

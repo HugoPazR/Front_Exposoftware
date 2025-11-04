@@ -276,12 +276,49 @@ export const actualizarProyecto = async (projectId, projectData) => {
 };
 
 /**
- * Obtener proyectos del docente
- * Filtra por id_docente (proyectos asignados al docente)
+ * Obtener proyectos del docente autenticado
+ * 
+ * Estrategia:
+ * 1. Intenta GET /api/v1/teachers/projects (endpoint específico)
+ * 2. Si falla, obtiene todos los proyectos y filtra por id_docente
+ * 
+ * Filtra por id_docente.uid_docente (proyectos asignados al docente)
  */
 export const getTeacherProjects = async (teacherId) => {
   try {
     console.log(`👨‍🏫 Obteniendo proyectos del docente...`, { teacherId });
+    console.log(`📋 ID del docente a buscar: ${teacherId}`);
+    
+    // ESTRATEGIA 1: Intentar endpoint específico de docentes
+    try {
+      console.log('🔄 Intento 1: GET /api/v1/teachers/projects (endpoint específico de docentes)');
+      
+      const response1 = await fetch(`${API_URL}/api/v1/teachers/projects`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (response1.ok) {
+        const data = await response1.json();
+        const proyectos = Array.isArray(data) ? data : (data.data || data.proyectos || []);
+        console.log('✅ Proyectos del docente desde endpoint específico:', proyectos.length);
+        
+        // Debug: mostrar estructura del primer proyecto
+        if (proyectos.length > 0) {
+          console.log('🔍 DEBUG - Estructura del primer proyecto:', proyectos[0]);
+          console.log('🔍 DEBUG - id_docente del primer proyecto:', proyectos[0].id_docente);
+        }
+        
+        return proyectos;
+      } else {
+        console.log(`⚠️ Endpoint específico falló con status ${response1.status}, intentando estrategia alternativa...`);
+      }
+    } catch (err) {
+      console.log('⚠️ Error en endpoint específico, intentando estrategia alternativa...', err.message);
+    }
+    
+    // ESTRATEGIA 2: Obtener todos los proyectos y filtrar
+    console.log('🔄 Intento 2: GET /api/v1/proyectos (filtrar manualmente)');
     
     const response = await fetch(`${API_URL}/api/v1/proyectos`, {
       method: 'GET',
@@ -298,12 +335,44 @@ export const getTeacherProjects = async (teacherId) => {
     console.log('📋 Total de proyectos recibidos:', todosProyectos.length);
     console.log('🔍 Filtrando proyectos del docente:', teacherId);
     
+    // Debug: Ver estructura del primer proyecto
+    if (todosProyectos.length > 0) {
+      console.log('🔍 DEBUG - Estructura del primer proyecto completo:', todosProyectos[0]);
+      console.log('🔍 DEBUG - id_docente:', todosProyectos[0].id_docente);
+      console.log('🔍 DEBUG - Tipo de id_docente:', typeof todosProyectos[0].id_docente);
+      if (todosProyectos[0].id_docente?.uid_docente) {
+        console.log('🔍 DEBUG - uid_docente:', todosProyectos[0].id_docente.uid_docente);
+      }
+    }
+    
+    console.log('🔍 DEBUG - ID que estamos buscando:', teacherId);
+    
     // Filtrar proyectos donde el docente está asignado
+    // id_docente puede ser un string o un objeto {uid_docente: string, nombre: string}
     const proyectosDocente = todosProyectos.filter(proyecto => {
-      const esDelDocente = proyecto.id_docente === teacherId;
+      let esDelDocente = false;
       
-      if (esDelDocente) {
-        console.log('   ✅ Proyecto del docente:', proyecto.titulo_proyecto);
+      // Caso 1: id_docente es un objeto con uid_docente
+      if (typeof proyecto.id_docente === 'object' && proyecto.id_docente !== null) {
+        esDelDocente = proyecto.id_docente.uid_docente === teacherId;
+        
+        console.log(`   🔎 Comparando: "${proyecto.id_docente.uid_docente}" === "${teacherId}" -> ${esDelDocente}`);
+        
+        if (esDelDocente) {
+          console.log('   ✅ Proyecto del docente (objeto):', proyecto.titulo_proyecto);
+          console.log('      - uid_docente:', proyecto.id_docente.uid_docente);
+          console.log('      - nombre:', proyecto.id_docente.nombre);
+        }
+      } 
+      // Caso 2: id_docente es un string simple
+      else if (typeof proyecto.id_docente === 'string') {
+        esDelDocente = proyecto.id_docente === teacherId;
+        
+        console.log(`   🔎 Comparando string: "${proyecto.id_docente}" === "${teacherId}" -> ${esDelDocente}`);
+        
+        if (esDelDocente) {
+          console.log('   ✅ Proyecto del docente (string):', proyecto.titulo_proyecto);
+        }
       }
       
       return esDelDocente;

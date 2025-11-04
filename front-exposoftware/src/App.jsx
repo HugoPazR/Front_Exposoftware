@@ -37,7 +37,7 @@ import Projects from "./pages/Home/Projects";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import StudentDetails from "./pages/Admin/StudentDetails";
 import EditStudent from "./pages/Admin/EditStudent";
-import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute} from "./components/ProtectedRoute";
+import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute, EstudianteOEgresadoRoute} from "./components/ProtectedRoute";
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -53,6 +53,7 @@ function App() {
     "/student/profile",
     "/student/proyectos",
     "/student/asistencia",
+    "/student/register-project",
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
@@ -74,6 +75,7 @@ function App() {
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
+    "/graduate/register-project",
     "/guest/dashboard",
     "/guest/profile",
     "/guest/proyectos",
@@ -116,7 +118,10 @@ function App() {
           <Route path="/student/dashboard" element={<EstudianteRoute><StudentDashboard /></EstudianteRoute>} />
           <Route path="/student/proyectos" element={<EstudianteRoute><MyProjects /></EstudianteRoute>} />
           <Route path="/student/profile" element={<EstudianteRoute><Profile /></EstudianteRoute>} />
-          <Route path="/student/register-project" element={<EstudianteRoute><RegisterProject /></EstudianteRoute>} />
+          
+          {/* ✅ Registro de Proyectos - Permite ESTUDIANTES Y EGRESADOS */}
+          <Route path="/student/register-project" element={<EstudianteOEgresadoRoute><RegisterProject /></EstudianteOEgresadoRoute>} />
+          <Route path="/graduate/register-project" element={<EstudianteOEgresadoRoute><RegisterProject /></EstudianteOEgresadoRoute>} />
 
           {/* ✅ Profesores - RUTAS PROTEGIDAS */}
           <Route path="/teacher/dashboard" element={<DocenteRoute><TeacherDashboard /></DocenteRoute>} />
@@ -145,6 +150,7 @@ function App() {
           <Route path="/graduate/dashboard" element={<EgresadoRoute><GraduateDashboard /></EgresadoRoute>} />
           <Route path="/graduate/profile" element={<EgresadoRoute><GraduateProfile /></EgresadoRoute>} />
           <Route path="/graduate/proyectos" element={<EgresadoRoute><GraduateProjects /></EgresadoRoute>} />
+          {/* Nota: /graduate/register-project está definido arriba con EstudianteOEgresadoRoute */}
 
           {/* ✅ Invitados - RUTAS PROTEGIDAS */}
           <Route path="/guest/dashboard" element={<InvitadoRoute><GuestDashboard /></InvitadoRoute>} />
