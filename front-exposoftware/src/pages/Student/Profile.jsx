@@ -28,8 +28,8 @@ export default function Profile() {
     segundo_nombre: "",
     primer_apellido: "",
     segundo_apellido: "",
-    genero: "",
-    identidadSexual: "",
+    sexo: "",
+    identidad_sexual: "",
     fechaNacimiento: "",
     telefono: "",
     
@@ -97,8 +97,8 @@ export default function Profile() {
             segundo_nombre: perfilProcesado.segundo_nombre || "",
             primer_apellido: perfilProcesado.primer_apellido || "",
             segundo_apellido: perfilProcesado.segundo_apellido || "",
-            genero: perfilProcesado.genero || perfilProcesado.sexo || "",
-            identidadSexual: perfilProcesado.identidad_sexual || "",
+            sexo: perfilProcesado.sexo || "",
+            identidad_sexual: perfilProcesado.identidad_sexual || "",
             fechaNacimiento: normalizeDateForInput(perfilProcesado.fecha_nacimiento),
             telefono: perfilProcesado.telefono || "",
             pais: perfilProcesado.pais_residencia || "",
@@ -113,7 +113,7 @@ export default function Profile() {
             codigoPrograma: perfilProcesado.codigo_programa || "",
             semestre: perfilProcesado.semestre || "",
             fechaIngreso: normalizeDateForInput(perfilProcesado.fecha_ingreso),
-            anioIngreso: perfilProcesado.anio_ingreso || "",
+            anio_ingreso: perfilProcesado.anio_ingreso || "",
             periodo: perfilProcesado.periodo || "",
             rol: perfilProcesado.rol || "Estudiante"
           });
@@ -196,10 +196,32 @@ export default function Profile() {
     try {
       console.log("📤 Actualizando perfil del estudiante...");
       
-      // Preparar datos para enviar al backend (solo campos editables)
+      // Preparar datos para enviar al backend
       const datosActualizar = {
-        codigo_programa: profileData.codigoPrograma
+        // Datos del usuario
+        tipo_documento: profileData.tipoDocumento,
+        primer_nombre: profileData.primer_nombre,
+        segundo_nombre: profileData.segundo_nombre || '',
+        primer_apellido: profileData.primer_apellido,
+        segundo_apellido: profileData.segundo_apellido || '',
+        sexo: profileData.sexo, // El backend espera "sexo" pero el frontend usa "genero"
+        identidad_sexual: profileData.identidad_sexual || '',
+        fecha_nacimiento: profileData.fechaNacimiento,
+        telefono: profileData.telefono,
+        nacionalidad: profileData.nacionalidad,
+        pais_residencia: profileData.pais,
+        departamento: profileData.departamento,
+        municipio: profileData.municipio,
+        ciudad_residencia: profileData.ciudad,
+        direccion_residencia: profileData.direccionResidencia,
+        
+        // Datos del estudiante
+        codigo_programa: profileData.codigoPrograma,
+        semestre: parseInt(profileData.semestre) || 0,
+        anio_ingreso: parseInt(profileData.anioIngreso) || new Date().getFullYear()
       };
+
+      console.log("📦 Datos a enviar:", datosActualizar);
 
       const resultado = await StudentProfileService.actualizarMiPerfil(datosActualizar);
       

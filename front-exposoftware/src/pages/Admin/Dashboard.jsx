@@ -3,23 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import * as AuthService from "../../Services/AuthService";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  Area,
-  AreaChart,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 
 // Main Dashboard Component
 export default function AdminDashboard() {
@@ -159,33 +142,34 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Charts Row - Datos reales del backend */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              {/* Estudiantes Participantes por Materia */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Estudiantes Participantes por Materia
-                </h3>
-                <div className="flex items-center justify-center h-64 text-gray-500">
-                  <div className="text-center">
-                    <i className="pi pi-chart-pie text-4xl mb-3 text-gray-400"></i>
-                    <p>Datos en tiempo real próximamente</p>
-                    <p className="text-sm">Se cargarán desde el backend</p>
+            {/* Charts Row - Gráficas de Power BI */}
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">📊 Analytics en Tiempo Real</h2>
+                <p className="text-sm text-gray-500">Gráficas interactivas desde Power BI</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              {/* Gráfica: Calificaciones por Tipo de Actividad */}
+              <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                      En Vivo
+                    </span>
                   </div>
                 </div>
-              </div>
-
-              {/* Profesores por Departamento */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Profesores por Departamento
-                </h3>
-                <div className="flex items-center justify-center h-64 text-gray-500">
-                  <div className="text-center">
-                    <i className="pi pi-users text-4xl mb-3 text-gray-400"></i>
-                    <p>Datos en tiempo real próximamente</p>
-                    <p className="text-sm">Se cargarán desde el backend</p>
-                  </div>
+                <div style={{ height: '500px', position: 'relative' }}>
+                  <iframe
+                    src="https://app.powerbi.com/reportEmbed?reportId=7b4c14dc-cbf5-45dc-b61e-563a4c940115&autoAuth=true&ctid=e2bf1c48-1dae-47ba-9808-67da61e2588d&config=eyJjbHVzdGVyVXJsIjoiaHR0cHM6Ly9XQUJJLVNPVVRILUNFTlRSQUwtVVMtcmVkaXJlY3QuYW5hbHlzaXMud2luZG93cy5uZXQiLCJlbWJlZEZlYXR1cmVzIjp7Im1vZGVybkVtYmVkIjp0cnVlLCJjZXJ0aWZpZWRUZWxlbWV0cnlFbWJlZCI6dHJ1ZSwidXNhZ2VNZXRyaWNzVk5leHQiOnRydWUsInNraXBab25lUGlja2VyIjp0cnVlfX0%3d&pageName=465c14b0268e55932d6f&filterPaneEnabled=false&navContentPaneEnabled=false&$filter=_VisualsInFocusMode eq 'd8ce33b98a17ce9af097'"
+                    width="100%"
+                    height="100%"
+                    frameBorder="0"
+                    allowFullScreen={true}
+                    style={{ border: 'none', display: 'block' }}
+                  />
                 </div>
               </div>
             </div>
