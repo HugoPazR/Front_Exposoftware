@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getTeacherProjects, updateProjectStatus } from "../../Services/ProjectsService.jsx";
-import { getTeacherProfile } from "../../Services/TeacherService.jsx";
+import { getTeacherProfile, calificarProyecto, getTeacherSubjects, getTeacherSubjectGroups } from "../../Services/TeacherService.jsx";
 import * as AuthService from "../../Services/AuthService";
+import ResearchLinesService from "../../Services/ResearchLinesService.jsx";
+import { getEventosMap } from "../../Services/EventosPublicService.jsx";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function StudentProjects() {
@@ -12,12 +14,50 @@ export default function StudentProjects() {
   const [viewMode, setViewMode] = useState("grid");
   const [selectedGroup, setSelectedGroup] = useState("Filtrar por grupo");
   const [selectedMateria, setSelectedMateria] = useState("Filtrar por materia");
+  const [materiasList, setMateriasList] = useState([]); // { codigo, nombre }
+  const [gruposList, setGruposList] = useState([]); // { id, nombre }
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showGradeModal, setShowGradeModal] = useState(false);
+  const [projectToGrade, setProjectToGrade] = useState(null);
+  const [gradeValue, setGradeValue] = useState("");
+  const [gradingProject, setGradingProject] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // 🗺️ Mapas para nombres de líneas, sublíneas, áreas y eventos
+  const [lineasMap, setLineasMap] = useState(new Map());
+  const [sublineasMap, setSublineasMap] = useState(new Map());
+  const [areasMap, setAreasMap] = useState(new Map());
+  const [eventosMap, setEventosMap] = useState(new Map());
+
+  // 🗺️ Cargar mapas de nombres al inicio (líneas, sublíneas, áreas, eventos)
+  useEffect(() => {
+    const loadMaps = async () => {
+      try {
+        console.log('🗺️ Cargando mapas de nombres...');
+        
+        // Cargar mapas de investigación (líneas, sublíneas, áreas)
+        const { lineasMap, sublineasMap, areasMap } = await ResearchLinesService.obtenerMapasInvestigacion();
+        setLineasMap(lineasMap);
+        setSublineasMap(sublineasMap);
+        setAreasMap(areasMap);
+        
+        // Cargar mapa de eventos
+        const eventosMap = await getEventosMap();
+        setEventosMap(eventosMap);
+        
+        console.log('✅ Mapas cargados exitosamente');
+      } catch (err) {
+        console.error('⚠️ Error cargando mapas:', err);
+        // No bloqueamos la aplicación si falla, solo mostramos IDs
+      }
+    };
+    
+    loadMaps();
+  }, []); // Solo se ejecuta una vez al montar el componente
 
   // Cargar proyectos del backend al montar el componente
   useEffect(() => {
@@ -78,6 +118,20 @@ export default function StudentProjects() {
         
         console.log('🎯 Usando ID del docente:', docenteId);
         
+        // Cargar materias que dicta el docente (para los filtros)
+        try {
+          const materias = await getTeacherSubjects(docenteId);
+          const normalized = (Array.isArray(materias) ? materias : []).map(m => ({
+            codigo: (m.codigo_materia || m.codigo || m.subject_code || m.id || m.code || '').toString(),
+            nombre: m.nombre || m.nombre_materia || m.subject_name || m.title || m.name || String(m.codigo_materia || m.codigo || m.id || '')
+          }));
+          setMateriasList(normalized);
+          console.log(`📚 Materias del docente cargadas: ${normalized.length}`);
+        } catch (err) {
+          console.warn('⚠️ No se pudieron cargar las materias del docente:', err.message || err);
+          setMateriasList([]);
+        }
+
         const data = await getTeacherProjects(docenteId);
         setProjects(data);
         console.log('✅ Proyectos del docente cargados:', data.length);
@@ -93,6 +147,48 @@ export default function StudentProjects() {
     loadProjects();
   }, [user]);
 
+  // Cargar grupos cuando cambia la materia seleccionada
+  useEffect(() => {
+    const loadGrupos = async () => {
+      try {
+        // Si no hay materia seleccionada, limpiar lista
+        if (!selectedMateria || selectedMateria === 'Filtrar por materia') {
+          setGruposList([]);
+          return;
+        }
+
+        // Intentar obtener docenteId similar al loadProjects (extraer de user)
+        let docenteId = user?.id_docente || user?.user?.id_usuario || user?.id_usuario || user?.uid;
+        if (!docenteId) {
+          try {
+            const perfil = await getTeacherProfile();
+            docenteId = perfil.id_docente || perfil.docente?.id_docente || docenteId;
+          } catch (err) {
+            console.warn('⚠️ No se pudo obtener id_docente para cargar grupos:', err?.message || err);
+          }
+        }
+
+        if (!docenteId) {
+          setGruposList([]);
+          return;
+        }
+
+        const grupos = await getTeacherSubjectGroups(docenteId, selectedMateria);
+        // Normalizar
+        const normalized = (Array.isArray(grupos) ? grupos : []).map(g => ({
+          id: g.id_grupo || g.id || g.codigo || g.group_code || '',
+          nombre: g.nombre || g.nombre_grupo || g.name || String(g.id_grupo || g.id || g.codigo)
+        }));
+        setGruposList(normalized);
+      } catch (err) {
+        console.error('❌ Error cargando grupos para la materia:', err);
+        setGruposList([]);
+      }
+    };
+
+    loadGrupos();
+  }, [selectedMateria, user]);
+
   // Handler para cerrar sesión
   const handleLogout = async () => {
     try {
@@ -107,11 +203,22 @@ export default function StudentProjects() {
   // Filtrar proyectos según búsqueda
   const filteredProjects = projects.filter(project => {
     const titulo = project.titulo_proyecto?.toLowerCase() || '';
-    const materia = project.codigo_materia?.toLowerCase() || '';
+    const materia = (project.codigo_materia || '').toString().toLowerCase();
+    const grupo = (project.id_grupo || project.grupo || '').toString();
     const query = searchQuery.toLowerCase();
-    
-    // Buscar en título o código de materia
-    return titulo.includes(query) || materia.includes(query);
+
+    // Búsqueda por texto (título o código de materia)
+    const matchesQuery = titulo.includes(query) || materia.includes(query);
+
+    // Filtrado por materia (si se seleccionó una materia válida)
+    const materiaFilterActive = selectedMateria && selectedMateria !== 'Filtrar por materia';
+    const matchesMateria = !materiaFilterActive || materia === selectedMateria.toString().toLowerCase();
+
+    // Filtrado por grupo (si se seleccionó un grupo válido)
+    const groupFilterActive = selectedGroup && selectedGroup !== 'Filtrar por grupo';
+    const matchesGroup = !groupFilterActive || grupo === selectedGroup.toString();
+
+    return matchesQuery && matchesMateria && matchesGroup;
   });
 
   const handleViewDetails = (project) => {
@@ -122,6 +229,78 @@ export default function StudentProjects() {
   const closeModal = () => {
     setShowModal(false);
     setSelectedProject(null);
+  };
+
+  // Abrir modal de calificación
+  const handleOpenGradeModal = (project) => {
+    setProjectToGrade(project);
+    setGradeValue(project.calificacion || "");
+    setShowGradeModal(true);
+  };
+
+  // Cerrar modal de calificación
+  const closeGradeModal = () => {
+    setShowGradeModal(false);
+    setProjectToGrade(null);
+    setGradeValue("");
+  };
+
+  // Calificar proyecto
+  const handleGradeProject = async () => {
+    try {
+      setGradingProject(true);
+      
+      const nota = parseFloat(gradeValue);
+      
+      if (isNaN(nota)) {
+        alert('Por favor ingrese una calificación válida');
+        return;
+      }
+
+      if (nota < 0 || nota > 5) {
+        alert('La calificación debe estar entre 0 y 5');
+        return;
+      }
+
+      console.log(`📝 Calificando proyecto ${projectToGrade.id_proyecto} con nota ${nota}`);
+      
+      const proyectoActualizado = await calificarProyecto(projectToGrade.id_proyecto, nota);
+      
+      // Actualizar la lista de proyectos
+      setProjects(projects.map(p => 
+        p.id_proyecto === proyectoActualizado.id_proyecto ? proyectoActualizado : p
+      ));
+      
+      alert(`✅ Proyecto calificado exitosamente con nota ${nota}`);
+      closeGradeModal();
+      
+    } catch (err) {
+      console.error('❌ Error al calificar proyecto:', err);
+      alert(`Error al calificar proyecto: ${err.message}`);
+    } finally {
+      setGradingProject(false);
+    }
+  };
+
+  // 📋 Funciones helper para obtener nombres a partir de códigos/IDs
+  const getLineaName = (codigoLinea) => {
+    if (!codigoLinea) return 'No asignada';
+    return lineasMap.get(codigoLinea) || `Línea ${codigoLinea}`;
+  };
+
+  const getSublineaName = (codigoSublinea) => {
+    if (!codigoSublinea) return 'No asignada';
+    return sublineasMap.get(codigoSublinea) || `Sublínea ${codigoSublinea}`;
+  };
+
+  const getAreaName = (codigoArea) => {
+    if (!codigoArea) return 'No asignada';
+    return areasMap.get(codigoArea) || `Área ${codigoArea}`;
+  };
+
+  const getEventoName = (idEvento) => {
+    if (!idEvento) return 'No asignado';
+    return eventosMap.get(idEvento) || `Evento ${idEvento}`;
   };
 
   return (
@@ -247,25 +426,54 @@ export default function StudentProjects() {
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
                     className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    disabled={!selectedMateria || selectedMateria === 'Filtrar por materia' || gruposList.length === 0}
                   >
-                    <option value="Filtrar por grupo">Filtrar por grupo</option>
-                    <option value="Grupo A">Grupo A</option>
-                    <option value="Grupo B">Grupo B</option>
-                    <option value="Grupo C">Grupo C</option>
+                    <option value="Filtrar por grupo">
+                      {!selectedMateria || selectedMateria === 'Filtrar por materia' 
+                        ? 'Seleccione una materia primero' 
+                        : 'Filtrar por grupo'}
+                    </option>
+                    {gruposList.length > 0 ? (
+                      gruposList.map((g, idx) => (
+                        <option key={idx} value={(g.id_grupo || g.id || g.codigo || g.group_code || g.nombre || '').toString()}>
+                          {g.nombre || g.name || g.nombre_grupo || String(g.id_grupo || g.id || g.codigo)}
+                        </option>
+                      ))
+                    ) : selectedMateria && selectedMateria !== 'Filtrar por materia' ? (
+                      <option value="">No hay grupos disponibles</option>
+                    ) : null}
                   </select>
 
                   <select 
                     value={selectedMateria}
-                    onChange={(e) => setSelectedMateria(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedMateria(e.target.value);
+                      // reset group when materia changes
+                      setSelectedGroup('Filtrar por grupo');
+                    }}
                     className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    disabled={materiasList.length === 0}
                   >
-                    <option value="Filtrar por materia">Filtrar por materia</option>
-                    <option value="Programación Avanzada">Programación Avanzada</option>
-                    <option value="Bases de Datos">Bases de Datos</option>
-                    <option value="Inteligencia Artificial">Inteligencia Artificial</option>
+                    <option value="Filtrar por materia">
+                      {materiasList.length === 0 ? 'No hay materias asignadas' : 'Filtrar por materia'}
+                    </option>
+                    {materiasList.length > 0 && materiasList.map((m, idx) => (
+                      <option key={idx} value={(m.codigo || m.code || m.id || '').toString()}>
+                        {m.nombre || m.name || m.title || m.codigo || m.id}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
+
+              {/* Mensaje informativo cuando no hay materias */}
+              {materiasList.length === 0 && (
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  <i className="pi pi-info-circle mr-2"></i>
+                  <strong>Nota:</strong> No tienes materias asignadas en el sistema. Los filtros por materia y grupo no están disponibles. 
+                  Contacta al administrador si crees que esto es un error.
+                </div>
+              )}
 
               {/* Controles de vista */}
               <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
@@ -349,6 +557,13 @@ export default function StudentProjects() {
                             <i className="pi pi-eye"></i>
                             Ver detalles
                           </button>
+                          <button 
+                            onClick={() => handleOpenGradeModal(project)}
+                            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+                          >
+                            <i className="pi pi-star"></i>
+                            {project.calificacion ? 'Editar Nota' : 'Calificar'}
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -400,13 +615,22 @@ export default function StudentProjects() {
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <button 
-                              onClick={() => handleViewDetails(project)}
-                              className="text-sm text-gray-700 hover:text-green-600 transition-colors"
-                            >
-                              <i className="pi pi-eye mr-1"></i>
-                              Ver detalles
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => handleViewDetails(project)}
+                                className="text-sm text-gray-700 hover:text-green-600 transition-colors"
+                              >
+                                <i className="pi pi-eye mr-1"></i>
+                                Ver detalles
+                              </button>
+                              <button 
+                                onClick={() => handleOpenGradeModal(project)}
+                                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+                              >
+                                <i className="pi pi-star mr-1"></i>
+                                {project.calificacion ? 'Editar' : 'Calificar'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -510,7 +734,7 @@ export default function StudentProjects() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Evento</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.id_evento || 'No asignado'}</p>
+                      <p className="text-sm font-medium text-gray-900">{getEventoName(selectedProject.id_evento)}</p>
                     </div>
                   </div>
                 </div>
@@ -525,15 +749,15 @@ export default function StudentProjects() {
                   <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Línea de Investigación</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_linea || 'No asignada'}</p>
+                      <p className="text-sm font-medium text-gray-900">{getLineaName(selectedProject.codigo_linea)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Sublínea</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_sublinea || 'No asignada'}</p>
+                      <p className="text-sm font-medium text-gray-900">{getSublineaName(selectedProject.codigo_sublinea)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-500 mb-1">Área</p>
-                      <p className="text-sm font-medium text-gray-900">{selectedProject.codigo_area || 'No asignada'}</p>
+                      <p className="text-sm font-medium text-gray-900">{getAreaName(selectedProject.codigo_area)}</p>
                     </div>
                   </div>
                 </div>
@@ -608,8 +832,103 @@ export default function StudentProjects() {
               >
                 Cerrar
               </button>
-              <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                Editar Estado
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Calificación */}
+      {showGradeModal && projectToGrade && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <i className="pi pi-star text-yellow-500"></i>
+                  Calificar Proyecto
+                </h3>
+                <button 
+                  onClick={closeGradeModal}
+                  disabled={gradingProject}
+                  className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                >
+                  <i className="pi pi-times text-xl"></i>
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              {/* Información del proyecto */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900 mb-1">Proyecto:</p>
+                <p className="text-base font-semibold text-blue-800">{projectToGrade.titulo_proyecto}</p>
+                {projectToGrade.calificacion && (
+                  <p className="text-sm text-blue-700 mt-2">
+                    Calificación actual: <span className="font-bold">{projectToGrade.calificacion}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Input de calificación */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Calificación (0.0 - 5.0)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  value={gradeValue}
+                  onChange={(e) => setGradeValue(e.target.value)}
+                  disabled={gradingProject}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-lg font-semibold text-center"
+                  placeholder="Ej: 4.5"
+                />
+                <div className="flex justify-between mt-2 text-xs text-gray-500">
+                  <span>Mínimo: 0.0</span>
+                  <span>Máximo: 5.0</span>
+                </div>
+              </div>
+
+              {/* Información adicional */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-xs text-gray-600">
+                  <strong>Nota:</strong> Si la nota es mayor o igual a 3.0, el proyecto será marcado como 
+                  <span className="text-green-600 font-semibold"> aprobado</span>. 
+                  Si es menor a 3.0, será marcado como 
+                  <span className="text-red-600 font-semibold"> reprobado</span>.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-3 rounded-b-xl">
+              <button 
+                onClick={closeGradeModal}
+                disabled={gradingProject}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleGradeProject}
+                disabled={gradingProject || !gradeValue}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {gradingProject ? (
+                  <>
+                    <i className="pi pi-spin pi-spinner"></i>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <i className="pi pi-check"></i>
+                    Guardar Calificación
+                  </>
+                )}
               </button>
             </div>
           </div>

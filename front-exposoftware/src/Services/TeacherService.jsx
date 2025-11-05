@@ -2,47 +2,48 @@ import { API_BASE_URL } from "../utils/constants";
 import * as AuthService from "./AuthService";
 
 /**
- * Obtener informacion del docente autenticado desde /api/v1/auth/me
- * Este endpoint devuelve toda la informacion del usuario autenticado
+ * Obtener información del docente autenticado desde /api/v1/docentes/mi-perfil
+ * Este endpoint devuelve toda la información del docente autenticado
+ * incluyendo su usuario asociado
  * @returns {Promise<Object>} Datos completos del docente autenticado
  */
 export const getTeacherProfile = async () => {
   try {
-    console.log('Cargando perfil del docente autenticado...');
+    console.log('📋 Cargando perfil del docente autenticado...');
     const headers = AuthService.getAuthHeaders();
     
     if (!headers.Authorization) {
-      throw new Error("No hay sesion activa - token no encontrado");
+      throw new Error("No hay sesión activa - token no encontrado");
     }
 
-    const url = `${API_BASE_URL}/api/v1/auth/me`;
-    console.log('URL:', url);
+    const url = `${API_BASE_URL}/api/v1/docentes/mi-perfil`;
+    console.log('🌐 URL:', url);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
 
-    console.log('Respuesta - Status:', response.status);
+    console.log('📡 Respuesta - Status:', response.status);
 
     if (response.ok) {
       const result = await response.json();
       const docente = result.data || result;
       
-      console.log('Informacion del docente obtenida:', docente);
-      console.log('Estructura completa:', JSON.stringify(docente, null, 2));
+      console.log('✅ Información del docente obtenida:', docente);
+      console.log('📦 Estructura completa:', JSON.stringify(docente, null, 2));
       
       return docente;
     } else if (response.status === 404) {
       throw new Error("Perfil de docente no encontrado");
     } else if (response.status === 401) {
-      throw new Error("No autorizado. Por favor, inicie sesion nuevamente");
+      throw new Error("No autorizado. Por favor, inicie sesión nuevamente");
     } else {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || errorData.message || `Error al cargar perfil: ${response.statusText}`);
     }
   } catch (error) {
-    console.error('Error al cargar perfil del docente:', error);
+    console.error('❌ Error al cargar perfil del docente:', error);
     throw error;
   }
 };
@@ -129,113 +130,233 @@ export const getTeacherProfileByAdmin = async (teacherId) => {
 };
 
 /**
- * Obtener todas las materias asignadas al docente
- * GET /api/v1/teachers/{teacher_id}/subjects
- * @param {string} teacherId - ID del docente
- * @returns {Promise<Array>} Lista de materias del docente
+ * Obtener todas las materias asignadas al docente (a través de sus grupos)
+ * ✅ Estrategia alternativa: GET /api/v1/admin/grupos/profesor/{teacher_id}
+ * Extrae las materias únicas de los grupos asignados al docente
+ * @param {string} teacherId - ID del docente (id_docente)
+ * @returns {Promise<Array>} Lista de materias únicas del docente
  */
 export const getTeacherSubjects = async (teacherId) => {
   try {
-    console.log('Obteniendo materias del docente:', teacherId);
+    console.log('📚 Obteniendo materias del docente a través de sus grupos:', teacherId);
     const headers = AuthService.getAuthHeaders();
     
-    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/subjects`;
-    console.log('URL:', url);
+    // Estrategia: Obtener grupos del docente, luego extraer materias únicas
+    console.log('🔄 Obteniendo grupos del docente...');
+    let url = `${API_BASE_URL}/api/v1/grupos/profesor/${teacherId}?limit=100`;
+    console.log('🌐 URL (intento público):', url);
     
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
 
+    // Si falla con 403 (sin permisos), intentar endpoint admin
+    if (response.status === 403) {
+      console.log('⚠️ Endpoint público falló, intentando endpoint admin...');
+      url = `${API_BASE_URL}/api/v1/admin/grupos/profesor/${teacherId}?limit=100`;
+      console.log('🌐 URL (admin):', url);
+      
+      response = await fetch(url, {
+        method: 'GET',
+        headers: headers
+      });
+    }
+
+    console.log('📡 Respuesta - Status:', response.status);
+
     if (response.ok) {
       const result = await response.json();
-      const materias = result.data || result;
-      console.log(`Materias obtenidas: ${materias.length}`);
+      console.log('📦 Respuesta completa grupos:', result);
+      
+      // Extraer array de grupos
+      let grupos = [];
+      if (result.data && Array.isArray(result.data)) {
+        grupos = result.data;
+      } else if (Array.isArray(result)) {
+        grupos = result;
+      }
+      
+      console.log(`📋 Total de grupos del docente: ${grupos.length}`);
+      
+      // Extraer materias únicas de los grupos
+      const materiasMap = new Map();
+      grupos.forEach(grupo => {
+        const codigoMateria = grupo.codigo_materia || grupo.materia_codigo;
+        const nombreMateria = grupo.nombre_materia || grupo.materia_nombre;
+        
+        if (codigoMateria && !materiasMap.has(codigoMateria)) {
+          materiasMap.set(codigoMateria, {
+            codigo_materia: codigoMateria,
+            codigo: codigoMateria,
+            nombre_materia: nombreMateria || codigoMateria,
+            nombre: nombreMateria || codigoMateria
+          });
+        }
+      });
+      
+      const materias = Array.from(materiasMap.values());
+      console.log(`✅ Materias únicas extraídas: ${materias.length}`);
+      console.log('📚 Materias:', materias.map(m => `${m.codigo} - ${m.nombre}`).join(', '));
+      
       return materias;
     } else if (response.status === 404) {
-      console.warn('No se encontraron materias para el docente');
+      console.warn('⚠️ No se encontraron grupos para el docente');
+      return [];
+    } else if (response.status === 500) {
+      console.warn('⚠️ Error 500 al obtener grupos del docente');
+      const errorData = await response.json().catch(() => ({}));
+      console.log('📋 Detalle del error:', errorData);
       return [];
     } else {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || errorData.message || 'Error al obtener materias');
+      console.warn('⚠️ Error al obtener grupos:', errorData.detail || errorData.message);
+      return [];
     }
   } catch (error) {
-    console.error('Error al obtener materias del docente:', error);
-    throw error;
+    console.error('❌ Error al obtener materias del docente:', error);
+    // Retornar array vacío en lugar de lanzar error
+    console.warn('🔄 Retornando array vacío por error');
+    return [];
   }
 };
 
 /**
- * Obtener grupos de una materia especifica del docente
- * GET /api/v1/teachers/{teacher_id}/subjects/{subject_code}/groups
- * @param {string} teacherId - ID del docente
- * @param {string} subjectCode - Codigo de la materia
+ * Obtener grupos de una materia específica
+ * GET /api/v1/docentes/materias/{codigo_materia}/grupos
+ * @param {string} teacherId - ID del docente (no se usa en este endpoint, pero se mantiene por compatibilidad)
+ * @param {string} subjectCode - Código de la materia
  * @returns {Promise<Array>} Lista de grupos de la materia
  */
 export const getTeacherSubjectGroups = async (teacherId, subjectCode) => {
   try {
-    console.log(`Obteniendo grupos de materia ${subjectCode} para docente ${teacherId}`);
+    console.log(`👥 Obteniendo grupos de materia ${subjectCode}`);
     const headers = AuthService.getAuthHeaders();
     
-    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/subjects/${subjectCode}/groups`;
-    console.log('URL:', url);
+    const url = `${API_BASE_URL}/api/v1/docentes/materias/${subjectCode}/grupos`;
+    console.log('🌐 URL:', url);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
 
+    console.log('📡 Respuesta - Status:', response.status);
+
     if (response.ok) {
       const result = await response.json();
-      const grupos = result.data || result;
-      console.log(`Grupos obtenidos: ${grupos.length}`);
+      console.log('📦 Respuesta completa grupos:', result);
+      
+      // La API puede devolver: array directo, {data: array}, {grupos: array}
+      let grupos = [];
+      if (Array.isArray(result)) {
+        grupos = result;
+      } else if (result.data && Array.isArray(result.data)) {
+        grupos = result.data;
+      } else if (result.grupos && Array.isArray(result.grupos)) {
+        grupos = result.grupos;
+      }
+      
+      console.log(`✅ Grupos obtenidos: ${grupos.length}`);
       return grupos;
     } else if (response.status === 404) {
-      console.warn('No se encontraron grupos para esta materia');
+      console.warn('⚠️ No se encontraron grupos para esta materia');
       return [];
     } else {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || errorData.message || 'Error al obtener grupos');
     }
   } catch (error) {
-    console.error('Error al obtener grupos de la materia:', error);
+    console.error('❌ Error al obtener grupos de la materia:', error);
     throw error;
   }
 };
 
 /**
  * Obtener todos los proyectos del docente
- * GET /api/v1/teachers/{teacher_id}/projects
+ * GET /api/v1/docentes/{id_docente}/proyectos
  * @param {string} teacherId - ID del docente
  * @returns {Promise<Array>} Lista de proyectos del docente
  */
 export const getTeacherProjects = async (teacherId) => {
   try {
-    console.log('Obteniendo proyectos del docente:', teacherId);
+    console.log('📚 Obteniendo proyectos del docente:', teacherId);
     const headers = AuthService.getAuthHeaders();
     
-    const url = `${API_BASE_URL}/api/v1/teachers/${teacherId}/projects`;
-    console.log('URL:', url);
+    const url = `${API_BASE_URL}/api/v1/docentes/${teacherId}/proyectos`;
+    console.log('🌐 URL:', url);
     
     const response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
 
+    console.log('📡 Respuesta - Status:', response.status);
+
     if (response.ok) {
       const result = await response.json();
       const proyectos = result.data || result;
-      console.log(`Proyectos obtenidos: ${proyectos.length}`);
+      console.log(`✅ Proyectos obtenidos: ${proyectos.length}`);
       return proyectos;
     } else if (response.status === 404) {
-      console.warn('No se encontraron proyectos para el docente');
+      console.warn('⚠️ No se encontraron proyectos para el docente');
       return [];
     } else {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.detail || errorData.message || 'Error al obtener proyectos');
     }
   } catch (error) {
-    console.error('Error al obtener proyectos del docente:', error);
+    console.error('❌ Error al obtener proyectos del docente:', error);
+    throw error;
+  }
+};
+
+/**
+ * Calificar un proyecto
+ * PUT /api/v1/proyectos/{proyect_id}/calificacion
+ * @param {string} proyectId - ID del proyecto
+ * @param {number} calificacion - Calificación del proyecto (número)
+ * @returns {Promise<Object>} Proyecto actualizado con la calificación
+ * 
+ * Nota: 
+ * - Si calificacion >= 3 → estado_calificacion = 'aprobado'
+ * - Si calificacion < 3 → estado_calificacion = 'reprobado'
+ * - Si calificacion es null → estado_calificacion = 'pendiente'
+ */
+export const calificarProyecto = async (proyectId, calificacion) => {
+  try {
+    console.log(`📝 Calificando proyecto ${proyectId} con nota: ${calificacion}`);
+    const headers = AuthService.getAuthHeaders();
+    
+    const url = `${API_BASE_URL}/api/v1/proyectos/${proyectId}/calificacion`;
+    console.log('🌐 URL:', url);
+    
+    // Crear FormData con la calificación
+    const formData = new URLSearchParams();
+    formData.append('calificacion', calificacion);
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString()
+    });
+
+    console.log('📡 Respuesta - Status:', response.status);
+
+    if (response.ok) {
+      const result = await response.json();
+      const proyecto = result.data || result;
+      console.log('✅ Proyecto calificado exitosamente:', proyecto);
+      return proyecto;
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || errorData.message || 'Error al calificar proyecto');
+    }
+  } catch (error) {
+    console.error('❌ Error al calificar proyecto:', error);
     throw error;
   }
 };
@@ -321,50 +442,74 @@ export const getAllProjects = async () => {
  */
 export const procesarDatosDocente = (datosCrudos) => {
   if (!datosCrudos) {
-    console.warn('No hay datos crudos para procesar');
+    console.warn('⚠️ No hay datos crudos para procesar');
     return {};
   }
 
-  console.log('Procesando datos del docente:', datosCrudos);
+  console.log('🔄 Procesando datos del docente:', datosCrudos);
 
+  // Extraer objetos anidados
+  const docente = datosCrudos.docente || datosCrudos;
   const usuario = datosCrudos.usuario || {};
   
+  // Combinar nombres
   const nombres = [usuario.primer_nombre, usuario.segundo_nombre]
     .filter(Boolean)
     .join(' ');
   
+  // Combinar apellidos
   const apellidos = [usuario.primer_apellido, usuario.segundo_apellido]
     .filter(Boolean)
     .join(' ');
 
+  // Mapear sexo del backend al formato del formulario
+  // Backend: "Mujer"/"Hombre" -> Formulario: "Femenino"/"Masculino"
+  let sexoMapeado = usuario.sexo || "";
+  if (sexoMapeado === "Mujer") sexoMapeado = "Femenino";
+  if (sexoMapeado === "Hombre") sexoMapeado = "Masculino";
+
+  // Formatear fecha de nacimiento a YYYY-MM-DD
+  let fechaNacimiento = usuario.fecha_nacimiento || "";
+  if (fechaNacimiento && fechaNacimiento.includes('T')) {
+    // Si viene en formato ISO (2002-05-22T00:00:00), extraer solo la fecha
+    fechaNacimiento = fechaNacimiento.split('T')[0];
+  }
+
   const datosProcesados = {
-    id_docente: datosCrudos.id_docente || "",
-    id_usuario: datosCrudos.id_usuario || "",
-    categoria_docente: datosCrudos.categoria_docente || "Interno",
-    codigo_programa: datosCrudos.codigo_programa || "",
+    // Datos del docente
+    id_docente: docente.id_docente || "",
+    id_usuario: docente.id_usuario || usuario.id_usuario || "",
+    categoria_docente: docente.categoria_docente || "Interno",
+    codigo_programa: docente.codigo_programa || "",
+    
+    // Datos personales del usuario
     tipo_documento: usuario.tipo_documento || "CC",
     identificacion: usuario.identificacion || "",
     nombres: nombres || "",
     apellidos: apellidos || "",
-    genero: usuario.sexo || usuario.genero || "",
+    sexo: sexoMapeado,
     identidad_sexual: usuario.identidad_sexual || "",
-    fecha_nacimiento: usuario.fecha_nacimiento || "",
+    fecha_nacimiento: fechaNacimiento,
     telefono: usuario.telefono || "",
+    
+    // Ubicación - NOTA: Backend usa 'departamento' y 'municipio'
     pais: usuario.pais_residencia || "CO",
     nacionalidad: usuario.nacionalidad || "CO",
-    departamento_residencia: usuario.departamento_residencia || "",
-    ciudad_residencia: usuario.ciudad_residencia || "",
+    departamento_residencia: usuario.departamento || "",  // ✅ Mapeo correcto
+    ciudad_residencia: usuario.municipio || "",           // ✅ Mapeo correcto
     direccion_residencia: usuario.direccion_residencia || "",
-    departamento: usuario.departamento_residencia || "",
-    municipio: usuario.ciudad_residencia || "",
-    ciudad: usuario.ciudad_residencia || "",
+    departamento: usuario.departamento || "",
+    municipio: usuario.municipio || "",
+    ciudad: usuario.ciudad_residencia || usuario.municipio || "",
+    
+    // Institucional
     correo: usuario.correo || "",
     anio_ingreso: new Date().getFullYear(),
     periodo: 1,
     rol: usuario.rol || "Docente"
   };
 
-  console.log('Datos procesados:', datosProcesados);
+  console.log('✅ Datos procesados:', datosProcesados);
   return datosProcesados;
 };
 
