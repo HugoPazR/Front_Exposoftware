@@ -13,26 +13,28 @@ export default function AttendanceAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
+  const id_evento = "ewsf6oVf8eWIsnQ90wmL"; // ID del evento (fijo para este ejemplo)
 
-  // // 🔹 Cargar asistencias reales desde el backend
-  // useEffect(() => {
-  //   const fetchAsistencias = async () => {
-  //     try {
-  //       const data = await AssistanceService.obtenerAsistenciasEvento(idEvento);
-  //       // El backend debe retornar una lista con { id, cedula, nombre, correo, fecha, hora }
-  //       setRegisteredPeople(data);
-  //     } catch (error) {
-  //       console.error("❌ Error al obtener asistencias:", error);
-  //     }
-  //   };
+  // 🔹 Cargar asistencias reales desde el backend
+  useEffect(() => {
+    const fetchAsistencias = async () => {
+      try {
+        const response = await AssistanceService.obtenerAsistenciasEvento(id_evento);
+        const asistencias = response?.data?.asistencias || [];
 
-  //   fetchAsistencias();
-  // }, [idEvento]);
+        setRegisteredPeople(asistencias, fecha_registro);
+      } catch (error) {
+        console.error("❌ Error al obtener asistencias:", error);
+      }
+    };
+
+    fetchAsistencias();
+  }, [id_evento]);
 
   const filteredPeople = registeredPeople.filter(
     (person) =>
-      person.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      person.cedula?.includes(searchTerm) ||
+      person.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      person.id_usuario?.includes(searchTerm) ||
       person.correo?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -49,7 +51,6 @@ export default function AttendanceAdmin() {
   const generarQR = async () => {
     setIsGenerating(true);
     try {
-      const id_evento = "ewsf6oVf8eWIsnQ90wmL"; // ID del evento (fijo para este ejemplo)
       const FRONT_URL = `${window.location.origin}/asistencia`; // ruta base
       const qrFullUrl = `${FRONT_URL}?id_sesion=${id_evento}`; // URL completa con parámetro
       // Llamar al backend
@@ -106,6 +107,25 @@ export default function AttendanceAdmin() {
   //   setQrData(null);
   //   await generarQR();
   // };
+
+  const formatearFechaHora = (fechaIso) => {
+    if (!fechaIso) return { fecha: "-", hora: "-" };
+
+    const fecha = new Date(fechaIso);
+
+    const fechaLocal = fecha.toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+    const horaLocal = fecha.toLocaleTimeString("es-CO", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return { fecha: fechaLocal, hora: horaLocal };
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -332,17 +352,24 @@ export default function AttendanceAdmin() {
                   <tbody className="divide-y divide-gray-200">
                     {currentItems.length > 0 ? (
                       currentItems.map((person, index) => (
-                        <tr key={person.id} className="hover:bg-gray-50 transition-colors">
+                        <tr key={person.id_asistencia} className="hover:bg-gray-50 transition-colors">
                           <td className="px-4 py-4 text-sm text-gray-900 font-medium">
                             {indexOfFirstItem + index + 1}
                           </td>
-                          <td className="px-4 py-4 text-sm text-gray-900 font-mono">{person.cedula}</td>
-                          <td className="px-4 py-4 text-sm text-gray-900">{person.nombre}</td>
+                          <td className="px-4 py-4 text-sm text-gray-900 font-mono">{person.id_usuario}</td>
+                          <td className="px-4 py-4 text-sm text-gray-900">{person.nombre_completo}</td>
                           <td className="px-4 py-4 text-sm text-gray-600">{person.correo}</td>
                           <td className="px-4 py-4 text-sm text-gray-600">
                             <div className="flex flex-col">
-                              <span>{person.fecha}</span>
-                              <span className="text-xs text-gray-500">{person.hora}</span>
+                              {(() => {
+                                const { fecha, hora } = formatearFechaHora(person.fecha_registro);
+                                return (
+                                  <>
+                                    <span>{fecha}</span>
+                                    <span className="text-xs text-gray-500">{hora}</span>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </td>
                         </tr>
