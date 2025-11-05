@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
-import AssistanceService from "../../services/AssistanceService"; // 👈 Importamos el servicio
+import AssistanceService from "../../services/AssistanceService";
+import EventosService from "../../Services/EventosService";
 
 export default function AttendanceAdmin() {
   const [qrCodeUrl, setQrCodeUrl] = useState(null)
   const [qrData, setQrData] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [eventoSeleccionado, setEventoSeleccionado] = useState("");
+  const [eventos, setEventos] = useState([]);
 
   const [registeredPeople, setRegisteredPeople] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,20 +19,38 @@ export default function AttendanceAdmin() {
   const id_evento = "ewsf6oVf8eWIsnQ90wmL"; // ID del evento (fijo para este ejemplo)
 
   // 🔹 Cargar asistencias reales desde el backend
-  useEffect(() => {
-    const fetchAsistencias = async () => {
-      try {
-        const response = await AssistanceService.obtenerAsistenciasEvento(id_evento);
-        const asistencias = response?.data?.asistencias || [];
+  // useEffect(() => {
+  //   const fetchAsistencias = async () => {
+  //     try {
+  //       const response = await AssistanceService.obtenerAsistenciasEvento(id_evento);
+  //       const asistencias = response?.data?.asistencias || [];
 
-        setRegisteredPeople(asistencias, fecha_registro);
+  //       setRegisteredPeople(asistencias);
+  //     } catch (error) {
+  //       console.error("❌ Error al obtener asistencias:", error);
+  //     }
+  //   };
+
+  //   fetchAsistencias();
+  // }, [id_evento]);
+
+  useEffect(() => {
+    let cargado = false;
+
+    const cargarEventos = async () => {
+      if (cargado) return; // Evita segundo fetch en desarrollo
+      cargado = true;
+      try {
+        const response = await EventosService.obtenerEventos();
+        console.log("Eventos cargados:", response);
+        setEventos(response || []); // según cómo venga tu backend
       } catch (error) {
-        console.error("❌ Error al obtener asistencias:", error);
+        console.error("❌ Error al obtener eventos:", error);
       }
     };
 
-    fetchAsistencias();
-  }, [id_evento]);
+    cargarEventos();
+  }, []);
 
   const filteredPeople = registeredPeople.filter(
     (person) =>
@@ -54,7 +75,7 @@ export default function AttendanceAdmin() {
       const FRONT_URL = `${window.location.origin}/asistencia`; // ruta base
       const qrFullUrl = `${FRONT_URL}?id_sesion=${id_evento}`; // URL completa con parámetro
       // Llamar al backend
-      const response = await AssistanceService.generarQrEvento(id_evento, qrFullUrl);
+      const response = await AssistanceService.generarQrEvento(id_evento);
 
       // Verificamos estructura (por si el backend cambia algo)
       const qrInfo = response?.data;
@@ -88,6 +109,24 @@ export default function AttendanceAdmin() {
       alert("Hubo un error al generar el código QR");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleEventoChange = async (e) => {
+    const id = e.target.value;
+    setEventoSeleccionado(id);
+
+    if (!id) {
+      setRegisteredPeople([]);
+      return;
+    }
+
+    try {
+      const response = await AssistanceService.obtenerAsistenciasEvento(id);
+      setRegisteredPeople(response?.data?.asistencias || []);
+    } catch (error) {
+      console.error("❌ Error al obtener asistencias:", error);
+      setRegisteredPeople([]);
     }
   };
 
@@ -158,6 +197,7 @@ export default function AttendanceAdmin() {
         </div>
       </header>
 
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
@@ -169,6 +209,22 @@ export default function AttendanceAdmin() {
             <div className="mb-6">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Control de Asistencia</h2>
               <p className="text-gray-600">Genera y gestiona el código QR para el registro de asistencia diaria</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block font-semibold mb-2 text-gray-700">Selecciona un evento:</label>
+              <select
+                value={eventoSeleccionado}
+                onChange={handleEventoChange}
+                className="border border-gray-300 rounded-lg p-2 w-full focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">-- Selecciona un evento --</option>
+                {eventos.map((evento) => (
+                  <option key={evento.id_evento} value={evento.id_evento}>
+                    {evento.nombre_evento} ({evento.fecha_inicio.split("T")[0]})
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Éxito */}
@@ -295,7 +351,7 @@ export default function AttendanceAdmin() {
               </div>
             </div>
 
-
+            {/* Sección Tabla de Asistencias */}
             <div className="mt-6 mb-6 bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -316,7 +372,7 @@ export default function AttendanceAdmin() {
                   <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                   <input
                     type="text"
-                    placeholder="Buscar por nombre, cédula o correo..."
+                    placeholder="Buscar por nombre, ID o correo..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value)
@@ -336,7 +392,7 @@ export default function AttendanceAdmin() {
                         #
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Cédula
+                        ID Usuario
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Nombre Completo
