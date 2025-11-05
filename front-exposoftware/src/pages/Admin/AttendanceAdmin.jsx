@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from "react";
 import logo from "../../assets/Logo-unicesar.png";
-import AdminSidebar from "../../components/Layout/AdminSidebar"
-import QRCode from "qrcode"
-
+import AdminSidebar from "../../components/Layout/AdminSidebar";
+import AssistanceService from "../../services/AssistanceService"; // 👈 Importamos el servicio
 
 export default function AttendanceAdmin() {
   const [qrCodeUrl, setQrCodeUrl] = useState(null)
@@ -11,166 +9,73 @@ export default function AttendanceAdmin() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const [registeredPeople, setRegisteredPeople] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(4)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [registeredPeople, setRegisteredPeople] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(4);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Estadísticas de ejemplo
-  const [stats, setStats] = useState({
-    totalRegistrados: 0,
-    porcentajeAsistencia: 0,
-  })
+  // // 🔹 Cargar asistencias reales desde el backend
+  // useEffect(() => {
+  //   const fetchAsistencias = async () => {
+  //     try {
+  //       const data = await AssistanceService.obtenerAsistenciasEvento(idEvento);
+  //       // El backend debe retornar una lista con { id, cedula, nombre, correo, fecha, hora }
+  //       setRegisteredPeople(data);
+  //     } catch (error) {
+  //       console.error("❌ Error al obtener asistencias:", error);
+  //     }
+  //   };
 
-  useEffect(() => {
-    const storedPeople = localStorage.getItem("registered_people")
-    if (storedPeople) {
-      setRegisteredPeople(JSON.parse(storedPeople))
-    } else {
-      // Datos de ejemplo - esto se reemplazará con datos del backend
-      const exampleData = [
-        {
-          id: 1,
-          cedula: "1065847392",
-          nombre: "Juan Carlos Pérez García",
-          correo: "juan.perez@unicesar.edu.co",
-          fecha: "2025-01-15",
-          hora: "08:30:15",
-        },
-        {
-          id: 2,
-          cedula: "1098765432",
-          nombre: "María Fernanda López Martínez",
-          correo: "maria.lopez@unicesar.edu.co",
-          fecha: "2025-01-15",
-          hora: "08:32:45",
-        },
-        {
-          id: 3,
-          cedula: "1023456789",
-          nombre: "Carlos Andrés Rodríguez Silva",
-          correo: "carlos.rodriguez@unicesar.edu.co",
-          fecha: "2025-01-15",
-          hora: "08:35:20",
-        },
-        {
-          id: 4,
-          cedula: "1087654321",
-          nombre: "Ana Sofía Gómez Torres",
-          correo: "ana.gomez@unicesar.edu.co",
-          fecha: "2025-01-15",
-          hora: "08:38:10",
-        },
-        {
-          id: 5,
-          cedula: "1034567890",
-          nombre: "Luis Fernando Martínez Díaz",
-          correo: "luis.martinez@unicesar.edu.co",
-          fecha: "2025-01-15",
-          hora: "08:40:55",
-        },
-        {
-          id: 6,
-          cedula: "1067593241",
-          nombre: "Esteban David Rodriguez Rangel",
-          correo: "estebandrodriguez@unicesar.edu.co",
-          fecha: "2025-01-15",
-          hora: "08:40:55",
-        },
-      ]
-      setRegisteredPeople(exampleData)
-      localStorage.setItem("registered_people", JSON.stringify(exampleData))
-    }
-  }, [])
+  //   fetchAsistencias();
+  // }, [idEvento]);
 
   const filteredPeople = registeredPeople.filter(
     (person) =>
-      person.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      person.cedula.includes(searchTerm) ||
-      person.correo.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      person.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      person.cedula?.includes(searchTerm) ||
+      person.correo?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = filteredPeople.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(filteredPeople.length / itemsPerPage)
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredPeople.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredPeople.length / itemsPerPage);
 
-  const goToPage = (pageNumber) => {
-    setCurrentPage(pageNumber)
-  }
+  const goToPage = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
 
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1)
-    }
-  }
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
-    }
-  }
-
-  // Verificar si ya existe un QR para hoy
-  useEffect(() => {
-    const storedQR = localStorage.getItem("qr_asistencia")
-    if (storedQR) {
-      const qrInfo = JSON.parse(storedQR)
-      const today = new Date().toDateString()
-
-      // Si el QR es de hoy, lo mostramos
-      if (qrInfo.date === today) {
-        setQrCodeUrl(qrInfo.qrUrl)
-        setQrData(qrInfo.data)
-      } else {
-        // Si es de otro día, lo eliminamos
-        localStorage.removeItem("qr_asistencia")
-      }
-    }
-
-    // Cargar estadísticas (aquí podrías hacer una llamada a tu API)
-    const storedStats = localStorage.getItem("stats_asistencia")
-    if (storedStats) {
-      setStats(JSON.parse(storedStats))
-    }
-  }, [])
-
-  // Generar código QR
+  // 🔹 Generar QR usando el servicio (solo al presionar el botón)
   const generarQR = async () => {
     setIsGenerating(true);
-
     try {
-      const today = new Date();
-      const idSesion = `EXPO-${Date.now()}`;
-      const validoHasta = new Date(today.setHours(23, 59, 59)).toISOString();
+      const id_evento = "ewsf6oVf8eWIsnQ90wmL"; // ID del evento (fijo para este ejemplo)
+      const FRONT_URL = `${window.location.origin}/asistencia`; // ruta base
+      const qrFullUrl = `${FRONT_URL}?id_sesion=${id_evento}`; // URL completa con parámetro
+      // Llamar al backend
+      const response = await AssistanceService.generarQrEvento(id_evento, qrFullUrl);
 
-      // URL a la que apuntará el QR (puedes cambiarla luego)
-      const qrUrlData = `http://localhost:5173/asistencia?id_sesion=${idSesion}`;
+      // Verificamos estructura (por si el backend cambia algo)
+      const qrInfo = response?.data;
+      if (!qrInfo) throw new Error("Respuesta del servidor inválida");
 
-      const qrInfo = {
-        evento: "Expo-Software 2025",
-        fecha: today.toLocaleDateString("es-CO"),
-        hora: today.toLocaleTimeString("es-CO", {
+      // Guardamos la imagen base64 del QR
+      const qrImage = `data:image/png;base64,${qrInfo.qr_base64}`;
+
+      setQrCodeUrl(qrImage);
+      setQrData({
+        evento: qrInfo.evento_nombre,
+        id_sesion: qrInfo.evento_id,
+        link: qrInfo.url_qr,
+        fecha: new Date().toLocaleDateString("es-CO"),
+        hora: new Date().toLocaleTimeString("es-CO", {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        id_sesion: idSesion,
-        valido_hasta: validoHasta,
-        link: qrUrlData,
-      };
-
-      // Generar la imagen del QR
-      const qrUrl = await QRCode.toDataURL(qrUrlData, {
-        width: 400,
-        margin: 2,
-        color: { dark: "#16a34a", light: "#ffffff" },
       });
 
-      setQrCodeUrl(qrUrl);
-      setQrData(qrInfo);
-
       localStorage.setItem("qr_asistencia", JSON.stringify({
-        qrUrl,
+        qrUrl: qrInfo.url_qr,
         data: qrInfo,
         date: new Date().toDateString(),
       }));
@@ -178,30 +83,29 @@ export default function AttendanceAdmin() {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      console.error("Error generando QR:", error);
+      console.error("❌ Error al generar QR:", error);
       alert("Hubo un error al generar el código QR");
     } finally {
       setIsGenerating(false);
     }
   };
 
+
   // Descargar QR
   const descargarQR = () => {
-    if (!qrCodeUrl) return
+    if (!qrCodeUrl) return;
+    const link = document.createElement("a");
+    link.download = `QR-Asistencia-${new Date().toLocaleDateString("es-CO")}.png`;
+    link.href = qrCodeUrl;
+    link.click();
+  };
 
-    const link = document.createElement("a")
-    link.download = `QR-Asistencia-${new Date().toLocaleDateString("es-CO")}.png`
-    link.href = qrCodeUrl
-    link.click()
-  }
-
-  // Regenerar QR (eliminar el actual y crear uno nuevo)
-  const regenerarQR = () => {
-    localStorage.removeItem("qr_asistencia")
-    setQrCodeUrl(null)
-    setQrData(null)
-    generarQR()
-  }
+  // Regenerar QR
+  // const regenerarQR = async () => {
+  //   setQrCodeUrl(null);
+  //   setQrData(null);
+  //   await generarQR();
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -241,13 +145,13 @@ export default function AttendanceAdmin() {
 
           {/* Main Content */}
           <main className="lg:col-span-3">
-            {/* Título de la página */}
+            {/* Título */}
             <div className="mb-6">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Control de Asistencia</h2>
               <p className="text-gray-600">Genera y gestiona el código QR para el registro de asistencia diaria</p>
             </div>
 
-            {/* Mensaje de éxito */}
+            {/* Éxito */}
             {showSuccess && (
               <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3 animate-fade-in">
                 <i className="pi pi-check-circle text-green-600 text-xl"></i>
@@ -255,9 +159,9 @@ export default function AttendanceAdmin() {
               </div>
             )}
 
-            {/* Sección principal del QR */}
+            {/* Sección QR */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Panel de generación de QR */}
+              {/* Panel QR */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -285,13 +189,11 @@ export default function AttendanceAdmin() {
                     >
                       {isGenerating ? (
                         <>
-                          <i className="pi pi-spin pi-spinner"></i>
-                          Generando...
+                          <i className="pi pi-spin pi-spinner"></i> Generando...
                         </>
                       ) : (
                         <>
-                          <i className="pi pi-plus-circle"></i>
-                          Generar Código QR
+                          <i className="pi pi-plus-circle"></i> Generar Código QR
                         </>
                       )}
                     </button>
@@ -299,30 +201,27 @@ export default function AttendanceAdmin() {
                 ) : (
                   <div className="text-center">
                     <div className="bg-white p-4 rounded-lg border-2 border-green-200 inline-block mb-4">
-                      <img src={qrCodeUrl || "/placeholder.svg"} alt="Código QR de Asistencia" className="w-64 h-64" />
+                      <img src={qrCodeUrl} alt="Código QR de Asistencia" className="w-64 h-64" />
                     </div>
-
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <button
                         onClick={descargarQR}
                         className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
                       >
-                        <i className="pi pi-download"></i>
-                        Descargar QR
+                        <i className="pi pi-download"></i> Descargar QR
                       </button>
-                      <button
+                      {/* <button
                         onClick={regenerarQR}
                         className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors"
                       >
-                        <i className="pi pi-refresh"></i>
-                        Regenerar
-                      </button>
+                        <i className="pi pi-refresh"></i> Regenerar
+                      </button> */}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Panel de información del QR */}
+              {/* Panel de información */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -342,12 +241,12 @@ export default function AttendanceAdmin() {
                     </div>
 
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs text-gray-500 mb-1">Fecha de Generación</p>
+                      <p className="text-xs text-gray-500 mb-1">Fecha</p>
                       <p className="text-sm font-medium text-gray-900">{qrData.fecha}</p>
                     </div>
 
                     <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs text-gray-500 mb-1">Hora de Generación</p>
+                      <p className="text-xs text-gray-500 mb-1">Hora</p>
                       <p className="text-sm font-medium text-gray-900">{qrData.hora}</p>
                     </div>
 
@@ -360,7 +259,7 @@ export default function AttendanceAdmin() {
                       <i className="pi pi-check-circle text-green-600 text-lg mt-0.5"></i>
                       <div>
                         <p className="text-sm font-medium text-green-900">Código Activo</p>
-                        <p className="text-xs text-green-700 mt-1">Este código es válido hasta las 11:59 PM de hoy</p>
+                        <p className="text-xs text-green-700 mt-1">Este código es válido hasta las 11:59 PM</p>
                       </div>
                     </div>
                   </div>
@@ -375,6 +274,7 @@ export default function AttendanceAdmin() {
                 )}
               </div>
             </div>
+
 
             <div className="mt-6 mb-6 bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
@@ -530,7 +430,6 @@ export default function AttendanceAdmin() {
                 </div>
               )}
             </div>
-
             {/* Instrucciones */}
             <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
               <div className="flex items-start gap-3">

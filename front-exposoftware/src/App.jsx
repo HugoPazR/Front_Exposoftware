@@ -161,6 +161,9 @@ function App() {
           <Route path="/guest/profile" element={<InvitadoRoute><GuestProfile /></InvitadoRoute>} />
           <Route path="/guest/proyectos" element={<InvitadoRoute><GuestProjects /></InvitadoRoute>} />
 
+          {/* Registro de Asistencia */}
+          <Route path="/asistencia" element={<AsistenciaForm />} />
+          
           <Route
             path="*"
             element={
