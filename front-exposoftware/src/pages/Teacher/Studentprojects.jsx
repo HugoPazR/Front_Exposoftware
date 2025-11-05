@@ -118,9 +118,14 @@ export default function StudentProjects() {
         
         console.log('🎯 Usando ID del docente:', docenteId);
         
-        // Cargar materias que dicta el docente (para los filtros)
+        // Primero cargar proyectos
+        const data = await getTeacherProjects(docenteId);
+        setProjects(data);
+        console.log('✅ Proyectos del docente cargados:', data.length);
+        
+        // Cargar materias que dicta el docente (pasar proyectos para fallback)
         try {
-          const materias = await getTeacherSubjects(docenteId);
+          const materias = await getTeacherSubjects(docenteId, data);
           const normalized = (Array.isArray(materias) ? materias : []).map(m => ({
             codigo: (m.codigo_materia || m.codigo || m.subject_code || m.id || m.code || '').toString(),
             nombre: m.nombre || m.nombre_materia || m.subject_name || m.title || m.name || String(m.codigo_materia || m.codigo || m.id || '')
@@ -131,10 +136,6 @@ export default function StudentProjects() {
           console.warn('⚠️ No se pudieron cargar las materias del docente:', err.message || err);
           setMateriasList([]);
         }
-
-        const data = await getTeacherProjects(docenteId);
-        setProjects(data);
-        console.log('✅ Proyectos del docente cargados:', data.length);
       } catch (err) {
         console.error('❌ Error al cargar proyectos:', err);
         setError(err.message);
@@ -173,7 +174,8 @@ export default function StudentProjects() {
           return;
         }
 
-        const grupos = await getTeacherSubjectGroups(docenteId, selectedMateria);
+        // Pasar proyectos actuales para fallback
+        const grupos = await getTeacherSubjectGroups(docenteId, selectedMateria, projects);
         // Normalizar
         const normalized = (Array.isArray(grupos) ? grupos : []).map(g => ({
           id: g.id_grupo || g.id || g.codigo || g.group_code || '',
@@ -187,7 +189,7 @@ export default function StudentProjects() {
     };
 
     loadGrupos();
-  }, [selectedMateria, user]);
+  }, [selectedMateria, user, projects]);
 
   // Handler para cerrar sesión
   const handleLogout = async () => {
@@ -467,11 +469,17 @@ export default function StudentProjects() {
               </div>
 
               {/* Mensaje informativo cuando no hay materias */}
-              {materiasList.length === 0 && (
+              {materiasList.length === 0 && projects.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                  <i className="pi pi-info-circle mr-2"></i>
+                  <strong>Nota:</strong> Los filtros por materia y grupo se extraerán de tus proyectos existentes. 
+                  Si no aparecen, es porque tus proyectos no tienen asignada información de materia/grupo.
+                </div>
+              )}
+              {materiasList.length === 0 && projects.length === 0 && (
                 <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
                   <i className="pi pi-info-circle mr-2"></i>
-                  <strong>Nota:</strong> No tienes materias asignadas en el sistema. Los filtros por materia y grupo no están disponibles. 
-                  Contacta al administrador si crees que esto es un error.
+                  <strong>Nota:</strong> No tienes proyectos asignados. Los filtros por materia y grupo no están disponibles.
                 </div>
               )}
 

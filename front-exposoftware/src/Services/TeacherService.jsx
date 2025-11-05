@@ -130,19 +130,21 @@ export const getTeacherProfileByAdmin = async (teacherId) => {
 };
 
 /**
- * Obtener todas las materias asignadas al docente (a través de sus grupos)
- * ✅ Estrategia alternativa: GET /api/v1/admin/grupos/profesor/{teacher_id}
- * Extrae las materias únicas de los grupos asignados al docente
+ * Obtener todas las materias asignadas al docente
+ * ✅ ESTRATEGIA MÚLTIPLE (en orden de preferencia):
+ * 1. Intenta obtener grupos del docente y extraer materias
+ * 2. Si falla (404), extrae materias únicas de los proyectos proporcionados
  * @param {string} teacherId - ID del docente (id_docente)
+ * @param {Array} proyectos - Array de proyectos del docente (opcional, para estrategia 2)
  * @returns {Promise<Array>} Lista de materias únicas del docente
  */
-export const getTeacherSubjects = async (teacherId) => {
+export const getTeacherSubjects = async (teacherId, proyectos = null) => {
   try {
-    console.log('📚 Obteniendo materias del docente a través de sus grupos:', teacherId);
+    console.log('📚 Obteniendo materias del docente:', teacherId);
     const headers = AuthService.getAuthHeaders();
     
-    // Estrategia: Obtener grupos del docente, luego extraer materias únicas
-    console.log('🔄 Obteniendo grupos del docente...');
+    // ESTRATEGIA 1: Intentar obtener grupos del docente
+    console.log('🔄 Estrategia 1: Intentando obtener grupos del docente...');
     let url = `${API_BASE_URL}/api/v1/grupos/profesor/${teacherId}?limit=100`;
     console.log('🌐 URL (intento público):', url);
     
@@ -151,7 +153,7 @@ export const getTeacherSubjects = async (teacherId) => {
       headers: headers
     });
 
-    // Si falla con 403 (sin permisos), intentar endpoint admin
+    // Si falla con 403, intentar endpoint admin
     if (response.status === 403) {
       console.log('⚠️ Endpoint público falló, intentando endpoint admin...');
       url = `${API_BASE_URL}/api/v1/admin/grupos/profesor/${teacherId}?limit=100`;
@@ -165,11 +167,11 @@ export const getTeacherSubjects = async (teacherId) => {
 
     console.log('📡 Respuesta - Status:', response.status);
 
+    // Si obtuvimos grupos exitosamente, extraer materias
     if (response.ok) {
       const result = await response.json();
       console.log('📦 Respuesta completa grupos:', result);
       
-      // Extraer array de grupos
       let grupos = [];
       if (result.data && Array.isArray(result.data)) {
         grupos = result.data;
@@ -177,98 +179,195 @@ export const getTeacherSubjects = async (teacherId) => {
         grupos = result;
       }
       
-      console.log(`📋 Total de grupos del docente: ${grupos.length}`);
-      
-      // Extraer materias únicas de los grupos
-      const materiasMap = new Map();
-      grupos.forEach(grupo => {
-        const codigoMateria = grupo.codigo_materia || grupo.materia_codigo;
-        const nombreMateria = grupo.nombre_materia || grupo.materia_nombre;
+      if (grupos.length > 0) {
+        console.log(`📋 Total de grupos del docente: ${grupos.length}`);
         
-        if (codigoMateria && !materiasMap.has(codigoMateria)) {
-          materiasMap.set(codigoMateria, {
-            codigo_materia: codigoMateria,
-            codigo: codigoMateria,
-            nombre_materia: nombreMateria || codigoMateria,
-            nombre: nombreMateria || codigoMateria
-          });
-        }
-      });
-      
-      const materias = Array.from(materiasMap.values());
-      console.log(`✅ Materias únicas extraídas: ${materias.length}`);
-      console.log('📚 Materias:', materias.map(m => `${m.codigo} - ${m.nombre}`).join(', '));
-      
-      return materias;
-    } else if (response.status === 404) {
-      console.warn('⚠️ No se encontraron grupos para el docente');
-      return [];
-    } else if (response.status === 500) {
-      console.warn('⚠️ Error 500 al obtener grupos del docente');
-      const errorData = await response.json().catch(() => ({}));
-      console.log('📋 Detalle del error:', errorData);
-      return [];
-    } else {
-      const errorData = await response.json().catch(() => ({}));
-      console.warn('⚠️ Error al obtener grupos:', errorData.detail || errorData.message);
+        // Extraer materias únicas de los grupos
+        const materiasMap = new Map();
+        grupos.forEach(grupo => {
+          const codigoMateria = grupo.codigo_materia || grupo.materia_codigo;
+          const nombreMateria = grupo.nombre_materia || grupo.materia_nombre;
+          
+          if (codigoMateria && !materiasMap.has(codigoMateria)) {
+            materiasMap.set(codigoMateria, {
+              codigo_materia: codigoMateria,
+              codigo: codigoMateria,
+              nombre_materia: nombreMateria || codigoMateria,
+              nombre: nombreMateria || codigoMateria
+            });
+          }
+        });
+        
+        const materias = Array.from(materiasMap.values());
+        console.log(`✅ Materias extraídas de grupos: ${materias.length}`);
+        console.log('📚 Materias:', materias.map(m => `${m.codigo} - ${m.nombre}`).join(', '));
+        return materias;
+      }
+    }
+    
+    // ESTRATEGIA 2: Si no hay grupos o falló (404), extraer materias de proyectos
+    console.log('🔄 Estrategia 2: Extrayendo materias de los proyectos del docente...');
+    
+    if (!proyectos || !Array.isArray(proyectos) || proyectos.length === 0) {
+      console.warn('⚠️ No hay proyectos proporcionados para extraer materias');
       return [];
     }
+    
+    console.log(`📋 Proyectos del docente: ${proyectos.length}`);
+    
+    // Extraer materias únicas de los proyectos
+    const materiasMap = new Map();
+    proyectos.forEach(proyecto => {
+      const codigoMateria = proyecto.codigo_materia;
+      const nombreMateria = proyecto.nombre_materia || proyecto.materia || codigoMateria;
+      
+      if (codigoMateria && !materiasMap.has(codigoMateria)) {
+        materiasMap.set(codigoMateria, {
+          codigo_materia: codigoMateria,
+          codigo: codigoMateria,
+          nombre_materia: nombreMateria,
+          nombre: nombreMateria
+        });
+      }
+    });
+    
+    const materias = Array.from(materiasMap.values());
+    console.log(`✅ Materias extraídas de proyectos: ${materias.length}`);
+    console.log('📚 Materias:', materias.map(m => `${m.codigo} - ${m.nombre}`).join(', '));
+    
+    return materias;
+    
   } catch (error) {
     console.error('❌ Error al obtener materias del docente:', error);
-    // Retornar array vacío en lugar de lanzar error
     console.warn('🔄 Retornando array vacío por error');
     return [];
   }
 };
 
 /**
- * Obtener grupos de una materia específica
- * GET /api/v1/docentes/materias/{codigo_materia}/grupos
- * @param {string} teacherId - ID del docente (no se usa en este endpoint, pero se mantiene por compatibilidad)
+ * Obtener grupos de una materia específica del docente
+ * ✅ ESTRATEGIA MÚLTIPLE (en orden de preferencia):
+ * 1. Intenta obtener grupos del docente y filtrar por materia
+ * 2. Si falla (404), extrae grupos de los proyectos proporcionados filtrados por materia
+ * @param {string} teacherId - ID del docente
  * @param {string} subjectCode - Código de la materia
- * @returns {Promise<Array>} Lista de grupos de la materia
+ * @param {Array} proyectos - Array de proyectos del docente (opcional, para estrategia 2)
+ * @returns {Promise<Array>} Lista de grupos de la materia del docente
  */
-export const getTeacherSubjectGroups = async (teacherId, subjectCode) => {
+export const getTeacherSubjectGroups = async (teacherId, subjectCode, proyectos = null) => {
   try {
-    console.log(`👥 Obteniendo grupos de materia ${subjectCode}`);
+    console.log(`👥 Obteniendo grupos del docente ${teacherId} para materia ${subjectCode}`);
     const headers = AuthService.getAuthHeaders();
     
-    const url = `${API_BASE_URL}/api/v1/docentes/materias/${subjectCode}/grupos`;
-    console.log('🌐 URL:', url);
+    // ESTRATEGIA 1: Intentar obtener grupos del endpoint
+    console.log('🔄 Estrategia 1: Intentando obtener grupos del docente...');
+    let url = `${API_BASE_URL}/api/v1/grupos/profesor/${teacherId}?limit=100`;
+    console.log('🌐 URL (intento público):', url);
     
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: 'GET',
       headers: headers
     });
 
+    // Si falla con 403, intentar endpoint admin
+    if (response.status === 403) {
+      console.log('⚠️ Endpoint público falló, intentando endpoint admin...');
+      url = `${API_BASE_URL}/api/v1/admin/grupos/profesor/${teacherId}?limit=100`;
+      console.log('🌐 URL (admin):', url);
+      
+      response = await fetch(url, {
+        method: 'GET',
+        headers: headers
+      });
+    }
+
     console.log('📡 Respuesta - Status:', response.status);
 
+    // Si obtuvimos grupos exitosamente, filtrar por materia
     if (response.ok) {
       const result = await response.json();
       console.log('📦 Respuesta completa grupos:', result);
       
-      // La API puede devolver: array directo, {data: array}, {grupos: array}
       let grupos = [];
-      if (Array.isArray(result)) {
-        grupos = result;
-      } else if (result.data && Array.isArray(result.data)) {
+      if (result.data && Array.isArray(result.data)) {
         grupos = result.data;
-      } else if (result.grupos && Array.isArray(result.grupos)) {
-        grupos = result.grupos;
+      } else if (Array.isArray(result)) {
+        grupos = result;
       }
       
-      console.log(`✅ Grupos obtenidos: ${grupos.length}`);
-      return grupos;
-    } else if (response.status === 404) {
-      console.warn('⚠️ No se encontraron grupos para esta materia');
-      return [];
-    } else {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || errorData.message || 'Error al obtener grupos');
+      if (grupos.length > 0) {
+        console.log(`📋 Total de grupos del docente: ${grupos.length}`);
+        
+        // Filtrar grupos por código de materia
+        const gruposFiltrados = grupos.filter(g => {
+          const codigoMateria = g.codigo_materia || g.materia_codigo;
+          return codigoMateria === subjectCode;
+        });
+        
+        console.log(`✅ Grupos filtrados para materia ${subjectCode}: ${gruposFiltrados.length}`);
+        
+        // Formatear respuesta
+        return gruposFiltrados.map(g => ({
+          id_grupo: g.codigo_grupo || g.id_grupo,
+          id: g.codigo_grupo || g.id_grupo,
+          codigo_grupo: g.codigo_grupo,
+          nombre_grupo: g.nombre_grupo || `Grupo ${g.codigo_grupo}`,
+          nombre: g.nombre_grupo || `Grupo ${g.codigo_grupo}`,
+          codigo_materia: g.codigo_materia || g.materia_codigo,
+          nombre_materia: g.nombre_materia || g.materia_nombre,
+          activo: g.activo
+        }));
+      }
     }
+    
+    // ESTRATEGIA 2: Extraer grupos de los proyectos proporcionados
+    console.log('🔄 Estrategia 2: Extrayendo grupos de los proyectos del docente...');
+    
+    if (!proyectos || !Array.isArray(proyectos) || proyectos.length === 0) {
+      console.warn('⚠️ No hay proyectos proporcionados para extraer grupos');
+      return [];
+    }
+    
+    console.log(`📋 Proyectos del docente: ${proyectos.length}`);
+    
+    // Filtrar proyectos por código de materia
+    const proyectosFiltrados = proyectos.filter(p => p.codigo_materia === subjectCode);
+    console.log(`📋 Proyectos de la materia ${subjectCode}: ${proyectosFiltrados.length}`);
+    
+    if (proyectosFiltrados.length === 0) {
+      console.warn('⚠️ No hay proyectos de esta materia para extraer grupos');
+      return [];
+    }
+    
+    // Extraer grupos únicos de los proyectos
+    const gruposMap = new Map();
+    proyectosFiltrados.forEach(proyecto => {
+      const idGrupo = proyecto.id_grupo;
+      const nombreGrupo = proyecto.nombre_grupo || proyecto.grupo || `Grupo ${idGrupo}`;
+      
+      if (idGrupo && !gruposMap.has(idGrupo)) {
+        gruposMap.set(idGrupo, {
+          id_grupo: idGrupo,
+          id: idGrupo,
+          codigo_grupo: idGrupo,
+          nombre_grupo: nombreGrupo,
+          nombre: nombreGrupo,
+          codigo_materia: subjectCode,
+          nombre_materia: proyecto.nombre_materia || proyecto.materia,
+          activo: true
+        });
+      }
+    });
+    
+    const grupos = Array.from(gruposMap.values());
+    console.log(`✅ Grupos únicos extraídos de proyectos: ${grupos.length}`);
+    console.log('👥 Grupos:', grupos.map(g => `${g.id} - ${g.nombre}`).join(', '));
+    
+    return grupos;
+    
   } catch (error) {
     console.error('❌ Error al obtener grupos de la materia:', error);
-    throw error;
+    return [];
   }
 };
 
