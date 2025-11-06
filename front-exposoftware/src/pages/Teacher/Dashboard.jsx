@@ -66,7 +66,7 @@ export default function TeacherDashboard() {
       {
         name: 'Reprobados',
         value: metricasProyectos.reprobados,
-        color: '#EF4444' // Rojo
+        color: '#e40606ff' // Rojo
       },
       {
         name: 'Pendientes',
@@ -88,7 +88,7 @@ export default function TeacherDashboard() {
     });
 
     // Colores para las líneas de investigación
-    const colores = ['#3B82F6', '#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#6366F1'];
+    const colores = ['#08973fff', '#decb3fff', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#48d3ecff', '#63f189ff'];
     
     return Object.entries(lineasCount).map(([lineaNombre, count], index) => ({
       name: lineaNombre,
