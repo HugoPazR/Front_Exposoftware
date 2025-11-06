@@ -32,6 +32,8 @@ import GuestProjects from "./pages/Guest/Proyects";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import StudentDetails from "./pages/Admin/StudentDetails";
 import EditStudent from "./pages/Admin/EditStudent";
+import GestionCertificados from "./pages/Admin/GestionCertificados";
+import GestionProyectos from "./pages/Admin/GestionProyectos";
 import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute, EstudianteOEgresadoRoute} from "./components/ProtectedRoute";
 
 
@@ -67,6 +69,8 @@ function App() {
     "/admin/crear-programa",
     "/admin/programas",
     "/admin/estudiantes",
+    "/admin/certificados",
+    "/admin/proyectos",
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",
@@ -134,6 +138,8 @@ function App() {
           <Route path="/admin/estudiantes" element={<AdminRoute><ManageStudents /></AdminRoute>} />
           <Route path="/admin/estudiantes/:studentId" element={<AdminRoute><StudentDetails /></AdminRoute>} />
           <Route path="/admin/estudiantes/:studentId/editar" element={<AdminRoute><EditStudent /></AdminRoute>} />
+          <Route path="/admin/certificados" element={<AdminRoute><GestionCertificados /></AdminRoute>} />
+          <Route path="/admin/proyectos" element={<AdminRoute><GestionProyectos /></AdminRoute>} />
 
           {/* ✅ Egresados - RUTAS PROTEGIDAS */}
           <Route path="/graduate/dashboard" element={<EgresadoRoute><GraduateDashboard /></EgresadoRoute>} />
