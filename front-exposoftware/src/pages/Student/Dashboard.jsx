@@ -630,7 +630,7 @@ export default function StudentDashboard() {
                         Cierre: 30 de Noviembre de 2025
                       </div>
                     </div>
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(39, 154, 102, 1)' }}>
                       Activa
                     </span>
                   </div>

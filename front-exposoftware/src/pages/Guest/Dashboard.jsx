@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { obtenerMiPerfilInvitado } from "../../Services/GuestService";
 import { SECTORES } from "../../data/sectores";
+import { obtenerProyectos } from "../../Services/ProjectsService";
+import ResearchLinesService from "../../Services/ResearchLinesService";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function GuestDashboard() {
@@ -12,8 +15,18 @@ export default function GuestDashboard() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
 
+  // Estados para las gráficas
+  const [todosProyectos, setTodosProyectos] = useState([]);
+  const [lineasInvestigacion, setLineasInvestigacion] = useState([]);
+  const [cargandoGraficas, setCargandoGraficas] = useState(true);
+
   useEffect(() => {
     cargarPerfil();
+  }, []);
+
+  // Cargar datos para gráficas al montar el componente
+  useEffect(() => {
+    cargarDatosGraficas();
   }, []);
 
   const cargarPerfil = async () => {
@@ -22,12 +35,30 @@ export default function GuestDashboard() {
       setError(null);
       const datos = await obtenerMiPerfilInvitado();
       setPerfil(datos);
-      console.log('✅ Perfil cargado en Dashboard:', datos);
     } catch (err) {
       console.error('❌ Error cargando perfil:', err);
       setError(err.message);
     } finally {
       setCargando(false);
+    }
+  };
+
+  // Cargar datos para las gráficas
+  const cargarDatosGraficas = async () => {
+    try {
+      setCargandoGraficas(true);
+      
+      // Cargar todos los proyectos
+      const proyectos = await obtenerProyectos();
+      setTodosProyectos(proyectos);
+      
+      // Cargar líneas de investigación
+      const lineas = await ResearchLinesService.obtenerLineas();
+      setLineasInvestigacion(lineas);
+    } catch (error) {
+      console.error('❌ Error cargando datos para gráficas:', error);
+    } finally {
+      setCargandoGraficas(false);
     }
   };
 
@@ -52,6 +83,59 @@ export default function GuestDashboard() {
     correo: user?.correo || user?.email || "",
     rol: user?.rol || "Invitado"
   };
+
+  // Datos para la gráfica de tipos de proyectos
+  const tiposProyectosData = todosProyectos.reduce((acc, proyecto) => {
+    const tipo = proyecto.tipo_actividad || 'Sin tipo';
+    const tipoNombre = {
+      1: 'Proyecto (Exposoftware)',
+      2: 'Taller',
+      3: 'Ponencia',
+      4: 'Conferencia'
+    }[tipo] || 'Otro';
+    
+    const existing = acc.find(item => item.name === tipoNombre);
+    if (existing) {
+      existing.value += 1;
+    } else {
+      acc.push({ name: tipoNombre, value: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Datos para la gráfica de proyectos por línea de investigación
+  const proyectosPorLineaData = lineasInvestigacion.map(linea => {
+    // Contar proyectos que pertenecen a esta línea
+    const proyectosEnLinea = todosProyectos.filter(proyecto => {
+      // Comparar el codigo_linea del proyecto con el codigo_linea de la línea
+      return proyecto.codigo_linea === linea.codigo_linea;
+    }).length;
+    
+    return {
+      name: linea.nombre_linea,
+      value: proyectosEnLinea,
+      codigo: linea.codigo_linea
+    };
+  }).filter(item => item.value > 0); // Solo mostrar líneas con proyectos
+
+const coloresTipos = [
+  '#228B22', // verde oscuro aproximado al Pantone 362
+  '#32CD32', // verde medio como Pantone 356 / 364
+  '#7CFC00', // verde claro / limón-verde para variar
+  '#F9E03B', // amarillo para el elemento humano (cabeza del símbolo) — aproximado
+  '#006400'  // verde aún más oscuro para contraste
+];
+
+// Colores para líneas (gama complementaria / secundaria)
+const coloresLineas = [
+  '#197e60ff', // verde profundo
+  '#4CAF50', // verde más brillante
+  '#D4E157', // amarillo verdoso suave
+  '#FDD835', // amarillo más fuerte
+  '#8BC34A', // verde lima suave
+  '#388E3C', // verde hoja
+  '#AEEA00'  // verde-lima muy claro
+];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -233,7 +317,194 @@ export default function GuestDashboard() {
               </>
             )}
 
-            {/* Información del Evento */}
+            {/* Estadísticas Rápidas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-700 mb-1">Total Proyectos</p>
+                    <h3 className="text-3xl font-bold text-blue-900">
+                      {cargandoGraficas ? "..." : todosProyectos.length}
+                    </h3>
+                    <div className="flex items-center gap-1 mt-2">
+                      <span className="text-xs text-blue-600">Registrados</span>
+                    </div>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i className="pi pi-folder-open text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-700 mb-1">Líneas Activas</p>
+                    <h3 className="text-3xl font-bold text-green-900">
+                      {cargandoGraficas ? "..." : lineasInvestigacion.length}
+                    </h3>
+                    <div className="flex items-center gap-1 mt-2">
+                      <span className="text-xs text-green-600">De investigación</span>
+                    </div>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i className="pi pi-sitemap text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-purple-700 mb-1">Tipos de Proyecto</p>
+                    <h3 className="text-3xl font-bold text-purple-900">
+                      {cargandoGraficas ? "..." : tiposProyectosData.length}
+                    </h3>
+                    <div className="flex items-center gap-1 mt-2">
+                      <span className="text-xs text-purple-600">Categorías</span>
+                    </div>
+                  </div>
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i className="pi pi-tags text-white text-xl"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Gráficas de Estadísticas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              
+              {/* Gráfica de Tipos de Proyectos */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <i className="pi pi-chart-pie text-white text-sm"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Tipos de Proyectos</h3>
+                    <p className="text-sm text-gray-600">Distribución por tipo de actividad</p>
+                  </div>
+                </div>
+
+                {cargandoGraficas ? (
+                  <div className="flex justify-center items-center h-80">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : tiposProyectosData.length > 0 ? (
+                  <div className="h-96">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={tiposProyectosData}
+                          cx="50%"
+                          cy="45%"
+                          outerRadius={100}
+                          paddingAngle={2}
+                          dataKey="value"
+                          label={({ name, percent }) => percent > 0.5 ? name : `${(percent * 100).toFixed(0)}%`}
+                          labelLine={false}
+                        >
+                          {tiposProyectosData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={coloresTipos[index % coloresTipos.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name) => [`${value} proyecto${value !== 1 ? 's' : ''}`, name]}
+                          contentStyle={{
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '10px',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={36}
+                          formatter={(value, entry) => (
+                            <span style={{ color: entry.color, fontWeight: '500', fontSize: '12px' }}>
+                              {value}
+                            </span>
+                          )}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <i className="pi pi-chart-pie text-4xl text-gray-300 mb-2"></i>
+                    <p className="text-gray-500 text-sm">No hay datos disponibles</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Gráfica de Proyectos por Línea de Investigación */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                    <i className="pi pi-chart-pie text-white text-sm"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Proyectos por Línea</h3>
+                    <p className="text-sm text-gray-600">Distribución por línea de investigación</p>
+                  </div>
+                </div>
+
+                {cargandoGraficas ? (
+                  <div className="flex justify-center items-center h-80">
+                    <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : proyectosPorLineaData.length > 0 ? (
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={proyectosPorLineaData}
+                          cx="50%"
+                          cy="45%"
+                          outerRadius={100}
+                          paddingAngle={2}
+                          dataKey="value"
+                          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                          labelLine={false}
+                        >
+                          {proyectosPorLineaData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={coloresLineas[index % coloresLineas.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value, name) => [`${value} proyecto${value !== 1 ? 's' : ''}`, name]}
+                          contentStyle={{
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '10px',
+                            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                            fontSize: '14px'
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={60}
+                          formatter={(value, entry) => (
+                            <span style={{ color: entry.color, fontWeight: '500', fontSize: '12px' }}>
+                              {value.length > 20 ? `${value.substring(0, 20)}...` : value}
+                            </span>
+                          )}
+                          wrapperStyle={{ paddingTop: '20px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <i className="pi pi-chart-pie text-4xl text-gray-300 mb-2"></i>
+                    <p className="text-gray-500 text-sm">No hay datos disponibles</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+                        {/* Información del Evento */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
@@ -261,27 +532,6 @@ export default function GuestDashboard() {
                   aplicaciones tecnológicas. Como invitado, podrás explorar todos los proyectos, inscribirte a presentaciones 
                   específicas y conectar con talento emergente en tecnología.
                 </p>
-              </div>
-
-              <div className="border-t border-gray-100 pt-4 mb-4">
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <i className="pi pi-bookmark text-green-600"></i>
-                  Información Útil
-                </h4>
-                <div className="space-y-2">
-                  <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
-                    → Programa del Evento
-                  </a>
-                  <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
-                    → Mapa de Ubicación
-                  </a>
-                  <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
-                    → Preguntas Frecuentes
-                  </a>
-                  <a href="#" className="block text-sm text-green-600 hover:text-green-700 hover:underline">
-                    → Contacto y Soporte
-                  </a>
-                </div>
               </div>
 
               <div className="border-t border-gray-100 pt-4 mb-4">

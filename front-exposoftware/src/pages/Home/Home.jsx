@@ -362,7 +362,7 @@ export default function Home() {
           <p className="text-green-50 text-lg mb-8 max-w-2xl mx-auto">
             Únete a la comunidad de innovadores y comparte tu trabajo con cientos de estudiantes, profesores y profesionales
           </p>
-          <Link to="/admin/dash" className="inline-block bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105 transform">
+          <Link to="/login" className="inline-block bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-50 transition-all shadow-xl hover:shadow-2xl hover:scale-105 transform">
             Registrarse Ahora
           </Link>
         </div>
