@@ -14,6 +14,9 @@ export default function MyProjects() {
   const [error, setError] = useState(null);
   const [eventoInfo, setEventoInfo] = useState(null);
   const [descargandoCertificado, setDescargandoCertificado] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterMateria, setFilterMateria] = useState('');
+  const [filteredProjects, setFilteredProjects] = useState([]);
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -62,6 +65,33 @@ export default function MyProjects() {
       cargarMisProyectos();
     }
   }, [user?.id_estudiante, user?.id_usuario, loading]); // Depende de ambos IDs
+
+  // Filtrar proyectos basado en criterios de búsqueda
+  useEffect(() => {
+    let filtered = projects;
+
+    // Filtrar por término de búsqueda (nombre del proyecto)
+    if (searchTerm) {
+      filtered = filtered.filter(project =>
+        project.titulo_proyecto?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtrar por materia
+    if (filterMateria) {
+      filtered = filtered.filter(project =>
+        project.codigo_materia?.toLowerCase().includes(filterMateria.toLowerCase())
+      );
+    }
+
+    setFilteredProjects(filtered);
+  }, [projects, searchTerm, filterMateria]);
+
+  // Limpiar filtros
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterMateria('');
+  };
 
   // Handler para cerrar sesión
   const handleLogout = async () => {
@@ -339,6 +369,78 @@ export default function MyProjects() {
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Mis Proyectos</h2>
             <p className="text-gray-600 mb-6">Aquí puedes gestionar todos los proyectos académicos que has postulado o en los que participas. Revisa su estado, edita los detalles o visualiza la información completa de cada uno.</p>
 
+            {/* Sección de Búsqueda y Filtros */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <i className="pi pi-search text-white text-sm"></i>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Buscar y Filtrar Proyectos</h3>
+                  <p className="text-sm text-gray-600">Encuentra rápidamente tus proyectos por nombre o materia</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Búsqueda por nombre */}
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <i className="pi pi-tag mr-1"></i>
+                    Nombre del Proyecto
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Buscar por nombre..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    />
+                    <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  </div>
+                </div>
+
+                {/* Filtro por materia */}
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <i className="pi pi-book mr-1"></i>
+                    Materia
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={filterMateria}
+                      onChange={(e) => setFilterMateria(e.target.value)}
+                      placeholder="Filtrar por materia..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                    />
+                    <i className="pi pi-book absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botón limpiar filtros y contador de resultados */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-4">
+                  {(searchTerm || filterMateria) && (
+                    <button
+                      onClick={clearFilters}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <i className="pi pi-times"></i>
+                      Limpiar filtros
+                    </button>
+                  )}
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">{filteredProjects.length}</span> de <span className="font-medium">{projects.length}</span> proyectos
+                    {(searchTerm || filterMateria) && (
+                      <span className="ml-1 text-blue-600">(filtrados)</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Loading state */}
             {loadingProjects ? (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -380,7 +482,7 @@ export default function MyProjects() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {projects.map(proyecto => {
+                {filteredProjects.map(proyecto => {
                   // Mapear tipo_actividad a nombre legible
                   const tipoActividad = {
                     1: 'Proyecto (Exposoftware)',
@@ -400,99 +502,107 @@ export default function MyProjects() {
 
                   // Estado del proyecto
                   const estadoConfig = proyecto.activo 
-                    ? { texto: 'Activo', color: 'bg-green-100 text-green-800' }
-                    : { texto: 'Inactivo', color: 'bg-gray-100 text-gray-800' };
+                    ? { texto: 'Activo', color: 'bg-green-100 text-green-800 border-green-200', icon: 'pi-check-circle', bgColor: 'from-green-50 to-emerald-50' }
+                    : { texto: 'Inactivo', color: 'bg-gray-100 text-gray-800 border-gray-200', icon: 'pi-pause-circle', bgColor: 'from-gray-50 to-slate-50' };
+
+                  // Color del tipo de actividad
+                  const tipoColor = {
+                    1: 'from-blue-500 to-indigo-600', // Proyecto
+                    2: 'from-purple-500 to-violet-600', // Taller
+                    3: 'from-orange-500 to-red-600', // Ponencia
+                    4: 'from-teal-500 to-cyan-600' // Conferencia
+                  }[proyecto.tipo_actividad] || 'from-gray-500 to-gray-600';
 
                   return (
-                    <div key={proyecto.id_proyecto} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900 flex-1">{proyecto.titulo_proyecto}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${estadoConfig.color} whitespace-nowrap ml-2`}>
+                    <div key={proyecto.id_proyecto} className={`bg-gradient-to-br ${estadoConfig.bgColor} rounded-xl border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-gray-300 group`}>
+                      {/* Header con título y estado */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-800 transition-colors">
+                            {proyecto.titulo_proyecto}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-8 h-8 bg-gradient-to-br ${tipoColor} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                              <i className="pi pi-briefcase text-white text-xs"></i>
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">{tipoActividad}</span>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${estadoConfig.color} whitespace-nowrap flex items-center gap-1`}>
+                          <i className={`pi ${estadoConfig.icon} text-xs`}></i>
                           {estadoConfig.texto}
                         </span>
                       </div>
 
-                      <div className="space-y-2 text-sm text-gray-600 mb-4">
-                        <div className="flex items-center gap-2">
-                          <i className="pi pi-briefcase text-teal-600"></i>
-                          <span className="font-medium">{tipoActividad}</span>
-                        </div>
-                        
-                        {proyecto.id_estudiantes && proyecto.id_estudiantes.length > 0 && (
+                      {/* Información del proyecto */}
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
-                            <i className="pi pi-users text-teal-600"></i>
-                            <span>{proyecto.id_estudiantes.length} participante(s)</span>
+                            <i className="pi pi-users text-blue-500"></i>
+                            <span className="font-medium">{proyecto.id_estudiantes?.length || 0}</span>
+                            <span className="text-gray-500">participante{proyecto.id_estudiantes?.length !== 1 ? 's' : ''}</span>
+                          </div>
+                          <span className="text-gray-300">•</span>
+                          <div className="flex items-center gap-2">
+                            <i className="pi pi-calendar text-green-500"></i>
+                            <span>{fechaSubida}</span>
+                          </div>
+                        </div>
+
+                        {proyecto.codigo_materia && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <i className="pi pi-book text-purple-500"></i>
+                            <span className="font-medium text-gray-900">Materia:</span>
+                            <span className="text-purple-700 bg-purple-50 px-2 py-1 rounded-md">{proyecto.codigo_materia}</span>
                           </div>
                         )}
-
-                        <div className="flex items-center gap-2">
-                          <i className="pi pi-calendar text-teal-600"></i>
-                          <span>{fechaSubida}</span>
-                        </div>
 
                         {proyecto.calificacion && (
                           <div className="flex items-center gap-2">
-                            <i className="pi pi-star-fill text-yellow-500"></i>
-                            <span className="font-medium">Calificación: {proyecto.calificacion}/5</span>
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <i 
+                                  key={star}
+                                  className={`pi pi-star${star <= proyecto.calificacion ? '-fill' : ''} text-yellow-400 text-sm`}
+                                ></i>
+                              ))}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900 ml-1">
+                              {proyecto.calificacion}/5
+                            </span>
                           </div>
                         )}
+
                       </div>
 
-                      <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
+                      {/* Acciones */}
+                      <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
                         <button 
                           onClick={() => handleViewDetails(proyecto)}
-                          className="flex-1 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+                          className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-teal-600 hover:to-cyan-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                         >
-                          <i className="pi pi-eye"></i> Ver detalles
+                          <i className="pi pi-eye"></i>
+                          Ver detalles
                         </button>
-                        
-                        {/* Botón descargar MI certificado (individual) */}
-                        <button
-                          onClick={() => handleDescargarCertificado(proyecto)}
-                          disabled={descargandoCertificado}
-                          className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50"
-                          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'rgba(59, 130, 246, 1)' }}
-                          title="Descargar mi certificado"
-                        >
-                          <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-certificate'}`}></i>
-                          <span className="hidden sm:inline">Mi cert.</span>
-                        </button>
-
-                        {/* Botón descargar TODOS los certificados (ZIP) */}
-                        <button
-                          onClick={() => handleDescargarTodosCertificados(proyecto)}
-                          disabled={descargandoCertificado}
-                          className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-50"
-                          style={{ backgroundColor: 'rgba(147, 51, 234, 0.1)', color: 'rgba(147, 51, 234, 1)' }}
-                          title={`Descargar certificados de todos (${proyecto.id_estudiantes?.length || 0} estudiantes)`}
-                        >
-                          <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-users'}`}></i>
-                          <span className="hidden sm:inline">Todos</span>
-                        </button>
-
-                        {proyecto.archivo_pdf && (
-                          <a 
-                            href={proyecto.archivo_pdf}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors hover:bg-green-50"
-                            style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
-                            title="Descargar PDF del proyecto"
-                          >
-                            <i className="pi pi-file-pdf"></i>
-                          </a>
-                        )}
                       </div>
                     </div>
                   );
                 })}
 
                 {/* Postular nuevo proyecto card */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center hover:border-teal-400 transition-colors">
-                  <div className="text-4xl text-gray-400 mb-4">+</div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Postular Nuevo Proyecto</h4>
-                  <p className="text-gray-500 text-sm mb-4 text-center">Haga clic para iniciar una nueva postulación.</p>
-                  <Link to="/student/register-project" className="text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>Postular</Link>
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center hover:border-teal-400 hover:bg-teal-50 transition-all duration-300 group cursor-pointer">
+                  <div className="w-16 h-16 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center mb-4 group-hover:from-teal-200 group-hover:to-teal-300 transition-all duration-300">
+                    <i className="pi pi-plus text-2xl text-teal-600"></i>
+                  </div>
+                  <h4 className="font-bold text-gray-900 mb-2 text-center">Postular Nuevo Proyecto</h4>
+                  <p className="text-gray-500 text-sm mb-4 text-center max-w-xs">Haga clic para iniciar una nueva postulación para Exposoftware 2025.</p>
+                  <Link 
+                    to="/student/register-project" 
+                    className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-lg font-medium hover:from-teal-600 hover:to-teal-700 transition-all duration-200 flex items-center gap-2 shadow-sm hover:shadow-md"
+                  >
+                    <i className="pi pi-plus-circle"></i>
+                    Postular
+                  </Link>
                 </div>
               </div>
             )}

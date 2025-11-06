@@ -32,6 +32,8 @@ export default function GestionCertificados() {
   const [errorDetails, setErrorDetails] = useState(null);
   const [asuntoEmail, setAsuntoEmail] = useState('');
   const [mensajePersonalizado, setMensajePersonalizado] = useState('');
+  const topScrollbarRef = useRef(null);
+  const tableRef = useRef(null);
   const toast = useRef(null);
 
   // Cargar datos del usuario autenticado
@@ -46,10 +48,45 @@ export default function GestionCertificados() {
     }
   }, [navigate]);
 
-  // Cargar lotes al montar el componente
+  // Configurar scrollbar superior
   useEffect(() => {
-    cargarLotes();
-  }, []);
+    const setupScrollbar = () => {
+      const topScrollbar = topScrollbarRef.current;
+      const tableContainer = tableRef.current;
+      
+      if (topScrollbar && tableContainer) {
+        const scrollableView = tableContainer.querySelector('.p-datatable-scrollable-view');
+        
+        if (scrollableView) {
+          // Ajustar el ancho del scrollbar superior para que coincida con la tabla
+          const adjustScrollbar = () => {
+            const tableWidth = scrollableView.scrollWidth;
+            const containerWidth = scrollableView.clientWidth;
+            
+            if (tableWidth > containerWidth) {
+              topScrollbar.style.width = `${containerWidth}px`;
+              topScrollbar.style.display = 'block';
+              topScrollbar.querySelector('.top-scrollbar-content').style.width = `${tableWidth}px`;
+            } else {
+              topScrollbar.style.display = 'none';
+            }
+          };
+          
+          // Ajustar inicialmente
+          setTimeout(adjustScrollbar, 100);
+          
+          // Observar cambios en el tamaño
+          const resizeObserver = new ResizeObserver(adjustScrollbar);
+          resizeObserver.observe(scrollableView);
+          
+          return () => resizeObserver.disconnect();
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(setupScrollbar, 300);
+    return () => clearTimeout(timeoutId);
+  }, [lotes]);
 
   /**
    * Cargar listado de lotes de certificados
@@ -353,20 +390,9 @@ export default function GestionCertificados() {
    */
   const accionesTemplate = (rowData) => {
     const yaEnviado = rowData.estado === 'enviado';
-    
+
     return (
       <div className="flex gap-2">
-        <Button
-          icon="pi pi-download"
-          className="p-button-rounded p-button-success p-button-sm"
-          tooltip="Descargar ZIP"
-          tooltipOptions={{ position: 'top' }}
-          onClick={() => {
-            if (window.confirm(`¿Descargar certificados del lote "${rowData.id_lote}"?`)) {
-              descargarLote(rowData.id_lote);
-            }
-          }}
-        />
         <Button
           icon="pi pi-envelope"
           className={`p-button-rounded p-button-sm ${yaEnviado ? 'p-button-secondary' : 'p-button-info'}`}
@@ -376,9 +402,7 @@ export default function GestionCertificados() {
         />
       </div>
     );
-  };
-
-  /**
+  };  /**
    * Template para columna de proyecto
    */
   const proyectoTemplate = (rowData) => {
@@ -433,6 +457,41 @@ export default function GestionCertificados() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style jsx>{`
+        .top-scrollbar-container::-webkit-scrollbar {
+          height: 16px;
+        }
+        .top-scrollbar-container::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+        }
+        .top-scrollbar-container::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 8px;
+          border: 2px solid #f1f5f9;
+        }
+        .top-scrollbar-container::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+        .custom-datatable .p-datatable-scrollable-wrapper .p-datatable-scrollable-view::-webkit-scrollbar {
+          height: 16px;
+        }
+        .custom-datatable .p-datatable-scrollable-wrapper .p-datatable-scrollable-view::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+        }
+        .custom-datatable .p-datatable-scrollable-wrapper .p-datatable-scrollable-view::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 8px;
+          border: 2px solid #f1f5f9;
+        }
+        .custom-datatable .p-datatable-scrollable-wrapper .p-datatable-scrollable-view::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      `}</style>
+      
       <Toast ref={toast} />
       
       {/* Header */}
@@ -559,73 +618,115 @@ export default function GestionCertificados() {
                   </div>
                 </div>
               ) : (
-                <DataTable
-                  value={lotes}
-                  paginator
-                  rows={15}
-                  rowsPerPageOptions={[10, 15, 25, 50]}
-                  className="p-datatable-sm"
-                  emptyMessage="No hay lotes de certificados disponibles"
-                  sortMode="multiple"
-                  stripedRows
-                  size="small"
-                  scrollable
-                  scrollHeight="500px"
-                >
-                  <Column
-                    field="id_lote"
-                    header="ID Lote"
-                    sortable
-                    style={{ minWidth: '180px', fontSize: '0.875rem' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                  <Column
-                    field="proyecto.nombre_proyecto"
-                    header="Proyecto"
-                    body={proyectoTemplate}
-                    sortable
-                    style={{ minWidth: '200px' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                  <Column
-                    field="evento.nombre_evento"
-                    header="Evento"
-                    body={eventoTemplate}
-                    sortable
-                    style={{ minWidth: '180px' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                  <Column
-                    field="cantidad_certificados"
-                    header="Cant."
-                    body={cantidadTemplate}
-                    sortable
-                    style={{ minWidth: '80px' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                  <Column
-                    field="estado"
-                    header="Estado"
-                    body={estadoTemplate}
-                    sortable
-                    style={{ minWidth: '120px' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                  <Column
-                    field="fecha_generacion"
-                    header="Fecha"
-                    body={fechaTemplate}
-                    sortable
-                    style={{ minWidth: '140px', fontSize: '0.875rem' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                  <Column
-                    header="Acciones"
-                    body={accionesTemplate}
-                    style={{ minWidth: '120px' }}
-                    bodyStyle={{ padding: '0.5rem' }}
-                  />
-                </DataTable>
+                <div className="relative">
+                  {/* Scrollbar superior funcional */}
+                  <div 
+                    ref={topScrollbarRef}
+                    className="top-scrollbar-container"
+                    style={{
+                      height: '20px',
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      marginBottom: '12px',
+                      overflowX: 'auto',
+                      overflowY: 'hidden',
+                      display: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onScroll={(e) => {
+                      const tableScroll = tableRef.current?.querySelector('.p-datatable-scrollable-view');
+                      if (tableScroll) {
+                        tableScroll.scrollLeft = e.target.scrollLeft;
+                      }
+                    }}
+                  >
+                    <div 
+                      className="top-scrollbar-content"
+                      style={{
+                        height: '1px',
+                        backgroundColor: 'transparent',
+                        minWidth: '1200px'
+                      }}
+                    ></div>
+                  </div>
+                  
+                  <div ref={tableRef}>
+                    <DataTable
+                      value={lotes}
+                      paginator
+                      rows={15}
+                      rowsPerPageOptions={[10, 15, 25, 50]}
+                      className="p-datatable-sm custom-datatable"
+                      emptyMessage="No hay lotes de certificados disponibles"
+                      sortMode="multiple"
+                      stripedRows
+                      size="small"
+                      scrollable
+                      scrollHeight="500px"
+                      onScroll={(e) => {
+                        const topScrollbar = topScrollbarRef.current;
+                        if (topScrollbar) {
+                          topScrollbar.scrollLeft = e.target.scrollLeft;
+                        }
+                      }}
+                    >
+                      <Column
+                        field="id_lote"
+                        header="ID Lote"
+                        sortable
+                        style={{ minWidth: '180px', fontSize: '0.875rem' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                      <Column
+                        field="proyecto.nombre_proyecto"
+                        header="Proyecto"
+                        body={proyectoTemplate}
+                        sortable
+                        style={{ minWidth: '200px' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                      <Column
+                        field="evento.nombre_evento"
+                        header="Evento"
+                        body={eventoTemplate}
+                        sortable
+                        style={{ minWidth: '180px' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                      <Column
+                        field="cantidad_certificados"
+                        header="Cant."
+                        body={cantidadTemplate}
+                        sortable
+                        style={{ minWidth: '80px' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                      <Column
+                        field="estado"
+                        header="Estado"
+                        body={estadoTemplate}
+                        sortable
+                        style={{ minWidth: '120px' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                      <Column
+                        field="fecha_generacion"
+                        header="Fecha"
+                        body={fechaTemplate}
+                        sortable
+                        style={{ minWidth: '140px', fontSize: '0.875rem' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                      <Column
+                        header="Acciones"
+                        body={accionesTemplate}
+                        style={{ minWidth: '120px' }}
+                        bodyStyle={{ padding: '0.5rem' }}
+                      />
+                    </DataTable>
+                  </div>
+                </div>
               )}
             </div>
           </main>

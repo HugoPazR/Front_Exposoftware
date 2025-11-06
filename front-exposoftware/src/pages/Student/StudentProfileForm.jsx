@@ -153,12 +153,14 @@ export default function StudentProfileForm({
               disabled={!isEditing}
             >
               <option value="">Seleccionar</option>
-              <option value="heterosexual">Heterosexual</option>
-              <option value="homosexual">Homosexual</option>
-              <option value="bisexual">Bisexual</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="No binario">No binario</option>
+              <option value="Heterosexual">Heterosexual</option>
+              <option value="Homosexual">Homosexual</option>
+              <option value="Bisexual">Bisexual</option>
+              <option value="Lesbiana">Lesbiana</option>
+              <option value="Gay">Gay</option>
+              <option value="Asexual">Asexual</option>
+              <option value="Pansexual">Pansexual</option>
+              <option value="Queer">Queer</option>
               <option value="Prefiero no decir">Prefiero no decir</option>
             </select>
           </div>
