@@ -205,11 +205,8 @@ export const getTeacherSubjects = async (teacherId, proyectos = null) => {
       }
     }
     
-    // ESTRATEGIA 2: Si no hay grupos o falló (404), extraer materias de proyectos
-    console.log('🔄 Estrategia 2: Extrayendo materias de los proyectos del docente...');
     
     if (!proyectos || !Array.isArray(proyectos) || proyectos.length === 0) {
-      console.warn('⚠️ No hay proyectos proporcionados para extraer materias');
       return [];
     }
     
@@ -320,8 +317,7 @@ export const getTeacherSubjectGroups = async (teacherId, subjectCode, proyectos 
       }
     }
     
-    // ESTRATEGIA 2: Extraer grupos de los proyectos proporcionados
-    console.log('🔄 Estrategia 2: Extrayendo grupos de los proyectos del docente...');
+
     
     if (!proyectos || !Array.isArray(proyectos) || proyectos.length === 0) {
       console.warn('⚠️ No hay proyectos proporcionados para extraer grupos');
