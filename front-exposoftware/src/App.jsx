@@ -39,7 +39,7 @@ import ManageStudents from "./pages/Admin/ManageStudents";
 import StudentDetails from "./pages/Admin/StudentDetails";
 import EditStudent from "./pages/Admin/EditStudent";
 import Contacto from "./pages/Home/Contact";
-import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute, EstudianteOEgresadoRoute} from "./components/ProtectedRoute";
+import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute, EstudianteOEgresadoRoute } from "./components/ProtectedRoute";
 
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
@@ -93,12 +93,12 @@ function App() {
     if (hideNavbarOn.includes(location.pathname)) {
       return true;
     }
-    
+
     // Verificar patrones dinámicos
     if (location.pathname.startsWith('/admin/estudiantes/')) {
       return true;
     }
-    
+
     return false;
   };
 
@@ -122,7 +122,7 @@ function App() {
           <Route path="/student/dashboard" element={<EstudianteRoute><StudentDashboard /></EstudianteRoute>} />
           <Route path="/student/proyectos" element={<EstudianteRoute><MyProjects /></EstudianteRoute>} />
           <Route path="/student/profile" element={<EstudianteRoute><Profile /></EstudianteRoute>} />
-          
+
           {/* ✅ Registro de Proyectos - Permite ESTUDIANTES Y EGRESADOS */}
           <Route path="/student/register-project" element={<EstudianteOEgresadoRoute><RegisterProject /></EstudianteOEgresadoRoute>} />
           <Route path="/graduate/register-project" element={<EstudianteOEgresadoRoute><RegisterProject /></EstudianteOEgresadoRoute>} />
@@ -162,8 +162,10 @@ function App() {
           <Route path="/guest/proyectos" element={<InvitadoRoute><GuestProjects /></InvitadoRoute>} />
 
           {/* Registro de Asistencia */}
-          <Route path="/asistencia" element={<AsistenciaForm />} />
-          
+          {/* <Route path="/asistencia" element={<AsistenciaForm />} /> */}
+          <Route path="/asistencia/registrar/:id_evento" element={<AsistenciaForm />} />
+
+
           <Route
             path="*"
             element={
@@ -174,8 +176,8 @@ function App() {
                   <p className="text-xl text-gray-600 mb-6">
                     ¡Ups! Parece que te perdiste
                   </p>
-                  <a 
-                    href="/" 
+                  <a
+                    href="/"
                     className="inline-block px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-semibold hover:scale-105 transition-transform"
                   >
                     Ir al inicio

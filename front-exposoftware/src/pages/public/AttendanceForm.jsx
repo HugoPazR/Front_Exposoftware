@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import AssistanceService from "../../services/AssistanceService"; // 👈 importamos el servicio real
 
 export default function AsistenciaForm() {
     const [email, setEmail] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [validando, setValidando] = useState(false);
-    const [params] = useSearchParams();
+    // const [params] = useSearchParams();
     //const { id_evento } = useParams();
     const navigate = useNavigate();
 
+
+    const { id_evento } = useParams();
+    const [params] = useSearchParams();
+    const idEvento = id_evento || params.get("id_evento") || params.get("id_sesion");
+
     // 🧩 el QR manda este parámetro en la URL (por ejemplo ?id_evento=AAyAirixAqHhPqLQugNU)
-    const idEvento = params.get("id_evento") || params.get("id_sesion");
+    // const idEvento = params.get("id_evento") || params.get("id_sesion");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,12 +31,6 @@ export default function AsistenciaForm() {
                 return;
             }
 
-            // 👇 Aquí podrías verificar si el correo existe en tu sistema
-            // Ejemplo: const usuarioValido = await UsuarioService.verificarCorreo(email)
-            // Simularemos un caso de validación simple:
-            const dominiosPermitidos = ["@unicesar.edu.co", "@gmail.com"];
-            const esValido = dominiosPermitidos.some((dom) => email.endsWith(dom));
-
             if (!esValido) {
                 setMensaje("⚠️ Correo no registrado. Redirigiendo al registro...");
                 setTimeout(() => navigate("/register"), 2000);
@@ -44,8 +43,8 @@ export default function AsistenciaForm() {
             console.log("✅ Asistencia registrada:", response);
             setMensaje("✅ Asistencia registrada con éxito. ¡Gracias por participar!");
         } catch (error) {
-            console.error("❌ Error al registrar asistencia:", error);
-            setMensaje("❌ Hubo un error al registrar su asistencia. Intente nuevamente.");
+            setMensaje("⚠️ Correo no registrado. Redirigiendo al registro...");
+            setTimeout(() => navigate("/register"), 2000);
         } finally {
             setValidando(false);
         }

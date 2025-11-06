@@ -31,9 +31,10 @@ class AssistanceService {
   static async generarQrEvento(idEvento, urlFront = 'https://exposoftware.unicesar.edu.co') {
     try {
       console.log('🔄 Generando QR para evento:', idEvento);
-      
+
+      const encodedUrl = encodeURIComponent(urlFront);
       const response = await fetch(
-        `${API_ENDPOINTS.GENERAR_QR_EVENTO(idEvento)}?url_front=${urlFront}`, 
+        `/api/v1/asistencia/generar-qr/${idEvento}?url_front=${encodedUrl}`,
         {
           method: 'POST',
           headers: getAuthHeaders()
@@ -62,7 +63,7 @@ class AssistanceService {
   static async registrarAsistencia(idEvento, correoUsuario) {
     try {
       console.log('📝 Registrando asistencia para:', correoUsuario);
-      
+
       const response = await fetch(API_ENDPOINTS.REGISTRAR_ASISTENCIA(idEvento), {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -91,7 +92,7 @@ class AssistanceService {
   static async obtenerAsistenciasEvento(idEvento, limit = 100) {
     try {
       console.log('📊 Obteniendo asistencias del evento:', idEvento);
-      
+
       const response = await fetch(
         `${API_ENDPOINTS.OBTENER_ASISTENCIAS_EVENTO(idEvento)}?limit=${limit}`,
         {

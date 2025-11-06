@@ -16,34 +16,17 @@ export default function AttendanceAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
-  const id_evento = "ewsf6oVf8eWIsnQ90wmL"; // ID del evento (fijo para este ejemplo)
-
-  // 🔹 Cargar asistencias reales desde el backend
-  // useEffect(() => {
-  //   const fetchAsistencias = async () => {
-  //     try {
-  //       const response = await AssistanceService.obtenerAsistenciasEvento(id_evento);
-  //       const asistencias = response?.data?.asistencias || [];
-
-  //       setRegisteredPeople(asistencias);
-  //     } catch (error) {
-  //       console.error("❌ Error al obtener asistencias:", error);
-  //     }
-  //   };
-
-  //   fetchAsistencias();
-  // }, [id_evento]);
+  
 
   useEffect(() => {
     let cargado = false;
 
     const cargarEventos = async () => {
-      if (cargado) return; // Evita segundo fetch en desarrollo
+      if (cargado) return;
       cargado = true;
       try {
         const response = await EventosService.obtenerEventos();
-        console.log("Eventos cargados:", response);
-        setEventos(response || []); // según cómo venga tu backend
+        setEventos(response || []);
       } catch (error) {
         console.error("❌ Error al obtener eventos:", error);
       }
@@ -51,6 +34,90 @@ export default function AttendanceAdmin() {
 
     cargarEventos();
   }, []);
+
+  // Función única para construir el objeto QR
+  const buildQRData = (qrInfo, customDate = null, customHour = null) => {
+    const fecha = customDate || new Date().toLocaleDateString("es-CO");
+    const hora = customHour || new Date().toLocaleTimeString("es-CO", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return {
+      evento: qrInfo.evento_nombre,
+      id_sesion: qrInfo.evento_id,
+      link: qrInfo.url_qr,
+      fecha: fecha,
+      hora: hora,
+    };
+  };
+
+  // Función para crear la imagen QR
+  const getQRImage = (qrInfo) => {
+    return qrInfo.qr_base64
+      ? `data:image/png;base64,${qrInfo.qr_base64}`
+      : qrInfo.url_qr;
+  };
+
+  // // Función para guardar en localStorage
+  // const saveQRToStorage = (qrInfo) => {
+  //   const storageData = {
+  //     qrUrl: qrInfo.url_qr,
+  //     data: qrInfo,
+  //     fecha: new Date().toLocaleDateString("es-CO"),
+  //     hora: new Date().toLocaleTimeString("es-CO"),
+  //   };
+  //   localStorage.setItem("qr_asistencia", JSON.stringify(storageData));
+  // };
+
+  // Acción del botón optimizada
+  const generarQR = async () => {
+    if (!eventoSeleccionado) {
+      alert("⚠️ Debes seleccionar un evento antes de generar el código QR.");
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const FRONT_URL = `${window.location.origin}`;
+      // const qrFullUrl = `${FRONT_URL}?id_sesion=${eventoSeleccionado}`;
+
+      const response = await AssistanceService.generarQrEvento(eventoSeleccionado, FRONT_URL);
+      const qrInfo = response?.data;
+      if (!qrInfo) throw new Error("Respuesta del servidor inválida");
+
+      // Usar funciones reutilizables
+      setQrCodeUrl(getQRImage(qrInfo));
+      setQrData(buildQRData(qrInfo));
+      // saveQRToStorage(qrInfo);
+
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error("❌ Error al generar QR:", error);
+      alert("Hubo un error al generar el código QR");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // useEffect optimizado
+  // useEffect(() => {
+  //   const storedQR = localStorage.getItem("qr_asistencia");
+  //   if (storedQR) {
+  //     const qrInfo = JSON.parse(storedQR);
+  //     const today = new Date().toLocaleDateString("es-CO");
+
+  //     if (qrInfo.fecha === today) {
+  //       console.log("♻️ Cargando QR almacenado en localStorage...");
+
+  //       setQrCodeUrl(getQRImage(qrInfo.data || qrInfo));
+  //       setQrData(buildQRData(qrInfo.data || qrInfo, qrInfo.fecha, qrInfo.hora));
+  //     } else {
+  //       localStorage.removeItem("qr_asistencia");
+  //     }
+  //   }
+  // }, []);
+
 
   const filteredPeople = registeredPeople.filter(
     (person) =>
@@ -68,49 +135,6 @@ export default function AttendanceAdmin() {
   const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
   const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
 
-  // 🔹 Generar QR usando el servicio (solo al presionar el botón)
-  const generarQR = async () => {
-    setIsGenerating(true);
-    try {
-      const FRONT_URL = `${window.location.origin}/asistencia`; // ruta base
-      const qrFullUrl = `${FRONT_URL}?id_sesion=${id_evento}`; // URL completa con parámetro
-      // Llamar al backend
-      const response = await AssistanceService.generarQrEvento(id_evento);
-
-      // Verificamos estructura (por si el backend cambia algo)
-      const qrInfo = response?.data;
-      if (!qrInfo) throw new Error("Respuesta del servidor inválida");
-
-      // Guardamos la imagen base64 del QR
-      const qrImage = `data:image/png;base64,${qrInfo.qr_base64}`;
-
-      setQrCodeUrl(qrImage);
-      setQrData({
-        evento: qrInfo.evento_nombre,
-        id_sesion: qrInfo.evento_id,
-        link: qrInfo.url_qr,
-        fecha: new Date().toLocaleDateString("es-CO"),
-        hora: new Date().toLocaleTimeString("es-CO", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      });
-
-      localStorage.setItem("qr_asistencia", JSON.stringify({
-        qrUrl: qrInfo.url_qr,
-        data: qrInfo,
-        date: new Date().toDateString(),
-      }));
-
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
-      console.error("❌ Error al generar QR:", error);
-      alert("Hubo un error al generar el código QR");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const handleEventoChange = async (e) => {
     const id = e.target.value;
