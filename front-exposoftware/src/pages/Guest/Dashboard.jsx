@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { obtenerMiPerfilInvitado } from "../../Services/GuestService";
+import { SECTORES } from "../../data/sectores";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function GuestDashboard() {
@@ -37,6 +38,9 @@ export default function GuestDashboard() {
     }
   };
 
+  // Catálogos
+  const sectores = SECTORES;
+
   // Datos del invitado - ahora desde el perfil real
   const invitadoData = perfil || {
     id_invitado: "Cargando...",
@@ -44,6 +48,7 @@ export default function GuestDashboard() {
     apellidos: user?.primer_apellido || "Usuario",
     nombre_empresa: "Cargando...",
     id_sector: "...",
+    sector_nombre: sectores.find(s => s.id.toString() === perfil?.id_sector)?.nombre || "No especificado",
     correo: user?.correo || user?.email || "",
     rol: user?.rol || "Invitado"
   };
@@ -148,27 +153,21 @@ export default function GuestDashboard() {
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-2">
-                  <i className="pi pi-tag text-green-600 text-sm mt-0.5"></i>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500">Sector</p>
-                    <p className="text-sm text-gray-900 font-medium capitalize">{invitadoData.id_sector}</p>
-                  </div>
-                </div>
+                      <div className="flex items-start gap-2">
+                        <i className="pi pi-tag text-green-600 text-sm mt-0.5"></i>
+                        <div className="flex-1">
+                          <p className="text-xs text-black-500">Sector</p>
+                          <p className="text-sm text-black font-semibold capitalize">
+                            {invitadoData.sector_nombre}
+                          </p>
+                        </div>
+                      </div>
                 
                 <div className="flex items-start gap-2">
                   <i className="pi pi-envelope text-green-600 text-sm mt-0.5"></i>
                   <div className="flex-1">
                     <p className="text-xs text-gray-500">Correo</p>
                     <p className="text-sm text-gray-900 font-medium break-all">{invitadoData.correo}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <i className="pi pi-id-card text-green-600 text-sm mt-0.5"></i>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500">ID Invitado</p>
-                    <p className="text-sm text-gray-900 font-medium">{invitadoData.id_invitado}</p>
                   </div>
                 </div>
               </div>
@@ -219,50 +218,18 @@ export default function GuestDashboard() {
                       <i className="pi pi-building"></i>
                       <span>{invitadoData.nombre_empresa || 'No especificado'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <i className="pi pi-tag"></i>
-                      <span className="capitalize">Sector {invitadoData.id_sector || 'No especificado'}</span>
-                    </div>
+                      <div className="flex items-start gap-2">
+                        <i className="pi pi-tag text-black-600 text-sm mt-0.5"></i>
+                        <div className="flex-1">
+                          <p className="text-xs text-black-500">Sector</p>
+                          <p className="text-sm text-black font-semibold capitalize">
+                            {invitadoData.sector_nombre}
+                          </p>
+                        </div>
+                      </div>
                   </div>
                 </div>
 
-                {/* Información del Perfil */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <i className="pi pi-user text-green-600"></i>
-                    Información del Invitado
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <i className="pi pi-id-card text-green-600 text-lg mt-1"></i>
-                      <div>
-                        <p className="text-xs text-gray-500">ID Invitado</p>
-                        <p className="text-sm font-medium text-gray-900">{invitadoData.id_invitado}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <i className="pi pi-envelope text-green-600 text-lg mt-1"></i>
-                      <div>
-                        <p className="text-xs text-gray-500">Correo</p>
-                        <p className="text-sm font-medium text-gray-900">{invitadoData.correo}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <i className="pi pi-phone text-green-600 text-lg mt-1"></i>
-                      <div>
-                        <p className="text-xs text-gray-500">Teléfono</p>
-                        <p className="text-sm font-medium text-gray-900">{invitadoData.telefono || 'No especificado'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <i className="pi pi-map-marker text-green-600 text-lg mt-1"></i>
-                      <div>
-                        <p className="text-xs text-gray-500">Ciudad</p>
-                        <p className="text-sm font-medium text-gray-900">{invitadoData.ciudad_residencia || 'No especificado'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
 

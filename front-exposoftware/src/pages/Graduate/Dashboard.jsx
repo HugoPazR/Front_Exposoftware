@@ -19,16 +19,16 @@ export default function GraduateDashboard() {
         console.log('⏳ Esperando datos del usuario...');
         return;
       }
-
       try {
         setLoadingPerfil(true);
-        console.log('📋 Cargando perfil del egresado...');
+        console.log('📋 Cargando perfil completo del egresado...');
+        // Usar SIEMPRE la función correcta que valida token y procesa datos
         const datos = await GraduateService.obtenerMiPerfilEgresado();
         setPerfil(datos);
-        console.log('✅ Perfil del egresado cargado:', datos);
+        console.log('✅ Perfil completo del egresado cargado:', datos);
       } catch (error) {
         console.error('❌ Error cargando perfil:', error);
-        // Si falla, usar datos del contexto
+        // Si falla, usar datos mínimos del contexto
         if (user) {
           setPerfil({
             nombre_completo: getFullName(),
@@ -40,7 +40,6 @@ export default function GraduateDashboard() {
         setLoadingPerfil(false);
       }
     };
-
     if (!loading) {
       cargarPerfil();
     }
