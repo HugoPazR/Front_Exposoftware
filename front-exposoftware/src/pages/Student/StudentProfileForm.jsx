@@ -119,23 +119,23 @@ export default function StudentProfileForm({
             />
           </div>
 
-          {/* Género */}
+          {/* Sexo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Género
+              Sexo
             </label>
             <select
-              value={profileData.genero}
-              onChange={(e) => handleInputChange('genero', e.target.value)}
+              value={profileData.sexo}
+              onChange={(e) => handleInputChange('sexo', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
               disabled={!isEditing}
             >
               <option value="">Seleccionar</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="Otro">Otro</option>
+              <option value="Hombre">Hombre</option>
+              <option value="Mujer">Mujer</option>
+              <option value="Masculino">Hermafrodita</option>
             </select>
           </div>
 
@@ -145,14 +145,17 @@ export default function StudentProfileForm({
               Identidad Sexual
             </label>
             <select
-              value={profileData.identidadSexual}
-              onChange={(e) => handleInputChange('identidadSexual', e.target.value)}
+              value={profileData.identidad_sexual}
+              onChange={(e) => handleInputChange('identidad_sexual', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
               disabled={!isEditing}
             >
               <option value="">Seleccionar</option>
+              <option value="heterosexual">Heterosexual</option>
+              <option value="homosexual">Homosexual</option>
+              <option value="bisexual">Bisexual</option>
               <option value="Masculino">Masculino</option>
               <option value="Femenino">Femenino</option>
               <option value="No binario">No binario</option>
@@ -375,34 +378,23 @@ export default function StudentProfileForm({
             />
           </div>
 
-          {/* Fecha de Ingreso - NO EDITABLE */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              <span className="text-red-600">Fecha de Ingreso (No editable)</span>
-            </label>
-            <input
-              type="date"
-              value={profileData.fechaIngreso || ''}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
-              disabled
-            />
-          </div>
 
           {/* Año de Ingreso */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Año de Ingreso
+              <span className="text-red-600">Año de Ingreso (No editable)</span>
             </label>
             <input
-              type="text"
-              value={profileData.anioIngreso}
-              onChange={(e) => handleInputChange('anioIngreso', e.target.value)}
+              type="number"
+              value={profileData.anio_ingreso || ''}
+              onChange={(e) => handleInputChange('anio_ingreso', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled
               placeholder="YYYY"
-              maxLength={4}
+              min="1900"
+              max="2100"
             />
           </div>
 

@@ -86,23 +86,23 @@ export default function ProfileForm({
             />
           </div>
 
-          {/* Género */}
+          {/* Sexo */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Género
+              Sexo
             </label>
             <select
-              value={profileData.genero}
-              onChange={(e) => handleInputChange('genero', e.target.value)}
+              value={profileData.sexo}
+              onChange={(e) => handleInputChange('sexo', e.target.value)}
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
               }`}
               disabled={!isEditing}
             >
               <option value="">Seleccionar</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="Otro">Otro</option>
+              <option value="Masculino">Hombre</option>
+              <option value="Femenino">Mujer</option>
+              <option value="Otro">Hermafrodita</option>
             </select>
           </div>
 
@@ -120,10 +120,13 @@ export default function ProfileForm({
               disabled={!isEditing}
             >
               <option value="">Seleccionar</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="No binario">No binario</option>
+              <option value="Heterosexual">Heterosexual</option>
+              <option value="Homosexual">Homosexual</option>
+              <option value="Bisexual">Bisexual</option>
+              <option value="Pansexual">Pansexual</option>
+              <option value="Asexual">Asexual</option>
               <option value="Prefiero no decir">Prefiero no decir</option>
+              <option value="Otro">Otro</option>
             </select>
           </div>
 
@@ -381,23 +384,7 @@ export default function ProfileForm({
             />
           </div>
 
-          {/* Periodo */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Periodo
-            </label>
-            <input
-              type="number"
-              value={profileData.periodo}
-              onChange={(e) => handleInputChange('periodo', parseInt(e.target.value))}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
-              min={1}
-              max={2}
-            />
-          </div>
+          
         </div>
       </div>
     </>

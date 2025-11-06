@@ -149,6 +149,10 @@ export const procesarDatosPerfil = (perfil) => {
   // Extraer datos del usuario (vienen en perfil.usuario)
   const usuario = perfil.usuario || perfil;
   
+  console.log('👤 Datos del usuario extraídos:', usuario);
+  console.log('🔍 Sexo encontrado:', usuario.sexo);
+  console.log('🔍 Identidad sexual encontrada:', usuario.identidad_sexual);
+  
   // Los datos del estudiante están en el nivel raíz del perfil
   const estudiante = perfil.estudiante || perfil;
   
@@ -203,8 +207,7 @@ export const procesarDatosPerfil = (perfil) => {
     
     // Datos personales (desde perfil.usuario)
     tipo_documento: usuario.tipo_documento || '',
-    sexo: usuario.genero || usuario.sexo || '',
-    genero: usuario.genero || usuario.sexo || '',
+    sexo: usuario.sexo || '',
     identidad_sexual: usuario.identidad_sexual || '',
     fecha_nacimiento: usuario.fecha_nacimiento || '',
     nacionalidad: usuario.nacionalidad || '',

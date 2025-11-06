@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import * as ProjectsService from "../../Services/ProjectsService";
 import EventosService from "../../Services/EventosService";
+import * as CertificadoService from "../../Services/CertificadoService";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function MyProjects() {
@@ -11,7 +12,8 @@ export default function MyProjects() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState(null);
-  const [eventoInfo, setEventoInfo] = useState(null); 
+  const [eventoInfo, setEventoInfo] = useState(null);
+  const [descargandoCertificado, setDescargandoCertificado] = useState(false);
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -105,6 +107,104 @@ export default function MyProjects() {
     setShowModal(false);
     setSelectedProject(null);
     setEventoInfo(null); // Limpiar info del evento
+  };
+
+  // Handler para descargar certificado INDIVIDUAL (solo el del estudiante logueado)
+  const handleDescargarCertificado = async (proyecto) => {
+    console.log('🔍 Iniciando descarga de certificado INDIVIDUAL...');
+    console.log('👤 Usuario completo:', user);
+    console.log('📁 Proyecto completo:', proyecto);
+    
+    if (!user?.id_estudiante) {
+      console.error('❌ No se encontró id_estudiante en el usuario');
+      alert('❌ No se encontró tu ID de estudiante. Por favor, recarga la página.');
+      return;
+    }
+
+    if (!proyecto?.id_proyecto) {
+      console.error('❌ No se encontró id_proyecto en el proyecto');
+      alert('❌ No se encontró el ID del proyecto.');
+      return;
+    }
+
+    console.log('✅ IDs verificados:');
+    console.log('   - id_estudiante:', user.id_estudiante, '(tipo:', typeof user.id_estudiante, ')');
+    console.log('   - id_proyecto:', proyecto.id_proyecto, '(tipo:', typeof proyecto.id_proyecto, ')');
+
+    setDescargandoCertificado(true);
+    
+    try {
+      // El campo en el backend es 'titulo_proyecto', no 'nombre_proyecto'
+      const nombreProyecto = proyecto.titulo_proyecto || proyecto.nombre_proyecto || 'Proyecto';
+      console.log('📄 Generando certificado INDIVIDUAL para proyecto:', nombreProyecto);
+      
+      await CertificadoService.generarYDescargarCertificado(
+        user.id_estudiante,
+        proyecto.id_proyecto,
+        nombreProyecto
+      );
+      
+      console.log('✅ Certificado individual descargado exitosamente');
+      alert('✅ Tu certificado se ha descargado exitosamente');
+      
+    } catch (error) {
+      console.error('❌ Error al descargar certificado:', error);
+      
+      // Mensajes de error más específicos
+      if (error.message.includes('No tienes permisos')) {
+        alert('❌ No tienes permisos para descargar el certificado de este proyecto.');
+      } else if (error.message.includes('Proyecto no encontrado')) {
+        alert('❌ No se encontró el proyecto. Puede que haya sido eliminado.');
+      } else if (error.message.includes('sin certificado')) {
+        alert('❌ Este proyecto aún no tiene un certificado disponible.');
+      } else {
+        alert('❌ Error al descargar el certificado: ' + error.message);
+      }
+    } finally {
+      setDescargandoCertificado(false);
+    }
+  };
+
+  // Handler para descargar TODOS los certificados del proyecto (ZIP con todos los estudiantes)
+  const handleDescargarTodosCertificados = async (proyecto) => {
+    console.log('🔍 Iniciando descarga de TODOS los certificados del proyecto...');
+    console.log('📁 Proyecto completo:', proyecto);
+    
+    if (!proyecto?.id_proyecto) {
+      console.error('❌ No se encontró id_proyecto en el proyecto');
+      alert('❌ No se encontró el ID del proyecto.');
+      return;
+    }
+
+    const numEstudiantes = proyecto.id_estudiantes?.length || 0;
+    console.log('👥 Número de estudiantes en el proyecto:', numEstudiantes);
+
+    setDescargandoCertificado(true);
+    
+    try {
+      const nombreProyecto = proyecto.titulo_proyecto || proyecto.nombre_proyecto || 'Proyecto';
+      console.log('📦 Generando certificados para TODOS los estudiantes del proyecto:', nombreProyecto);
+      
+      await CertificadoService.generarYDescargarCertificadosPorProyecto(
+        proyecto.id_proyecto,
+        nombreProyecto,
+        {
+          id_evento: proyecto.id_evento || null,
+          incluir_calificacion: false,
+          coordinador_general: "Juan Yaneth",
+          formato_salida: "zip"
+        }
+      );
+      
+      console.log('✅ Todos los certificados descargados exitosamente');
+      alert(`✅ Se han descargado los certificados de todos los estudiantes (${numEstudiantes} certificados)`);
+      
+    } catch (error) {
+      console.error('❌ Error al descargar certificados:', error);
+      alert('❌ Error al descargar los certificados: ' + error.message);
+    } finally {
+      setDescargandoCertificado(false);
+    }
   };
 
   // Mostrar loading mientras se cargan los datos del usuario
@@ -338,22 +438,48 @@ export default function MyProjects() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                      <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
                         <button 
                           onClick={() => handleViewDetails(proyecto)}
                           className="flex-1 border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
                         >
                           <i className="pi pi-eye"></i> Ver detalles
                         </button>
+                        
+                        {/* Botón descargar MI certificado (individual) */}
+                        <button
+                          onClick={() => handleDescargarCertificado(proyecto)}
+                          disabled={descargandoCertificado}
+                          className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-50"
+                          style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'rgba(59, 130, 246, 1)' }}
+                          title="Descargar mi certificado"
+                        >
+                          <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-certificate'}`}></i>
+                          <span className="hidden sm:inline">Mi cert.</span>
+                        </button>
+
+                        {/* Botón descargar TODOS los certificados (ZIP) */}
+                        <button
+                          onClick={() => handleDescargarTodosCertificados(proyecto)}
+                          disabled={descargandoCertificado}
+                          className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-50"
+                          style={{ backgroundColor: 'rgba(147, 51, 234, 0.1)', color: 'rgba(147, 51, 234, 1)' }}
+                          title={`Descargar certificados de todos (${proyecto.id_estudiantes?.length || 0} estudiantes)`}
+                        >
+                          <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-users'}`}></i>
+                          <span className="hidden sm:inline">Todos</span>
+                        </button>
+
                         {proyecto.archivo_pdf && (
                           <a 
                             href={proyecto.archivo_pdf}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1 transition-colors hover:bg-green-50"
                             style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}
+                            title="Descargar PDF del proyecto"
                           >
-                            <i className="pi pi-download"></i>
+                            <i className="pi pi-file-pdf"></i>
                           </a>
                         )}
                       </div>
@@ -624,25 +750,53 @@ export default function MyProjects() {
             </div>
 
             {/* Footer del modal */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
               <button 
                 onClick={closeModal}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Cerrar
               </button>
-              {selectedProject.archivo_pdf && (
-                <a
-                  href={selectedProject.archivo_pdf}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
-                  style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}
+              
+              <div className="flex items-center gap-3">
+                {/* Botón descargar MI certificado (individual) */}
+                <button
+                  onClick={() => handleDescargarCertificado(selectedProject)}
+                  disabled={descargandoCertificado}
+                  className="px-4 py-2 text-white rounded-lg transition-opacity flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                  style={{ backgroundColor: 'rgba(59, 130, 246, 1)' }}
+                  title="Descargar solo mi certificado"
                 >
-                  <i className="pi pi-download"></i>
-                  Descargar PDF
-                </a>
-              )}
+                  <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-certificate'}`}></i>
+                  {descargandoCertificado ? 'Generando...' : 'Mi Certificado'}
+                </button>
+
+                {/* Botón descargar TODOS los certificados (ZIP) */}
+                <button
+                  onClick={() => handleDescargarTodosCertificados(selectedProject)}
+                  disabled={descargandoCertificado}
+                  className="px-4 py-2 text-white rounded-lg transition-opacity flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                  style={{ backgroundColor: 'rgba(147, 51, 234, 1)' }}
+                  title={`Descargar todos los certificados (${selectedProject.id_estudiantes?.length || 0} estudiantes)`}
+                >
+                  <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-users'}`}></i>
+                  {descargandoCertificado ? 'Generando ZIP...' : `Todos (${selectedProject.id_estudiantes?.length || 0})`}
+                </button>
+
+                {selectedProject.archivo_pdf && (
+                  <a
+                    href={selectedProject.archivo_pdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+                    style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}
+                    title="Descargar PDF del proyecto"
+                  >
+                    <i className="pi pi-file-pdf"></i>
+                    PDF Proyecto
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>

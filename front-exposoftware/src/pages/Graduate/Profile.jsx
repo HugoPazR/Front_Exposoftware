@@ -5,6 +5,8 @@ import logo from "../../assets/Logo-unicesar.png";
 import * as AuthService from "../../Services/AuthService";
 import * as GraduateService from "../../Services/GraduateService";
 import colombia from "../../data/colombia.json";
+import countryList from 'react-select-country-list';
+import GraduateProfileForm from "./GraduateProfileForm";
 
 export default function GraduateProfile() {
   const navigate = useNavigate();
@@ -15,6 +17,11 @@ export default function GraduateProfile() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  
+  // Estados para selectores dinámicos
+  const [opcionesPaises, setOpcionesPaises] = useState([]);
+  const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
   
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -93,6 +100,22 @@ export default function GraduateProfile() {
     }
   }, [user, loading]);
 
+  // Inicializar opciones de países
+  useEffect(() => {
+    const paises = countryList().getData();
+    setOpcionesPaises(paises);
+  }, []);
+
+  // Actualizar municipios cuando cambia departamento
+  useEffect(() => {
+    if (formData.departamento) {
+      const deptData = colombia.find(d => d.departamento === formData.departamento);
+      setMunicipios(deptData ? deptData.ciudades : []);
+    } else {
+      setMunicipios([]);
+    }
+  }, [formData.departamento]);
+
   // Función para cerrar sesión
   const handleLogout = async () => {
     if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
@@ -137,20 +160,20 @@ export default function GraduateProfile() {
       setSuccess(null);
 
       console.log('💾 Guardando cambios del perfil...');
-      
+        
       // Preparar datos para el backend
       const payload = GraduateService.prepararDatosParaBackend(formData);
-      
+        
       // Actualizar perfil
       const idEgresado = formData.id_egresado || user.id_egresado || user.id_usuario;
       const perfilActualizado = await GraduateService.actualizarPerfilEgresado(idEgresado, payload);
-      
+        
       console.log('✅ Perfil actualizado:', perfilActualizado);
-      
+        
       setFormData(perfilActualizado);
       setIsEditing(false);
       setSuccess('✅ Perfil actualizado exitosamente');
-      
+        
       // Limpiar mensaje después de 3 segundos
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -247,7 +270,7 @@ export default function GraduateProfile() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar (reuse simplified from Dashboard) */}
+          {/* Sidebar */}
           <aside className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <nav className="space-y-1">
@@ -267,7 +290,7 @@ export default function GraduateProfile() {
             </div>
           </aside>
 
-          {/* Main content: Form de configuración de perfil */}
+          {/* Main content */}
           <main className="lg:col-span-3">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
@@ -305,307 +328,16 @@ export default function GraduateProfile() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Información Personal */}
-                  <div className="border-b pb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="pi pi-user text-green-600"></i>
-                      Información Personal
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Documento</label>
-                        <select 
-                          name="tipo_documento"
-                          value={formData.tipo_documento}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        >
-                          <option value="CC">Cédula de Ciudadanía</option>
-                          <option value="TI">Tarjeta de Identidad</option>
-                          <option value="CE">Cédula de Extranjería</option>
-                          <option value="PA">Pasaporte</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Identificación</label>
-                        <input 
-                          type="text"
-                          name="identificacion"
-                          value={formData.identificacion}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Primer Nombre</label>
-                        <input 
-                          type="text"
-                          name="primer_nombre"
-                          value={formData.primer_nombre}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Segundo Nombre</label>
-                        <input 
-                          type="text"
-                          name="segundo_nombre"
-                          value={formData.segundo_nombre}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Primer Apellido</label>
-                        <input 
-                          type="text"
-                          name="primer_apellido"
-                          value={formData.primer_apellido}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Segundo Apellido</label>
-                        <input 
-                          type="text"
-                          name="segundo_apellido"
-                          value={formData.segundo_apellido}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
-                        <select 
-                          name="sexo"
-                          value={formData.sexo}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        >
-                          <option value="">Seleccionar...</option>
-                          <option value="M">Masculino</option>
-                          <option value="F">Femenino</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Identidad Sexual</label>
-                        <input 
-                          type="text"
-                          name="identidad_sexual"
-                          value={formData.identidad_sexual}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
-                        <input 
-                          type="date"
-                          name="fecha_nacimiento"
-                          value={formData.fecha_nacimiento}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
-                        <input 
-                          type="text"
-                          name="nacionalidad"
-                          value={formData.nacionalidad}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Información de Contacto */}
-                  <div className="border-b pb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="pi pi-phone text-green-600"></i>
-                      Información de Contacto
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
-                        <input 
-                          type="email"
-                          name="correo"
-                          value={formData.correo}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                        <input 
-                          type="tel"
-                          name="telefono"
-                          value={formData.telefono}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Información de Ubicación */}
-                  <div className="border-b pb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="pi pi-map-marker text-green-600"></i>
-                      Información de Ubicación
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">País de Residencia</label>
-                        <input 
-                          type="text"
-                          name="pais_residencia"
-                          value={formData.pais_residencia}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
-                        <input 
-                          type="text"
-                          name="departamento"
-                          value={formData.departamento}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Municipio/Ciudad</label>
-                        <input 
-                          type="text"
-                          name="municipio"
-                          value={formData.municipio}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de Residencia</label>
-                        <input 
-                          type="text"
-                          name="direccion_residencia"
-                          value={formData.direccion_residencia}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Información Académica */}
-                  <div className="border-b pb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <i className="pi pi-graduation-cap text-green-600"></i>
-                      Información Académica
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Código de Programa</label>
-                        <input 
-                          type="text"
-                          name="codigo_programa"
-                          value={formData.codigo_programa}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                          placeholder="Ej: ING-SIS-001"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Programa Académico</label>
-                        <input 
-                          type="text"
-                          name="programa_academico"
-                          value={formData.programa_academico}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                          placeholder="Ej: Ingeniería de Sistemas"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Año de Graduación</label>
-                        <input 
-                          type="number"
-                          name="anio_graduacion"
-                          value={formData.anio_graduacion}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                          min="1900"
-                          max={new Date().getFullYear() + 5}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Título Obtenido</label>
-                        <input 
-                          type="text"
-                          name="titulo_obtenido"
-                          value={formData.titulo_obtenido}
-                          onChange={handleChange}
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                          disabled={!isEditing}
-                          placeholder="Ej: Ingeniero de Sistemas"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                          <input 
-                            type="checkbox"
-                            name="titulado"
-                            checked={formData.titulado}
-                            onChange={(e) => setFormData(prev => ({ ...prev, titulado: e.target.checked }))}
-                            className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                            disabled={!isEditing}
-                          />
-                          <span>Titulado (Grado completado)</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Formulario de Perfil */}
+                  <GraduateProfileForm
+                    formData={formData}
+                    isEditing={isEditing}
+                    opcionesPaises={opcionesPaises}
+                    ciudadesResidencia={ciudadesResidencia}
+                    municipios={municipios}
+                    colombiaData={colombia}
+                    handleChange={handleChange}
+                  />
 
                   {/* Seguridad */}
                   <div className="pb-6">

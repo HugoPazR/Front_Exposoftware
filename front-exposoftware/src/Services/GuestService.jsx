@@ -5,11 +5,35 @@
 
 const API_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
 
+// Definición de sectores disponibles
+const SECTORES = [
+  { id: 1, nombre: 'Educativo' },
+  { id: 2, nombre: 'Empresarial' },
+  { id: 3, nombre: 'Social' },
+  { id: 4, nombre: 'Gubernamental' },
+];
+
 /**
- * Obtiene headers con autenticación
+ * Función para obtener el nombre del sector por ID
+ */
+const obtenerNombreSector = (idSector) => {
+  if (!idSector) return 'No especificado';
+  const sector = SECTORES.find(s => s.id === parseInt(idSector));
+  return sector ? sector.nombre : 'No especificado';
+};
+
+/**
+ * Obtener token de autenticación
+ */
+const getAuthToken = () => {
+  return localStorage.getItem('auth_token');
+};
+
+/**
+ * Obtener headers de autenticación
  */
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = getAuthToken();
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` })
@@ -17,121 +41,105 @@ const getAuthHeaders = () => {
 };
 
 /**
- * Obtener perfil del invitado autenticado
- * Primero obtiene todos los invitados y busca el actual por correo
+ * Obtener información del usuario autenticado desde /api/v1/auth/me
  */
-export const obtenerMiPerfilInvitado = async () => {
+export const obtenerInformacionUsuario = async () => {
   try {
-    console.log('👤 Obteniendo perfil del invitado autenticado...');
+    console.log('👤 Obteniendo información del usuario desde /api/v1/auth/me...');
     
-    // Primero intentamos obtener información del usuario en localStorage
-    const userData = localStorage.getItem('user');
-    let userEmail = null;
-    let guestId = null;
-    
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        userEmail = user.correo || user.email;
-        guestId = user.id_invitado;
-        console.log('📧 Email del usuario:', userEmail);
-        console.log('🆔 ID de invitado en localStorage:', guestId);
-      } catch (e) {
-        console.error('Error parseando userData:', e);
-      }
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No hay token de autenticación');
     }
-    
-    // Si no tenemos email, intentamos obtenerlo desde /api/v1/auth/me
-    if (!userEmail) {
-      console.log('🔍 Obteniendo email desde /api/v1/auth/me...');
-      try {
-        const authResponse = await fetch(`${API_URL}/api/v1/auth/me`, {
-          method: 'GET',
-          headers: getAuthHeaders()
-        });
-        
-        if (authResponse.ok) {
-          const authData = await authResponse.json();
-          console.log('✅ Datos de autenticación:', authData);
-          userEmail = authData.correo || authData.email;
-          guestId = authData.id_invitado;
-        }
-      } catch (e) {
-        console.error('Error obteniendo /api/v1/auth/me:', e);
-      }
-    }
-    
-    // Si tenemos el ID directamente, usar el endpoint específico
-    if (guestId) {
-      console.log('📞 Usando ID directo:', guestId);
-      return await obtenerPerfilInvitadoPorId(guestId);
-    }
-    
-    // Si no tenemos ID pero tenemos email, buscar en la lista de todos los invitados
-    if (!userEmail) {
-      throw new Error('No se pudo obtener el email del invitado para buscar su perfil');
-    }
-    
-    console.log('📞 Obteniendo lista de todos los invitados...');
-    const response = await fetch(`${API_URL}/api/v1/invitados`, {
+
+    const response = await fetch(`${API_URL}/api/v1/auth/me`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
 
-    console.log('📡 Respuesta - Status:', response.status);
+    console.log('📡 Respuesta /api/v1/auth/me - Status:', response.status);
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log('✅ Lista de invitados obtenida:', data);
-      
-      // La respuesta puede venir en data.data o data.invitados o directamente como array
-      let invitados = data.data || data.invitados || data;
-      
-      // Si no es un array, puede ser un objeto con los invitados
-      if (!Array.isArray(invitados)) {
-        invitados = Object.values(data).find(val => Array.isArray(val)) || [];
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        throw new Error('Sesión expirada. Por favor inicie sesión nuevamente.');
       }
-      
-      console.log('📊 Total de invitados encontrados:', invitados.length);
-      
-      // Buscar el invitado por email (case-insensitive)
-      const emailBuscado = userEmail.toLowerCase().trim();
-      console.log('🔍 Buscando invitado con email:', emailBuscado);
-      
-      const miPerfil = invitados.find(invitado => {
-        const emailInvitado = (invitado.correo || '').toLowerCase().trim();
-        const match = emailInvitado === emailBuscado;
-        if (match) {
-          console.log('✅ ¡Invitado encontrado!', invitado);
-        }
-        return match;
-      });
-      
-      if (!miPerfil) {
-        console.error('❌ No se encontró ningún invitado con el email:', userEmail);
-        console.log('📋 Emails disponibles:', invitados.map(i => i.correo));
-        throw new Error('No se encontró el perfil del invitado. Es posible que no esté registrado correctamente.');
-      }
-      
-      console.log('✅ Perfil del invitado encontrado:', miPerfil);
-      
-      // Guardar el id_invitado en localStorage para próximas consultas
-      if (miPerfil.id_invitado) {
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        currentUser.id_invitado = miPerfil.id_invitado;
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        console.log('💾 ID de invitado guardado en localStorage:', miPerfil.id_invitado);
-      }
-      
-      return procesarDatosInvitado(miPerfil);
-    } else if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor inicie sesión nuevamente.');
-    } else if (response.status === 404) {
-      throw new Error('No se encontraron invitados registrados');
-    } else {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || errorData.detail || 'Error al obtener lista de invitados');
+      throw new Error(errorData.message || errorData.detail || 'Error al obtener información del usuario');
     }
+
+    const userData = await response.json();
+    console.log('✅ Información del usuario obtenida:', userData);
+    
+    return userData;
+    
+  } catch (error) {
+    console.error('❌ Error obteniendo información del usuario:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener perfil del invitado autenticado
+ * Usa el token del usuario para obtener TODA su información desde /api/v1/auth/me
+ */
+export const obtenerMiPerfilInvitado = async () => {
+  try {
+    console.log('👤 Obteniendo información completa del usuario invitado desde /api/v1/auth/me...');
+    
+    // Validar que existe el token
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No hay token de autenticación. Por favor inicie sesión nuevamente.');
+    }
+
+    console.log('🔑 Token encontrado, validando con el backend...');
+
+    // Obtener TODA la información del usuario autenticado usando su token
+    const response = await fetch(`${API_URL}/api/v1/auth/me`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+
+    console.log('📡 Respuesta /api/v1/auth/me - Status:', response.status);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        throw new Error('Sesión expirada. Por favor inicie sesión nuevamente.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || errorData.detail || 'Error al validar usuario');
+    }
+
+    const userData = await response.json();
+    console.log('✅ Información completa del usuario obtenida desde /api/v1/auth/me:', userData);
+    console.log('📊 Estructura completa de data:', JSON.stringify(userData, null, 2));
+    
+    // La respuesta tiene formato: { status, message, data, code }
+    if (userData.data) {
+      console.log('📦 userData.data:', userData.data);
+      console.log('👤 userData.data.usuario:', userData.data.usuario);
+      
+      // Validar que el usuario tiene rol de Invitado
+      const usuario = userData.data.usuario || userData.data;
+      if (usuario.rol !== 'Invitado') {
+        throw new Error(`Usuario no es invitado. Rol actual: ${usuario.rol}`);
+      }
+
+      console.log('✅ Usuario validado como Invitado');
+      
+      // Procesar y retornar todos los datos del invitado
+      return procesarDatosInvitado(userData.data);
+    }
+    
+    // Si no viene en data, usar directamente
+    if (userData.rol !== 'Invitado') {
+      throw new Error(`Usuario no es invitado. Rol actual: ${userData.rol}`);
+    }
+
+    return procesarDatosInvitado(userData);
+    
   } catch (error) {
     console.error('❌ Error obteniendo perfil del invitado:', error);
     throw error;
@@ -209,55 +217,121 @@ export const actualizarPerfilInvitado = async (guestId, datosInvitado) => {
 /**
  * Procesa los datos del invitado del backend al formato del frontend
  */
-const procesarDatosInvitado = (invitado) => {
-  console.log('🔄 Procesando datos del invitado:', invitado);
+const procesarDatosInvitado = (perfil) => {
+  if (!perfil) {
+    console.warn('⚠️ No hay datos del invitado para procesar');
+    return {};
+  }
+
+  console.log('🔄 PERFIL COMPLETO RECIBIDO PARA PROCESAR:', perfil);
+  console.log('🔍 usuario:', perfil.usuario);
+  console.log('🔍 datos_rol:', perfil.datos_rol);
+
+  // Extraer datos del usuario y datos_rol
+  const usuario = perfil.usuario || perfil;
+  const datosRol = perfil.datos_rol || perfil;
   
-  return {
-    // IDs
-    id_invitado: invitado.id_invitado || '',
-    id_usuario: invitado.id_usuario || '',
-    id_sector: invitado.id_sector || '',
+  console.log('👤 Datos del usuario:', usuario);
+  console.log('🎓 Datos del rol (invitado):', datosRol);
+
+  // Procesar nombres
+  let primer_nombre = usuario.primer_nombre || '';
+  let segundo_nombre = usuario.segundo_nombre || '';
+  let primer_apellido = usuario.primer_apellido || '';
+  let segundo_apellido = usuario.segundo_apellido || '';
+  
+  if (!primer_nombre && !primer_apellido && usuario.nombre_completo) {
+    console.log('⚠️ Dividiendo nombre_completo...');
+    const nombreCompleto = usuario.nombre_completo.trim();
+    const partes = nombreCompleto.split(/\s+/);
     
-    // Información personal
-    tipo_documento: invitado.tipo_documento || '',
-    identificacion: invitado.identificacion || '',
-    primer_nombre: invitado.primer_nombre || '',
-    segundo_nombre: invitado.segundo_nombre || '',
-    primer_apellido: invitado.primer_apellido || '',
-    segundo_apellido: invitado.segundo_apellido || '',
+    if (partes.length >= 4) {
+      primer_nombre = partes[0];
+      segundo_nombre = partes[1];
+      primer_apellido = partes[2];
+      segundo_apellido = partes[3];
+    } else if (partes.length === 3) {
+      primer_nombre = partes[0];
+      segundo_nombre = partes[1];
+      primer_apellido = partes[2];
+    } else if (partes.length === 2) {
+      primer_nombre = partes[0];
+      primer_apellido = partes[1];
+    } else if (partes.length === 1) {
+      primer_nombre = partes[0];
+    }
+  }
+
+  const datosProcesados = {
+    // IDs
+    id_invitado: datosRol.id_invitado || '',
+    id_usuario: usuario.id_usuario || '',
+    id_sector: datosRol.id_sector || '',
+    
+    // Sector con nombre
+    sector_nombre: obtenerNombreSector(datosRol.id_sector),
+    
+    // Información personal (desde usuario)
+    tipo_documento: usuario.tipo_documento || '',
+    identificacion: usuario.identificacion || '',
+    primer_nombre: primer_nombre,
+    segundo_nombre: segundo_nombre,
+    primer_apellido: primer_apellido,
+    segundo_apellido: segundo_apellido,
     
     // Datos combinados para compatibilidad
-    nombres: invitado.nombres || `${invitado.primer_nombre || ''} ${invitado.segundo_nombre || ''}`.trim(),
-    apellidos: invitado.apellidos || `${invitado.primer_apellido || ''} ${invitado.segundo_apellido || ''}`.trim(),
+    nombres: `${primer_nombre} ${segundo_nombre}`.trim(),
+    apellidos: `${primer_apellido} ${segundo_apellido}`.trim(),
+    nombre_completo: usuario.nombre_completo || `${primer_nombre} ${segundo_nombre} ${primer_apellido} ${segundo_apellido}`.trim().replace(/\s+/g, ' '),
     
-    // Información demográfica
-    sexo: invitado.sexo || invitado.genero || '',
-    genero: invitado.genero || invitado.sexo || '',
-    identidad_sexual: invitado.identidad_sexual || '',
-    fecha_nacimiento: invitado.fecha_nacimiento || '',
-    nacionalidad: invitado.nacionalidad || '',
+    // Información demográfica (desde usuario)
+    sexo: usuario.sexo || '',
+    genero: usuario.genero || usuario.sexo || '',
+    identidad_sexual: usuario.identidad_sexual || '',
+    fecha_nacimiento: usuario.fecha_nacimiento ? usuario.fecha_nacimiento.split('T')[0] : '', // Solo fecha
+    nacionalidad: usuario.nacionalidad || '',
     
-    // Ubicación
-    pais: invitado.pais || invitado.pais_residencia || '',
-    pais_residencia: invitado.pais_residencia || invitado.pais || '',
-    departamento: invitado.departamento || invitado.departamento_residencia || '',
-    departamento_residencia: invitado.departamento_residencia || invitado.departamento || '',
-    municipio: invitado.municipio || '',
-    ciudad: invitado.ciudad || invitado.ciudad_residencia || '',
-    ciudad_residencia: invitado.ciudad_residencia || invitado.ciudad || '',
-    direccion_residencia: invitado.direccion_residencia || '',
+    // Ubicación (desde usuario)
+    pais: usuario.pais || usuario.pais_residencia || '',
+    pais_residencia: usuario.pais_residencia || usuario.pais || '',
+    departamento: usuario.departamento || '',
+    municipio: usuario.municipio || '',
+    ciudad: usuario.ciudad || usuario.ciudad_residencia || '',
+    ciudad_residencia: usuario.ciudad_residencia || usuario.ciudad || '',
+    direccion_residencia: usuario.direccion_residencia || '',
     
     // Contacto
-    telefono: invitado.telefono || '',
-    correo: invitado.correo || invitado.email || '',
-    email: invitado.email || invitado.correo || '',
+    telefono: usuario.telefono || '',
+    correo: usuario.correo || '',
+    email: usuario.correo || '',
     
-    // Información de empresa
-    nombre_empresa: invitado.nombre_empresa || '',
+    // Información de empresa (desde datos_rol)
+    nombre_empresa: datosRol.nombre_empresa || '',
+    institucion_origen: datosRol.institucion_origen || '',
     
     // Rol
-    rol: invitado.rol || 'Invitado'
+    rol: usuario.rol || 'Invitado',
+    
+    // Sistema
+    activo: usuario.activo !== undefined ? usuario.activo : true,
+    created_at: usuario.created_at || '',
+    updated_at: usuario.updated_at || '',
+    
+    // Iniciales para avatar
+    iniciales: getIniciales(primer_nombre, primer_apellido)
   };
+
+  console.log('✅ DATOS PROCESADOS FINALES:', datosProcesados);
+  return datosProcesados;
+};
+
+/**
+ * Obtener iniciales de primer nombre y primer apellido
+ */
+const getIniciales = (primerNombre, primerApellido) => {
+  const nombre = (primerNombre || '').trim();
+  const apellido = (primerApellido || '').trim();
+  return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
 };
 
 /**
@@ -279,14 +353,15 @@ const prepararDatosParaBackend = (datosInvitado) => {
     fecha_nacimiento: datosInvitado.fecha_nacimiento,
     nacionalidad: datosInvitado.nacionalidad,
     pais_residencia: datosInvitado.pais_residencia || datosInvitado.pais,
-    departamento: datosInvitado.departamento || datosInvitado.departamento_residencia,
+    departamento: datosInvitado.departamento,
     municipio: datosInvitado.municipio,
     ciudad_residencia: datosInvitado.ciudad_residencia || datosInvitado.ciudad,
     direccion_residencia: datosInvitado.direccion_residencia,
     telefono: datosInvitado.telefono,
     correo: datosInvitado.correo || datosInvitado.email,
     id_sector: datosInvitado.id_sector,
-    nombre_empresa: datosInvitado.nombre_empresa
+    nombre_empresa: datosInvitado.nombre_empresa,
+    institucion_origen: datosInvitado.institucion_origen || ''
   };
   
   console.log('✅ Payload preparado:', payload);
@@ -334,9 +409,15 @@ export const obtenerTodosLosProyectos = async () => {
   }
 };
 
+// Exportar la función obtenerNombreSector para uso externo
+export { obtenerNombreSector, SECTORES };
+
 export default {
+  obtenerInformacionUsuario,
   obtenerMiPerfilInvitado,
   obtenerPerfilInvitadoPorId,
   actualizarPerfilInvitado,
-  obtenerTodosLosProyectos
+  obtenerTodosLosProyectos,
+  obtenerNombreSector,
+  SECTORES
 };
