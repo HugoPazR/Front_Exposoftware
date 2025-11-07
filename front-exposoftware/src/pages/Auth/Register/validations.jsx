@@ -150,10 +150,10 @@ case "numeroDocumento":
       break;
 
     case "contraseña":
-      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(val)) {
+      if (!/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&#])[A-Za-z\d@$!%?&#]{8,}$/.test(val)) {
         error =
-          "Debe tener 8+ caracteres, una mayúscula, una minúscula y un número.";
-      }
+          "Debe tener 8+ caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&#).";
+      }
       break;
 
     case "confirmarcontraseña":
