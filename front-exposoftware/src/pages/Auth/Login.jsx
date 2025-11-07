@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
+import { Mail, Lock, Leaf, Users, Trophy, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import * as AuthService from "../../Services/AuthService";
 import { useAuth } from "../../contexts/AuthContext";
@@ -159,8 +159,8 @@ export default function LoginPage() {
       <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
 
   
-        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center">
-          <header className="mb-6">
+        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center relative overflow-hidden">
+          <header className="mb-6 relative z-10">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                 <span className="text-2xl font-bold">&lt;/&gt;</span>
@@ -170,28 +170,37 @@ export default function LoginPage() {
             <div className="h-1 w-20 bg-white rounded-full"></div>
           </header>
 
-          <p className="text-lg leading-relaxed">
-            Descubre los proyectos más innovadores desarrollados por estudiantes y profesores.
-          </p>
-          <p className="text-sm mt-2 text-green-100">
-            Una vitrina digital de talento tecnológico y creatividad académica.
-          </p>
+          <article className="relative z-10">
+            <p className="text-lg mb-3 leading-relaxed">
+              Descubre los proyectos más innovadores desarrollados por
+              estudiantes y profesores.
+            </p>
+            <p className="text-sm mb-10 text-green-100">
+              Una vitrina digital de talento tecnológico y creatividad académica.
+            </p>
+          </article>
 
-          <footer className="flex gap-8 mt-10">
-            <div className="text-center">
-              <Leaf size={30} className="mx-auto mb-2" />
-              <p className="font-bold text-2xl">150+</p>
-              <p className="text-sm">Proyectos</p>
+          <footer className="flex gap-8 mt-auto relative z-10">
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Leaf size={28} />
+              </div>
+              <p className="text-2xl font-bold">150+</p>
+              <p className="text-sm text-green-100">Proyectos</p>
             </div>
-            <div className="text-center">
-              <Users size={30} className="mx-auto mb-2" />
-              <p className="font-bold text-2xl">500+</p>
-              <p className="text-sm">Participantes</p>
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Users size={28} />
+              </div>
+              <p className="text-2xl font-bold">500+</p>
+              <p className="text-sm text-green-100">Participantes</p>
             </div>
-            <div className="text-center">
-              <Trophy size={30} className="mx-auto mb-2" />
-              <p className="font-bold text-2xl">15</p>
-              <p className="text-sm">Premios</p>
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Trophy size={28} />
+              </div>
+              <p className="text-2xl font-bold">15</p>
+              <p className="text-sm text-green-100">Premios</p>
             </div>
           </footer>
         </aside>
@@ -265,7 +274,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>

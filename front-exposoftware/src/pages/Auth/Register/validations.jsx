@@ -112,16 +112,30 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       }
       break;
 
-    case "numeroDocumento":
-      // 🔹 Validar que SOLO contenga números
-      if (/[^\d]/.test(val)) {
-        error = "Solo se permiten números.";
-      } else if (val.length > 0 && val.length < 6) {
-        error = "Debe tener al menos 6 dígitos.";
-      } else if (val.length > 10) {
-        error = "Máximo 10 dígitos.";
-      }
-      break;
+case "numeroDocumento":
+  const tipo = formData.tipoDocumento;
+
+  // Validar que se haya seleccionado un tipo de documento
+  if (!tipo) {
+    error = "Primero selecciona el tipo de documento.";
+    break;
+  }
+
+  if (tipo === "CC" || tipo === "TI") {
+    if (val.length < 10) {
+      error = "Debe tener exactamente 10 dígitos.";
+    } else if (val.length > 10) {
+      error = "Debe tener exactamente 10 dígitos.";
+    }
+  } else if (tipo === "CE" || tipo === "PTE" || tipo === "PAS") {
+    if (val.length < 6) {
+      error = "Debe tener mínimo 6 caracteres.";
+    } else if (val.length > 15) {
+      error = "Máximo 15 caracteres.";
+    }
+  }
+  break;
+
 
     case "correo":
       if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {

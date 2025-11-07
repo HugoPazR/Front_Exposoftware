@@ -26,6 +26,7 @@ function InformacionInvitado({
           <input
             name="correo"
             type="email"
+            maxLength="30"
             placeholder="usuario@ejemplo.com"
             value={formData.correo}
             onChange={handleChange}
@@ -54,6 +55,7 @@ function InformacionInvitado({
           <input
             name="intitucionOrigen"
             type="text"
+            maxLength="40"
             placeholder="Nombre de la institución"
             value={formData.intitucionOrigen}
             onChange={handleChange}
@@ -100,6 +102,7 @@ function InformacionInvitado({
           <input
             name="nombreEmpresa"
             type="text"
+            maxLength="40"
             placeholder="Nombre de la empresa"
             value={formData.nombreEmpresa}
             onChange={handleChange}

@@ -24,6 +24,7 @@ function InformacionEgresado({
           <input
             name="correo"
             type="email"
+            maxLength="30"
             placeholder="usuario@unicesar.edu.co"
             value={formData.correo}
             onChange={handleChange}

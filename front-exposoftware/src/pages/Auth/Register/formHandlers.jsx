@@ -26,6 +26,8 @@ export const handleChange = (
     "segundoNombre",
     "primerApellido",
     "segundoApellido",
+    "intitucionOrigen",
+    "nombreEmpresa"
   ];
 
   // Bloquear caracteres inválidos + capitalizar
@@ -43,6 +45,25 @@ export const handleChange = (
 
   if (name === "rol") {
     setrol(cleanValue);
+  }
+
+  if (name === "tipoDocumento") {
+    setFormData((prev) => ({
+      ...prev,
+      tipoDocumento: cleanValue,
+      numeroDocumento: ""
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      tipoDocumento: "",
+      numeroDocumento: ""
+    }));
+    setSuccessFields((prev) => ({
+      ...prev,
+      tipoDocumento: cleanValue !== "",
+      numeroDocumento: false
+    }));
+    return; // Salir temprano
   }
 
   setFormData((prev) => {

@@ -33,6 +33,7 @@ const PersonalInfoSection = ({
           <input
             name="primerNombre"
             type="text"
+            maxLength="15"
             placeholder="Primer Nombre"
             value={formData.primerNombre}
             onChange={handleChange}
@@ -59,6 +60,7 @@ const PersonalInfoSection = ({
           <input
             name="segundoNombre"
             type="text"
+            maxLength="15"
             placeholder="Segundo Nombre"
             value={formData.segundoNombre}
             onChange={handleChange}
@@ -85,6 +87,7 @@ const PersonalInfoSection = ({
           <input
             name="primerApellido"
             type="text"
+            maxLength="15"
             placeholder="Primer Apellido"
             value={formData.primerApellido}
             onChange={handleChange}
@@ -111,6 +114,7 @@ const PersonalInfoSection = ({
           <input
             name="segundoApellido"
             type="text"
+            maxLength="15"
             placeholder="Segundo Apellido"
             value={formData.segundoApellido}
             onChange={handleChange}
@@ -406,6 +410,7 @@ const PersonalInfoSection = ({
         <input
           name="direccionResidencia"
           type="text"
+          maxLength="50"
           placeholder="Dirección de Residencia"
           value={formData.direccionResidencia}
           onChange={handleChange}
