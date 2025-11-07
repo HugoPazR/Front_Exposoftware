@@ -74,7 +74,6 @@ const IdentificationSection = ({
           <input
             name="numeroDocumento"
             type="text"
-            maxLength="10"
             placeholder="Número de Documento"
             value={formData.numeroDocumento}
             onChange={handleChange}

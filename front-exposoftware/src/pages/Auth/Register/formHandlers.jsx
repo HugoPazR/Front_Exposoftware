@@ -20,19 +20,34 @@ export const handleChange = (
   const { name, value } = e.target;
   let cleanValue = value;
 
+  // ✅ Definir límites máximos por campo
+  const maxLengths = {
+    primerNombre: 15,
+    segundoNombre: 15,
+    primerApellido: 15,
+    segundoApellido: 15,
+    direccionResidencia: 50,
+    numeroDocumento: 20,
+    correo: 30,
+    contraseña: 12,
+    nombreEmpresa: 40,
+    intitucionOrigen: 40,
+    // Agrega más campos según necesites
+  };
+
   // ✅ Campos que solo aceptan letras
   const alphabeticFields = [
     "primerNombre",
     "segundoNombre",
     "primerApellido",
     "segundoApellido",
+    "intitucionOrigen",
   ];
 
   // Bloquear caracteres inválidos + capitalizar
   if (alphabeticFields.includes(name)) {
-    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "").toLowerCase(); // primero pasamos todo a minúscula
-
-    cleanValue = capitalizeWords(cleanValue); // luego capitalizamos
+    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "").toLowerCase();
+    cleanValue = capitalizeWords(cleanValue);
   }
 
   // Limpiar caracteres no numéricos
@@ -40,6 +55,10 @@ export const handleChange = (
     cleanValue = value.replace(/[^\d]/g, "");
   }
 
+  // 🔥 NUEVA LÓGICA: Bloquear si excede el límite máximo
+  if (maxLengths[name] && cleanValue.length > maxLengths[name]) {
+    return; // 🚫 No permitir más caracteres
+  }
 
   if (name === "rol") {
     setrol(cleanValue);
