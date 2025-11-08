@@ -6,17 +6,24 @@ export default function AsistenciaForm() {
     const [email, setEmail] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [validando, setValidando] = useState(false);
-    // const [params] = useSearchParams();
-    //const { id_evento } = useParams();
     const navigate = useNavigate();
-
-
+    const [error, setError] = useState("");    
     const { id_evento } = useParams();
     const [params] = useSearchParams();
     const idEvento = id_evento || params.get("id_evento") || params.get("id_sesion");
 
-    // 🧩 el QR manda este parámetro en la URL (por ejemplo ?id_evento=AAyAirixAqHhPqLQugNU)
-    // const idEvento = params.get("id_evento") || params.get("id_sesion");
+    const handleChange = (e) => {
+        const val = e.target.value;
+        setEmail(val);
+
+        if (val === "") {
+            setError("El correo no puede estar vacío.");
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
+            setError("Correo inválido. Asegúrate de ingresar un correo válido.");
+        } else {
+            setError("");
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,19 +31,6 @@ export default function AsistenciaForm() {
         setMensaje("");
 
         try {
-            // 👇 validación opcional: correo institucional
-            if (!email.includes("@")) {
-                setMensaje("❌ Por favor, ingrese un correo válido.");
-                setValidando(false);
-                return;
-            }
-
-            if (!esValido) {
-                setMensaje("⚠️ Correo no registrado. Redirigiendo al registro...");
-                setTimeout(() => navigate("/register"), 2000);
-                return;
-            }
-
             // ✅ Si pasa la validación, registrar asistencia
             const response = await AssistanceService.registrarAsistencia(idEvento, email);
 
@@ -72,10 +66,11 @@ export default function AsistenciaForm() {
                         type="email"
                         placeholder="Ingresa tu correo institucional"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={handleChange}
                         className="border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
                         required
                     />
+                    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                     <button
                         type="submit"
                         disabled={validando || !idEvento}
