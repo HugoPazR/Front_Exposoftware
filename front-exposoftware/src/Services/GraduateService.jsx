@@ -20,120 +20,65 @@ const getAuthHeaders = () => {
 
 /**
  * Obtener perfil del egresado autenticado
- * Primero obtiene todos los egresados y busca el actual por correo
+ * Usa el token del usuario para obtener TODA su información desde /api/v1/auth/me
  */
 export const obtenerMiPerfilEgresado = async () => {
   try {
-    console.log('👨‍🎓 Obteniendo perfil del egresado autenticado...');
+    console.log('👨‍🎓 Obteniendo información completa del usuario egresado desde /api/v1/auth/me...');
     
-    // Primero intentamos obtener información del usuario en localStorage
-    const userData = localStorage.getItem('user');
-    let userEmail = null;
-    let graduateId = null;
-    
-    if (userData) {
-      try {
-        const user = JSON.parse(userData);
-        userEmail = user.correo || user.email;
-        graduateId = user.id_egresado;
-        console.log('📧 Email del usuario:', userEmail);
-        console.log('🆔 ID de egresado en localStorage:', graduateId);
-      } catch (e) {
-        console.error('Error parseando userData:', e);
-      }
+    // Validar que existe el token
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('No hay token de autenticación. Por favor inicie sesión nuevamente.');
     }
-    
-    // Si no tenemos email, intentamos obtenerlo desde /api/v1/auth/me
-    if (!userEmail) {
-      console.log('🔍 Obteniendo email desde /api/v1/auth/me...');
-      try {
-        const authResponse = await fetch(`${API_URL}/api/v1/auth/me`, {
-          method: 'GET',
-          headers: getAuthHeaders()
-        });
-        
-        if (authResponse.ok) {
-          const authData = await authResponse.json();
-          console.log('✅ Datos de autenticación:', authData);
-          userEmail = authData.correo || authData.email;
-          graduateId = authData.id_egresado;
-        }
-      } catch (e) {
-        console.error('Error obteniendo /api/v1/auth/me:', e);
-      }
-    }
-    
-    // Si tenemos el ID directamente, usar el endpoint específico
-    if (graduateId) {
-      console.log('📞 Usando ID directo:', graduateId);
-      return await obtenerPerfilEgresadoPorId(graduateId);
-    }
-    
-    // Si no tenemos ID pero tenemos email, buscar en la lista de todos los egresados
-    if (!userEmail) {
-      throw new Error('No se pudo obtener el email del egresado para buscar su perfil');
-    }
-    
-    console.log('📞 Obteniendo lista de todos los egresados...');
-    const response = await fetch(`${API_URL}/api/v1/egresados`, {
+
+    console.log('🔑 Token encontrado, validando con el backend...');
+
+    // Obtener TODA la información del usuario autenticado usando su token
+    const response = await fetch(`${API_URL}/api/v1/auth/me`, {
       method: 'GET',
       headers: getAuthHeaders()
     });
 
-    console.log('📡 Respuesta - Status:', response.status);
+    console.log('📡 Respuesta /api/v1/auth/me - Status:', response.status);
 
-    if (response.ok) {
-      const data = await response.json();
-      console.log('✅ Lista de egresados obtenida:', data);
-      
-      // La respuesta puede venir en data.data o data.egresados o directamente como array
-      let egresados = data.data || data.egresados || data;
-      
-      // Si no es un array, puede ser un objeto con los egresados
-      if (!Array.isArray(egresados)) {
-        egresados = Object.values(data).find(val => Array.isArray(val)) || [];
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        throw new Error('Sesión expirada. Por favor inicie sesión nuevamente.');
       }
-      
-      console.log('📊 Total de egresados encontrados:', egresados.length);
-      
-      // Buscar el egresado por email (case-insensitive)
-      const emailBuscado = userEmail.toLowerCase().trim();
-      console.log('🔍 Buscando egresado con email:', emailBuscado);
-      
-      const miPerfil = egresados.find(egresado => {
-        const emailEgresado = (egresado.correo || '').toLowerCase().trim();
-        const match = emailEgresado === emailBuscado;
-        if (match) {
-          console.log('✅ ¡Egresado encontrado!', egresado);
-        }
-        return match;
-      });
-      
-      if (!miPerfil) {
-        console.error('❌ No se encontró ningún egresado con el email:', userEmail);
-        console.log('📋 Emails disponibles:', egresados.map(e => e.correo));
-        throw new Error('No se encontró el perfil del egresado. Es posible que no esté registrado correctamente.');
-      }
-      
-      console.log('✅ Perfil del egresado encontrado:', miPerfil);
-      
-      // Guardar el id_egresado en localStorage para próximas consultas
-      if (miPerfil.id_egresado) {
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        currentUser.id_egresado = miPerfil.id_egresado;
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        console.log('💾 ID de egresado guardado en localStorage:', miPerfil.id_egresado);
-      }
-      
-      return procesarDatosEgresado(miPerfil);
-    } else if (response.status === 401) {
-      throw new Error('Sesión expirada. Por favor inicie sesión nuevamente.');
-    } else if (response.status === 404) {
-      throw new Error('No se encontraron egresados registrados');
-    } else {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || errorData.detail || 'Error al obtener lista de egresados');
+      throw new Error(errorData.message || errorData.detail || 'Error al validar usuario');
     }
+
+    const userData = await response.json();
+    console.log('✅ Información completa del usuario obtenida desde /api/v1/auth/me:', userData);
+    console.log('📊 Estructura completa de data:', JSON.stringify(userData, null, 2));
+    
+    // La respuesta tiene formato: { status, message, data, code }
+    if (userData.data) {
+      console.log('📦 userData.data:', userData.data);
+      console.log('👤 userData.data.usuario:', userData.data.usuario);
+      
+      // Validar que el usuario tiene rol de Egresado
+      const usuario = userData.data.usuario || userData.data;
+      if (usuario.rol !== 'Egresado') {
+        throw new Error(`Usuario no es egresado. Rol actual: ${usuario.rol}`);
+      }
+
+      console.log('✅ Usuario validado como Egresado');
+      
+      // Procesar y retornar todos los datos del egresado
+      return procesarDatosEgresado(userData.data);
+    }
+    
+    // Si no viene en data, usar directamente
+    if (userData.rol !== 'Egresado') {
+      throw new Error(`Usuario no es egresado. Rol actual: ${userData.rol}`);
+    }
+
+    return procesarDatosEgresado(userData);
+    
   } catch (error) {
     console.error('❌ Error obteniendo perfil del egresado:', error);
     throw error;
@@ -159,6 +104,7 @@ export const obtenerPerfilEgresadoPorId = async (graduateId) => {
       const data = await response.json();
       console.log('✅ Perfil del egresado obtenido:', data);
       
+      // La respuesta tiene formato: { status, message, data, code }
       const perfil = data.data || data;
       return procesarDatosEgresado(perfil);
     } else if (response.status === 401) {
@@ -220,81 +166,115 @@ export const actualizarPerfilEgresado = async (graduateId, datosActualizados) =>
 /**
  * Procesar datos del egresado desde el backend
  * Transforma la estructura del backend a la estructura del frontend
+ * Maneja tanto la respuesta de /api/v1/auth/me como /api/v1/egresados/{id}
  */
-export const procesarDatosEgresado = (datosCrudos) => {
-  if (!datosCrudos) {
+export const procesarDatosEgresado = (perfil) => {
+  if (!perfil) {
     console.warn('⚠️ No hay datos del egresado para procesar');
     return {};
   }
 
-  console.log('🔄 Procesando datos del egresado:', datosCrudos);
+  console.log('🔄 PERFIL COMPLETO RECIBIDO PARA PROCESAR:', perfil);
+  console.log('🔍 usuario:', perfil.usuario);
+  console.log('🔍 datos_rol:', perfil.datos_rol);
 
-  // El backend puede devolver la estructura directa
-  const egresado = datosCrudos;
-
-  // Construir nombres completos
-  const nombres = [egresado.primer_nombre, egresado.segundo_nombre]
-    .filter(Boolean)
-    .join(' ');
+  // Extraer datos del usuario y datos_rol
+  const usuario = perfil.usuario || {};
+  const datosRol = perfil.datos_rol || {};
   
-  const apellidos = [egresado.primer_apellido, egresado.segundo_apellido]
-    .filter(Boolean)
-    .join(' ');
+  console.log('👤 Datos del usuario:', usuario);
+  console.log('🎓 Datos del rol (egresado):', datosRol);
 
-  const nombreCompleto = [nombres, apellidos]
-    .filter(Boolean)
-    .join(' ');
+  // Procesar nombres (igual que antes)
+  let primer_nombre = usuario.primer_nombre || '';
+  let segundo_nombre = usuario.segundo_nombre || '';
+  let primer_apellido = usuario.primer_apellido || '';
+  let segundo_apellido = usuario.segundo_apellido || '';
+  
+  if (!primer_nombre && !primer_apellido && usuario.nombre_completo) {
+    console.log('⚠️ Dividiendo nombre_completo...');
+    const nombreCompleto = usuario.nombre_completo.trim();
+    const partes = nombreCompleto.split(/\s+/);
+    
+    if (partes.length >= 4) {
+      primer_nombre = partes[0];
+      segundo_nombre = partes[1];
+      primer_apellido = partes[2];
+      segundo_apellido = partes[3];
+    } else if (partes.length === 3) {
+      primer_nombre = partes[0];
+      segundo_nombre = partes[1];
+      primer_apellido = partes[2];
+    } else if (partes.length === 2) {
+      primer_nombre = partes[0];
+      primer_apellido = partes[1];
+    } else if (partes.length === 1) {
+      primer_nombre = partes[0];
+    }
+  }
 
   const datosProcesados = {
     // IDs
-    id_egresado: egresado.id_egresado || '',
-    id_usuario: egresado.id_usuario || '',
+    id_egresado: datosRol.id_egresado || '',
+    id_usuario: usuario.id_usuario || '',
     
-    // Datos académicos del egresado
-    codigo_programa: egresado.codigo_programa || '',
-    anio_graduacion: egresado.año_graduacion || egresado.anio_graduacion || new Date().getFullYear(),
-    modalidad_grado: egresado.modalidad_grado || '',
-    programa_academico: egresado.programa_academico || '',
-    titulo_obtenido: egresado.titulo_obtenido || '',
-    titulado: egresado.titulado !== undefined ? egresado.titulado : false,
+    // Datos académicos del egresado (desde datos_rol)
+    codigo_programa: datosRol.codigo_programa || '',
+    anio_graduacion: datosRol.año_graduacion || new Date().getFullYear(),
+    modalidad_grado: datosRol.modalidad_grado || '',
+    programa_academico: datosRol.programa_academico || '',
+    titulo_obtenido: datosRol.titulo_obtenido || '',
+    titulado: datosRol.titulado !== undefined ? datosRol.titulado : true,
     
-    // Datos personales
-    tipo_documento: egresado.tipo_documento || 'CC',
-    identificacion: egresado.identificacion || '',
-    nombres: nombres || '',
-    apellidos: apellidos || '',
-    nombre_completo: nombreCompleto || '',
-    primer_nombre: egresado.primer_nombre || '',
-    segundo_nombre: egresado.segundo_nombre || '',
-    primer_apellido: egresado.primer_apellido || '',
-    segundo_apellido: egresado.segundo_apellido || '',
+    // Datos personales (desde usuario)
+    tipo_documento: usuario.tipo_documento || 'CC',
+    identificacion: usuario.identificacion || '',
+    nombres: `${primer_nombre} ${segundo_nombre}`.trim(),
+    apellidos: `${primer_apellido} ${segundo_apellido}`.trim(),
+    nombre_completo: usuario.nombre_completo || `${primer_nombre} ${segundo_nombre} ${primer_apellido} ${segundo_apellido}`.trim().replace(/\s+/g, ' '),
+    primer_nombre: primer_nombre,
+    segundo_nombre: segundo_nombre,
+    primer_apellido: primer_apellido,
+    segundo_apellido: segundo_apellido,
     
     // Información de contacto
-    correo: egresado.correo || '',
-    telefono: egresado.telefono || '',
+    correo: usuario.correo || '',
+    telefono: usuario.telefono || '',
     
-    // Información demográfica
-    sexo: egresado.sexo || '',
-    identidad_sexual: egresado.identidad_sexual || '',
-    fecha_nacimiento: egresado.fecha_nacimiento || '',
-    nacionalidad: egresado.nacionalidad || 'CO',
+    // Información demográfica (desde usuario) - ESTOS SON LOS CAMPOS QUE FALLAN
+    sexo: usuario.sexo || '',
+    identidad_sexual: usuario.identidad_sexual || '',
+    fecha_nacimiento: usuario.fecha_nacimiento ? usuario.fecha_nacimiento.split('T')[0] : '', // Solo fecha
+    nacionalidad: usuario.nacionalidad || 'CO',
     
-    // Ubicación
-    pais_residencia: egresado.pais_residencia || 'CO',
-    departamento: egresado.departamento || '',
-    municipio: egresado.municipio || '',
-    ciudad_residencia: egresado.ciudad_residencia || '',
-    direccion_residencia: egresado.direccion_residencia || '',
+    // Ubicación (desde usuario)
+    pais_residencia: usuario.pais_residencia || 'CO',
+    departamento: usuario.departamento || '',
+    municipio: usuario.municipio || '',
+    ciudad_residencia: usuario.ciudad_residencia || '',
+    direccion_residencia: usuario.direccion_residencia || '',
     
     // Sistema
-    rol: egresado.rol || 'Egresado',
-    activo: egresado.activo !== undefined ? egresado.activo : true,
-    created_at: egresado.created_at || '',
-    updated_at: egresado.updated_at || ''
+    rol: usuario.rol || 'Egresado',
+    activo: usuario.activo !== undefined ? usuario.activo : true,
+    created_at: usuario.created_at || '',
+    updated_at: usuario.updated_at || '',
+    
+    // Iniciales para avatar
+    iniciales: getIniciales(primer_nombre, primer_apellido)
   };
 
-  console.log('✅ Datos procesados del egresado:', datosProcesados);
+  console.log('✅ DATOS PROCESADOS FINALES:', datosProcesados);
   return datosProcesados;
+};
+
+/**
+ * Obtener iniciales de primer nombre y primer apellido
+ */
+const getIniciales = (primerNombre, primerApellido) => {
+  const nombre = (primerNombre || '').trim();
+  const apellido = (primerApellido || '').trim();
+  return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
 };
 
 /**

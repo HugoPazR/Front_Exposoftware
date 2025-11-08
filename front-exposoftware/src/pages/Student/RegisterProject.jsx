@@ -34,20 +34,20 @@ export default function RegisterProject() {
     { 
       id: 3, 
       name: "Ponencia",
-      descripcion: "Póster y Artículo en PDF",
-      archivos: ["pdf", "poster_pdf"]
+      descripcion: "Artículo en PDF",
+      archivos: ["pdf"]
     },
     { 
       id: 2, 
       name: "Taller",
-      descripcion: "Artículo PDF e Imagen (PNG/JPG)",
-      archivos: ["pdf", "imagen"]
+      descripcion: "Artículo en PDF",
+      archivos: ["pdf"]
     },
     { 
       id: 1, 
       name: "Proyecto (Exposoftware)",
-      descripcion: "Póster y Artículo en PDF",
-      archivos: ["pdf", "poster_pdf"]
+      descripcion: "Artículo en PDF",
+      archivos: ["pdf"]
     },
   ];
 

@@ -11,17 +11,15 @@ export default function GraduateMyProjects() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [error, setError] = useState(null);
-  const [eventoInfo, setEventoInfo] = useState(null); 
+  const [eventoInfo, setEventoInfo] = useState(null);
+  const [miPerfil, setMiPerfil] = useState(null); 
   const { user, getFullName, getInitials, logout, loading } = useAuth();
   const navigate = useNavigate();
 
   // Cargar proyectos del egresado al montar el componente
   useEffect(() => {
     const cargarMisProyectos = async () => {
-      // Usar id_egresado para egresados
-      const idEgresado = user?.id_egresado || user?.id_usuario;
-      
-      if (!user || !idEgresado) {
+      if (!user || loading) {
         console.log('⏳ Esperando datos del usuario...');
         return;
       }
@@ -29,14 +27,31 @@ export default function GraduateMyProjects() {
       try {
         setLoadingProjects(true);
         setError(null);
+        
+        // 1. Obtener datos completos del usuario desde /api/v1/auth/me
+        console.log('📋 Obteniendo datos completos del usuario...');
+        const perfilCompleto = await import("../../Services/GraduateService").then(
+          module => module.obtenerMiPerfilEgresado()
+        );
+        setMiPerfil(perfilCompleto);
+        
+        // 2. Extraer el ID correcto (preferir id_egresado, luego identificacion)
+        const idEgresado = perfilCompleto.id_egresado || perfilCompleto.identificacion;
+        
+        if (!idEgresado) {
+          console.error('❌ No se pudo obtener el ID del egresado');
+          setError('No se pudo identificar al usuario. Por favor, recarga la página.');
+          return;
+        }
+        
         console.log('🔍 Cargando proyectos del egresado:', idEgresado);
-        console.log('📋 Datos del usuario:', { 
-          id_egresado: user.id_egresado, 
-          id_usuario: user.id_usuario,
-          rol: user.rol 
+        console.log('📋 Datos del perfil completo:', { 
+          id_egresado: perfilCompleto.id_egresado,
+          identificacion: perfilCompleto.identificacion,
+          nombre_completo: perfilCompleto.nombre_completo
         });
         
-        // Los egresados también usan obtenerMisProyectos (el backend debe manejar ambos roles)
+        // 3. Los egresados también usan obtenerMisProyectos (el backend debe manejar ambos roles)
         let misProyectos = await ProjectsService.obtenerMisProyectos(idEgresado);
         
         console.log('🔍 DEBUG - Proyectos recibidos del backend:', misProyectos);
@@ -57,7 +72,7 @@ export default function GraduateMyProjects() {
     if (!loading && user) {
       cargarMisProyectos();
     }
-  }, [user?.id_egresado, user?.id_usuario, loading]);
+  }, [user, loading]);
 
   const handleLogout = async () => {
     try {
@@ -170,10 +185,10 @@ export default function GraduateMyProjects() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-green-600 font-bold text-2xl">{getInitials()}</span>
                 </div>
-                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <h3 className="font-semibold text-gray-900">{miPerfil?.nombre_completo || getFullName()}</h3>
                 <p className="text-sm text-gray-500">Egresado UPC</p>
-                {user?.anio_graduacion && (
-                  <p className="text-xs text-gray-400 mt-1">Promoción {user.anio_graduacion}</p>
+                {(miPerfil?.anio_graduacion || user?.anio_graduacion) && (
+                  <p className="text-xs text-gray-400 mt-1">Promoción {miPerfil?.anio_graduacion || user.anio_graduacion}</p>
                 )}
               </div>
             </div>
@@ -188,16 +203,16 @@ export default function GraduateMyProjects() {
                   <span className="text-white font-bold text-xl">{getInitials()}</span>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                  <h3 className="font-semibold text-gray-900">{miPerfil?.nombre_completo || getFullName()}</h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                     <span className="flex items-center gap-1">
                       <i className="pi pi-graduation-cap"></i>
                       Egresado
                     </span>
-                    {user?.anio_graduacion && (
+                    {(miPerfil?.anio_graduacion || user?.anio_graduacion) && (
                       <span className="flex items-center gap-1">
                         <i className="pi pi-calendar"></i>
-                        Promoción {user.anio_graduacion}
+                        Promoción {miPerfil?.anio_graduacion || user.anio_graduacion}
                       </span>
                     )}
                   </div>

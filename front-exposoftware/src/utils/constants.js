@@ -94,3 +94,39 @@ export const API_ENDPOINTS = {
   PROGRAMAS_BY_FACULTAD_PUBLICO: (facultadId) => `${API_BASE_URL}/api/v1/public-academico/facultades/${facultadId}/programas`,
   PROGRAMAS_PUBLICO: `${API_BASE_URL}/api/v1/public-academico/programas`,
 };
+
+// Power BI Configuration
+export const POWER_BI_CONFIG = {
+  // URL del reporte de Power BI
+  REPORT_URL: 'https://app.powerbi.com/groups/me/reports/7b4c14dc-cbf5-45dc-b61e-563a4c940115/465c14b0268e55932d6f?experience=power-bi',
+  
+  // IDs extraídos de la URL
+  REPORT_ID: '7b4c14dc-cbf5-45dc-b61e-563a4c940115',
+  PAGE_ID: '465c14b0268e55932d6f',
+  
+  // IDs de visuals específicos con URLs completas incluyendo bookmarks
+  VISUALS: {
+    CALIFICACIONES: {
+      id: 'd8ce33b98a17ce9af097',
+      url: 'https://app.powerbi.com/reportEmbed?reportId=7b4c14dc-cbf5-45dc-b61e-563a4c940115&autoAuth=true&ctid=e2bf1c48-1dae-47ba-9808-67da61e2588d&pageName=465c14b0268e55932d6f&filterPaneEnabled=false&navContentPaneEnabled=false&bookmarkGuid=7c373d80-61dc-4ca4-a4e8-9636bf0bbaef'
+    },
+    DOCENTES_CATEGORIA: {
+      id: '9ce531d154f2e5e372c9',
+      url: 'https://app.powerbi.com/reportEmbed?reportId=7b4c14dc-cbf5-45dc-b61e-563a4c940115&autoAuth=true&ctid=e2bf1c48-1dae-47ba-9808-67da61e2588d&pageName=465c14b0268e55932d6f&filterPaneEnabled=false&navContentPaneEnabled=false&bookmarkGuid=445d18bf-9e02-4396-a0d9-64bf2b3470c9'
+    }
+  },
+  
+  // URL para embed (iframe) con autenticación automática
+  EMBED_URL: 'https://app.powerbi.com/reportEmbed?reportId=7b4c14dc-cbf5-45dc-b61e-563a4c940115&autoAuth=true&ctid=e2bf1c48-1dae-47ba-9808-67da61e2588d',
+  
+  // Si tienes un workspace específico, ponlo aquí
+  WORKSPACE_ID: null, // Cambiar si conoces el workspace ID
+  
+  // Configuración para iframe
+  EMBED_CONFIG: {
+    navContentPaneEnabled: false,  // Ocultar navegación
+    filterPaneEnabled: false,      // Ocultar filtros
+    hideErrors: true,              // Ocultar errores
+    autoAuth: false                // No intentar auth automática
+  }
+};

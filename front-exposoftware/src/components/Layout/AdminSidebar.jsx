@@ -78,6 +78,16 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Administrar Eventos"
     },
     {
+      to: "/admin/certificados",
+      icon: "pi-file-pdf",
+      label: "Gestión de Certificados"
+    },
+    {
+      to: "/admin/proyectos",
+      icon: "pi-briefcase",
+      label: "Gestión de Proyectos"
+    },
+    {
       to: "/admin/profile",
       icon: "pi-cog",
       label: "Configuración de Perfil"

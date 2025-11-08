@@ -505,6 +505,91 @@ class ResearchLinesService {
     }
   }
 
+  // ==================== MAPAS DE CONSULTA RÁPIDA ====================
+
+  /**
+   * 🗺️ Obtener árbol completo de investigación
+   * GET /api/v1/public-investigacion/arbol-completo
+   * Retorna la estructura completa: líneas > sublíneas > áreas
+   */
+  static async obtenerArbolCompleto() {
+    try {
+      console.log('🌳 Obteniendo árbol completo de investigación...');
+      
+      const response = await fetch(`${API_URL}/api/v1/public-investigacion/arbol-completo`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const arbol = Array.isArray(data) ? data : (data.data || data.lineas || []);
+      
+      console.log('✅ Árbol de investigación obtenido:', arbol);
+      return arbol;
+      
+    } catch (error) {
+      console.error('❌ Error obteniendo árbol de investigación:', error);
+      throw new Error('No se pudo cargar la estructura de investigación');
+    }
+  }
+
+  /**
+   * 🗺️ Crear mapas para búsqueda rápida de nombres
+   * Retorna objetos con mapas de código -> nombre para líneas, sublíneas y áreas
+   * @returns {Promise<Object>} Objeto con mapas: { lineasMap, sublineasMap, areasMap }
+   */
+  static async obtenerMapasInvestigacion() {
+    try {
+      console.log('📊 Creando mapas de investigación...');
+      
+      const arbol = await ResearchLinesService.obtenerArbolCompleto();
+      
+      const lineasMap = new Map();
+      const sublineasMap = new Map();
+      const areasMap = new Map();
+      
+      arbol.forEach(linea => {
+        // Mapa de líneas: codigo_linea -> nombre_linea
+        lineasMap.set(linea.codigo_linea, linea.nombre_linea || 'Sin nombre');
+        
+        if (linea.sublineas && Array.isArray(linea.sublineas)) {
+          linea.sublineas.forEach(sublinea => {
+            // Mapa de sublíneas: codigo_sublinea -> nombre_sublinea
+            sublineasMap.set(sublinea.codigo_sublinea, sublinea.nombre_sublinea || 'Sin nombre');
+            
+            if (sublinea.areas_tematicas && Array.isArray(sublinea.areas_tematicas)) {
+              sublinea.areas_tematicas.forEach(area => {
+                // Mapa de áreas: codigo_area -> nombre_area
+                areasMap.set(area.codigo_area, area.nombre_area || 'Sin nombre');
+              });
+            }
+          });
+        }
+      });
+      
+      console.log(`✅ Mapas creados: ${lineasMap.size} líneas, ${sublineasMap.size} sublíneas, ${areasMap.size} áreas`);
+      
+      return {
+        lineasMap,
+        sublineasMap,
+        areasMap
+      };
+      
+    } catch (error) {
+      console.error('❌ Error creando mapas de investigación:', error);
+      // Retornar mapas vacíos en caso de error
+      return {
+        lineasMap: new Map(),
+        sublineasMap: new Map(),
+        areasMap: new Map()
+      };
+    }
+  }
+
   /**
    * Crear un área temática
    * POST /api/v1/admin/investigacion/lineas/{line_code}/sublineas/{subline_code}/areas-tematicas

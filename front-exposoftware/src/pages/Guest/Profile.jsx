@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { obtenerMiPerfilInvitado, actualizarPerfilInvitado } from "../../Services/GuestService";
+import { SECTORES } from "../../data/sectores";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function GuestProfile() {
@@ -94,12 +95,7 @@ export default function GuestProfile() {
   };
 
   // Catálogos
-  const sectores = [
-    { id: "educativo", nombre: "Educativo" },
-    { id: "empresarial", nombre: "Empresarial" },
-    { id: "social", nombre: "Social" },
-    { id: "gobierno", nombre: "Gobierno" }
-  ];
+  const sectores = SECTORES;
 
   const tiposDocumento = [
     { id: "CC", nombre: "Cédula de Ciudadanía" },
@@ -108,7 +104,7 @@ export default function GuestProfile() {
     { id: "PAS", nombre: "Pasaporte" }
   ];
 
-  const generos = ["Masculino", "Femenino", "Otro", "Prefiero no decir"];
+  const generos = ["Hombre", "Mujer", "Hermafrodita"];
   
   const identidadesSexuales = [
     "Heterosexual",
@@ -235,6 +231,7 @@ export default function GuestProfile() {
     apellidos: formData.primer_apellido || "Usuario",
     nombre_empresa: formData.nombre_empresa || "Cargando...",
     id_sector: formData.id_sector || "...",
+    sector_nombre: sectores.find(s => s.id.toString() === formData.id_sector)?.nombre || "No especificado",
     correo: formData.correo || "",
     rol: user?.rol || "Invitado"
   };
@@ -689,25 +686,11 @@ export default function GuestProfile() {
                           >
                             <option value="">Seleccionar sector</option>
                             {sectores.map(sector => (
-                              <option key={sector.id} value={sector.id}>
+                              <option key={sector.id} value={sector.id.toString()}>
                                 {sector.nombre}
                               </option>
                             ))}
                           </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            ID de Invitado
-                          </label>
-                          <input 
-                            type="text"
-                            value={perfil?.id_invitado || ''}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
-                            disabled
-                            readOnly
-                          />
-                          <p className="text-xs text-gray-500 mt-1">Generado automáticamente</p>
                         </div>
 
                         <div>
