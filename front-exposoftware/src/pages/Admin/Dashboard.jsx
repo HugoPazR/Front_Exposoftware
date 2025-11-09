@@ -350,9 +350,9 @@ export default function AdminDashboard() {
                     <div className="space-y-3">
                       {estadisticas.proyectosPorTipo?.proyectos.slice(0, 5).map((proyecto, index) => {
                         console.log('📋 Proyecto completo:', proyecto);
-                        const nombreProyecto = proyecto.nombre_proyecto || 
-                                              proyecto.titulo || 
-                                              proyecto.nombre || 
+                        const nombreProyecto = proyecto.titulo_proyecto || 
+                                              proyecto.titulo_proyecto || 
+                                              proyecto.titulo_proyecto || 
                                               'Proyecto sin nombre';
                         return (
                           <div 
