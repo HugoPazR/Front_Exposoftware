@@ -346,7 +346,7 @@ export default function StudentDashboard() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
+
           {/* Sidebar */}
           <aside className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -370,6 +370,10 @@ export default function StudentDashboard() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
+                <Link to="/student/asistencia" className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}>
+                                  <i className="pi pi-qrcode text-base"></i>
+                                  Registrar Asistencia
+                                </Link>
                 <Link
                   to="/student/profile"
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}
@@ -413,7 +417,7 @@ export default function StudentDashboard() {
 
           {/* Main Content */}
           <main className="lg:col-span-3">
-            
+
             {/* Welcome Section */}
             <div className="rounded-lg p-6 mb-6 text-white" style={{ background: 'linear-gradient(to right, rgba(12, 183, 106, 1), rgba(12, 183, 106, 0.8))' }}>
               <h2 className="text-2xl font-bold mb-2">¡Bienvenido, {user?.nombres || 'Estudiante'}!</h2>

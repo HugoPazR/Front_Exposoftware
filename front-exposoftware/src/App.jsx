@@ -1,9 +1,12 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/Layout/Navbar";
 import Footer from "./components/Layout/Footer";
+
 import Home from "./pages/Home/Home";
+
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import AsistenciaForm from "./pages/public/AttendanceForm.jsx";
 import StudentDashboard from "./pages/Student/Dashboard";
 import Studentprojects from "./pages/Teacher/Studentprojects";
 import TeacherDashboard from "./pages/Teacher/Dashboard";
@@ -13,6 +16,7 @@ import RegisterProject from "./pages/Student/RegisterProject";
 import MyProjects from "./pages/Student/MyProjects";
 import About from "./pages/Home/About";
 import AdminDashboard from "./pages/Admin/Dashboard";
+import AttendanceAdmin from "./pages/Admin/AttendanceAdmin";
 import AdminProfile from "./pages/Admin/Profile";
 import CreateGroup from "./pages/Admin/CreateGroup";
 import CreateSubject from "./pages/Admin/CreateSubject";
@@ -25,13 +29,16 @@ import CreatePrograms from "./pages/Admin/CreatePrograms";
 import GraduateDashboard from "./pages/Graduate/Dashboard";
 import GraduateProfile from "./pages/Graduate/Profile";
 import GraduateProjects from "./pages/Graduate/Proyects";
-import Proyects from "./pages/Home/Projects";
-import GuestDashboard from "./pages/Guest/Dashboard";
-import GuestProfile from "./pages/Guest/Profile";
+import GuestDashboard from "./pages/Guest/Dashboard.jsx";
 import GuestProjects from "./pages/Guest/Proyects";
+import GuestProfile from "./pages/Guest/Profile";
+import AdminEvento from "./pages/Admin/AdminEvento";
+import Home_dinamico from "./pages/Home/Home_dinamico";
+import Projects from "./pages/Home/Projects";
 import ManageStudents from "./pages/Admin/ManageStudents";
 import StudentDetails from "./pages/Admin/StudentDetails";
 import EditStudent from "./pages/Admin/EditStudent";
+import Contacto from "./pages/Home/Contact";
 import GestionCertificados from "./pages/Admin/GestionCertificados";
 import GestionProyectos from "./pages/Admin/GestionProyectos";
 import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute, EstudianteOEgresadoRoute} from "./components/ProtectedRoute";
@@ -43,6 +50,9 @@ import { AdminRoute, DocenteRoute, EstudianteRoute, EgresadoRoute, InvitadoRoute
 import "primereact/resources/themes/lara-light-green/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+import { Contact } from "lucide-react";
+
+
 
 function App() {
   const location = useLocation();
@@ -51,12 +61,14 @@ function App() {
     "/student/dashboard",
     "/student/profile",
     "/student/proyectos",
+    "/student/asistencia",
     "/student/register-project",
     "/teacher/dashboard",
     "/teacher/profile",
     "/teacher/proyectos",
     "/admin/dashboard",
     "/admin/dash",
+    "/admin/asistencia",
     "/admin/profile",
     "/admin/crear-grupo",
     "/admin/crear-materia",
@@ -78,6 +90,9 @@ function App() {
     "/guest/dashboard",
     "/guest/profile",
     "/guest/proyectos",
+    "/home-dinamico",
+    "/admin/evento"
+
   ];
 
   // Verificar si la ruta actual debe ocultar el Navbar
@@ -86,12 +101,12 @@ function App() {
     if (hideNavbarOn.includes(location.pathname)) {
       return true;
     }
-    
+
     // Verificar patrones dinámicos
     if (location.pathname.startsWith('/admin/estudiantes/')) {
       return true;
     }
-    
+
     return false;
   };
 
@@ -103,17 +118,19 @@ function App() {
           {/* Página principal */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/home-dinamico" element={<Home_dinamico />} />
+          <Route path="/contact" element={<Contacto />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/projects" element={<Proyects />} />
+          <Route path="/projects" element={<Projects />} />
 
           {/* ✅ Estudiantes - RUTAS PROTEGIDAS */}
           <Route path="/student/dashboard" element={<EstudianteRoute><StudentDashboard /></EstudianteRoute>} />
           <Route path="/student/proyectos" element={<EstudianteRoute><MyProjects /></EstudianteRoute>} />
           <Route path="/student/profile" element={<EstudianteRoute><Profile /></EstudianteRoute>} />
-          
+
           {/* ✅ Registro de Proyectos - Permite ESTUDIANTES Y EGRESADOS */}
           <Route path="/student/register-project" element={<EstudianteOEgresadoRoute><RegisterProject /></EstudianteOEgresadoRoute>} />
           <Route path="/graduate/register-project" element={<EstudianteOEgresadoRoute><RegisterProject /></EstudianteOEgresadoRoute>} />
@@ -138,6 +155,7 @@ function App() {
           <Route path="/admin/estudiantes" element={<AdminRoute><ManageStudents /></AdminRoute>} />
           <Route path="/admin/estudiantes/:studentId" element={<AdminRoute><StudentDetails /></AdminRoute>} />
           <Route path="/admin/estudiantes/:studentId/editar" element={<AdminRoute><EditStudent /></AdminRoute>} />
+          <Route path="/admin/asistencia" element={<AdminRoute><AttendanceAdmin /></AdminRoute>} />
           <Route path="/admin/certificados" element={<AdminRoute><GestionCertificados /></AdminRoute>} />
           <Route path="/admin/proyectos" element={<AdminRoute><GestionProyectos /></AdminRoute>} />
 
@@ -152,6 +170,11 @@ function App() {
           <Route path="/guest/profile" element={<InvitadoRoute><GuestProfile /></InvitadoRoute>} />
           <Route path="/guest/proyectos" element={<InvitadoRoute><GuestProjects /></InvitadoRoute>} />
 
+          {/* Registro de Asistencia */}
+          {/* <Route path="/asistencia" element={<AsistenciaForm />} /> */}
+          <Route path="/asistencia/registrar/:id_evento" element={<AsistenciaForm />} />
+
+
           <Route
             path="*"
             element={
@@ -162,8 +185,8 @@ function App() {
                   <p className="text-xl text-gray-600 mb-6">
                     ¡Ups! Parece que te perdiste
                   </p>
-                  <a 
-                    href="/" 
+                  <a
+                    href="/"
                     className="inline-block px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-semibold hover:scale-105 transition-transform"
                   >
                     Ir al inicio

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import {
   validateAllFields,
@@ -287,8 +287,19 @@ function RegisterPage() {
             </button>
           </div>
         </form>
+        <div className="mt-6 text-center">
+          <p className="text-gray-600">
+            ¿Ya tienes una cuenta?{" "}
+            <a 
+              href="/login" 
+              className="text-green-600 hover:text-green-700 font-semibold hover:underline transition-colors"
+            >
+              Inicia sesión aquí
+            </a>
+          </p>
+        </div>
       </section>
-
+              
       <style>{`
         @keyframes fadeIn {
           from {

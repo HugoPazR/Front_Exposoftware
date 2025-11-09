@@ -46,6 +46,17 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       icon: "pi-lightbulb",
       label: "Gestión de Líneas de Investigación"
     },
+    // 🔹 Nuevo apartado: Evento
+    {
+      to: "/admin/evento",
+      icon: "pi-calendar",
+      label: "Evento Exposoftware"
+    },
+    {
+      to: "/admin/asistencia",
+      icon: "pi-qrcode",
+      label: "Registro de Asistencia"
+    },
     {
       to: "/admin/crear-facultad",
       icon: "pi-building",
