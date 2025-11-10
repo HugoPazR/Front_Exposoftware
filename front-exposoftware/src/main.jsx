@@ -8,12 +8,12 @@ import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
+    
       <AuthProvider>
         <EventProvider> {/* 👈 Envolvemos toda la app */}
           <App />
         </EventProvider>
       </AuthProvider>
-    </BrowserRouter>
+    
   </React.StrictMode>
 );
