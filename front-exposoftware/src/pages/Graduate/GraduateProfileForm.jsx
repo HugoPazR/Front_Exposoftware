@@ -8,7 +8,13 @@ export default function GraduateProfileForm({
   ciudadesResidencia, 
   municipios, 
   colombiaData,
-  handleChange 
+  facultades,
+  programas,
+  cargandoFacultades,
+  cargandoProgramas,
+  handleChange,
+  handleFacultadChange,
+  handleProgramaChange
 }) {
   return (
     <>
@@ -320,37 +326,76 @@ export default function GraduateProfileForm({
           Información Académica
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Código de Programa */}
+          {/* Facultad */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Código de Programa</label>
-            <input 
-              type="text"
-              name="codigo_programa"
-              value={formData.codigo_programa}
-              onChange={handleChange}
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Facultad <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="id_facultad"
+              value={formData.id_facultad}
+              onChange={handleFacultadChange}
               className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-              disabled={!isEditing}
-              placeholder="Ej: ING-SIS-001"
-            />
+              disabled={!isEditing || cargandoFacultades}
+            >
+              <option value="">
+                {cargandoFacultades ? 'Cargando facultades...' : 'Seleccionar facultad'}
+              </option>
+              {facultades.map((facultad) => (
+                <option key={facultad.id_facultad} value={facultad.id_facultad}>
+                  {facultad.nombre_facultad}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Programa Académico */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Programa Académico</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Programa Académico <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="codigo_programa"
+              value={formData.codigo_programa}
+              onChange={handleProgramaChange}
+              className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
+              disabled={!isEditing || !formData.id_facultad || cargandoProgramas}
+            >
+              <option value="">
+                {!formData.id_facultad 
+                  ? 'Selecciona facultad primero' 
+                  : cargandoProgramas 
+                    ? 'Cargando programas...' 
+                    : 'Seleccionar programa'}
+              </option>
+              {programas.map((programa) => (
+                <option key={programa.codigo_programa} value={programa.codigo_programa}>
+                  {programa.nombre_programa}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Código de Programa - Solo lectura */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Código de Programa
+            </label>
             <input 
               type="text"
-              name="programa_academico"
-              value={formData.programa_academico}
-              onChange={handleChange}
-              className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-              disabled={!isEditing}
-              placeholder="Ej: Ingeniería de Sistemas"
+              value={formData.codigo_programa}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
+              disabled
+              readOnly
             />
+            <p className="text-xs text-gray-500 mt-1">Se establece automáticamente</p>
           </div>
 
           {/* Año de Graduación */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Año de Graduación</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Año de Graduación <span className="text-red-500">*</span>
+            </label>
             <input 
               type="number"
               name="anio_graduacion"
@@ -365,7 +410,9 @@ export default function GraduateProfileForm({
 
           {/* Título Obtenido */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título Obtenido</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Título Obtenido <span className="text-red-500">*</span>
+            </label>
             <input 
               type="text"
               name="titulo_obtenido"

@@ -314,7 +314,7 @@ export default function StudentProjects() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                <h1 className="text-lg font-bold text-gray-900">Expo-software</h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
               </div>
             </div>
@@ -679,7 +679,7 @@ export default function StudentProjects() {
                                 project.calificacion < 3.0 ? "bg-red-100 text-red-800" :
                                 "bg-gray-100 text-gray-800"
                               }`}>
-                                ⭐ {project.calificacion}/5.0
+                                <i className="pi pi-pencil text-yellow-500"></i> {project.calificacion}/5.0
                               </div>
                             </div>
                           )}
@@ -697,7 +697,7 @@ export default function StudentProjects() {
                               onClick={() => handleOpenGradeModal(project)}
                               className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                             >
-                              <i className="pi pi-star"></i>
+                              <i className="pi pi-pencil"></i>
                               <span className="hidden sm:inline">{project.calificacion ? 'Editar' : 'Calificar'}</span>
                             </button>
                           </div>
@@ -787,7 +787,7 @@ export default function StudentProjects() {
                               </span>
                               {project.calificacion && (
                                 <span className="text-xs text-gray-500 font-medium">
-                                  ⭐ {project.calificacion}/5.0
+                                  <i className="pi pi-pencil text-yellow-500"></i> {project.calificacion}/5.0
                                 </span>
                               )}
                             </div>
@@ -811,7 +811,7 @@ export default function StudentProjects() {
                                 }`}
                                 title={project.calificacion ? "Editar calificación" : "Calificar proyecto"}
                               >
-                                <i className="pi pi-star"></i>
+                                <i className="pi pi-pencil"></i>
                                 <span className="hidden md:inline">{project.calificacion ? 'Editar' : 'Calificar'}</span>
                               </button>
                             </div>
@@ -1029,7 +1029,7 @@ export default function StudentProjects() {
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <i className="pi pi-star text-yellow-500"></i>
+                  <i className="pi pi-pencil text-yellow-500"></i>
                   Calificar Proyecto
                 </h3>
                 <button 
