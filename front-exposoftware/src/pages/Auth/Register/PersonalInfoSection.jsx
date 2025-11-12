@@ -423,6 +423,11 @@ const PersonalInfoSection = ({
             {errors.direccionResidencia}
           </p>
         )}
+        <p className="text-xs text-gray-500 mt-1">
+          Debe incluir letras y números, mínimo 6 caracteres. Ejemplo:{" "}
+          <span className="italic">Calle 10 #15-30</span> o{" "}
+          <span className="italic">Vereda El Rosario Casa 12</span>.
+        </p>
       </div>
     </>
   );

@@ -26,7 +26,7 @@ function InformacionInvitado({
           <input
             name="correo"
             type="email"
-            maxLength="30"
+            maxLength="50"
             placeholder="usuario@ejemplo.com"
             value={formData.correo}
             onChange={handleChange}

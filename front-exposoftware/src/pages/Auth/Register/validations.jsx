@@ -7,7 +7,7 @@ export const validateField = (name, value, formData = {}, rol = "") => {
   // Si viene de react-select, tomamos el value real
   const val = typeof value === "object" && value !== null ? value.value : value;
 
-  // 💡 Todos los campos (menos los opcionales) deben tener valor
+  // 💡 Lista de campos obligatorios
   const requiredFields = [
     "primerNombre",
     "primerApellido",
@@ -39,9 +39,8 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     "periodo",
   ];
 
-  if (requiredFields.includes(name) && (!val || String(val).trim() === "")) {
-    return "Este campo es obligatorio.";
-  }
+  // 🔥 CAMBIO CLAVE: Verificar si está vacío ANTES del switch
+  const isEmpty = !val || String(val).trim() === "";
 
   // ⚙️ Validaciones específicas por campo
   switch (name) {
@@ -50,20 +49,12 @@ export const validateField = (name, value, formData = {}, rol = "") => {
     case "primerApellido":
     case "segundoApellido":
     case "intitucionOrigen":
-      // 🔹 Validar que NO contenga números
-      if (/\d/.test(val)) {
-        error = "No se permiten números en este campo.";
-      } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
-        error = "Solo se permiten letras y espacios.";
-      } else if (val.trim().length > 0 && val.trim().length < 3) {
-        error = "Debe tener al menos 3 letras.";
-      }
-      break;
-
-    case "ciudadResidencia":
-      // Solo validar si nacionalidad es Colombia
-      if (formData.nacionalidad === "CO") {
-        if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
+      // Solo validar formato si hay valor
+      if (!isEmpty) {
+        // 🔹 Validar que NO contenga números
+        if (/\d/.test(val)) {
+          error = "No se permiten números en este campo.";
+        } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúñÑ\s]*$/.test(val)) {
           error = "Solo se permiten letras y espacios.";
         } else if (val.trim().length > 0 && val.trim().length < 3) {
           error = "Debe tener al menos 3 letras.";
@@ -71,105 +62,121 @@ export const validateField = (name, value, formData = {}, rol = "") => {
       }
       break;
 
-    case "direccionResidencia":
-      // 🏠 Validación de dirección colombiana con nombres completos (sin abreviaturas)
-      const direccionRegex =
-        /^(?:(?:calle|carrera|diagonal|transversal|avenida|autopista|bulevar)\s*\d+[a-zA-Z]?(?:\s*[#-]\s*\d+[a-zA-Z]?(?:\s*-\s*\d+)?)?(?:\s*[a-zA-Z0-9\s]*)?)$/i;
+case "direccionResidencia":
+  if (!isEmpty) {
+    // Expresión más flexible para direcciones colombianas
+    const direccionRegex =
+      /^(?=.*[A-Za-z])(?=.*\d)?[A-Za-z0-9áéíóúÁÉÍÓÚñÑ\s#.,-]{6,100}$/;
 
-      if (!direccionRegex.test(val.trim())) {
-        error =
-          "Formato de dirección inválido. Ejemplo válido: 'Calle 10 #15-30' o 'Carrera 7A - 45'.";
-      } else if (val.trim().length < 6) {
-        error = "La dirección debe tener al menos 6 caracteres.";
-      }
-      break;
-
-    case "nombreEmpresa":
-      if (val.trim().length > 0 && val.trim().length < 3) {
-        error = "Debe tener al menos 3 caracteres.";
-      }
-      break;
-
-    case "telefono":
-      // Convertir a string y extraer solo los dígitos
-      const phoneStr = String(val || "");
-      const digits = phoneStr.replace(/\D/g, "");
-
-      // Si empieza con 57 → Colombia
-      const isColombia = digits.startsWith("57");
-
-      if (isColombia) {
-        // Remover el código de país (57)
-        const number = digits.slice(2);
-
-        if (!number.startsWith("3") || number.length !== 10) {
-          error = "El número colombiano debe comenzar con 3 y tener 10 dígitos.";
-        }
-      } else {
-        if (digits.length < 6) {
-          error = "Debe tener mínimo 6 dígitos.";
-        }
-      }
-      break;
-
-case "numeroDocumento":
-  const tipo = formData.tipoDocumento;
-
-  // Validar que se haya seleccionado un tipo de documento
-  if (!tipo) {
-    error = "Primero selecciona el tipo de documento.";
-    break;
-  }
-
-  if (tipo === "CC" || tipo === "TI") {
-    if (val.length < 10) {
-      error = "Debe tener exactamente 10 dígitos.";
-    } else if (val.length > 10) {
-      error = "Debe tener exactamente 10 dígitos.";
-    }
-  } else if (tipo === "CE" || tipo === "PTE" || tipo === "PAS") {
-    if (val.length < 6) {
-      error = "Debe tener mínimo 6 caracteres.";
-    } else if (val.length > 15) {
-      error = "Máximo 15 caracteres.";
+    if (!direccionRegex.test(val.trim())) {
+      error =
+        "Dirección inválida. Usa letras, números y separadores (ej: 'Calle 10 #15-30' o 'Vereda El Rosario Casa 12').";
+    } else if (val.trim().length < 6) {
+      error = "La dirección debe tener al menos 6 caracteres.";
     }
   }
   break;
 
 
-    case "correo":
-      if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {
-        if (!/^[a-zA-Z0-9._%+-]+@unicesar\.edu\.co$/.test(val)) {
-          error = "Debe ser correo institucional (@unicesar.edu.co)";
+    case "nombreEmpresa":
+      if (!isEmpty && val.trim().length > 0 && val.trim().length < 3) {
+        error = "Debe tener al menos 3 caracteres.";
+      }
+      break;
+
+    case "telefono":
+      if (!isEmpty) {
+        const phoneStr = String(val || "");
+        const digits = phoneStr.replace(/\D/g, "");
+        
+        const isColombia = digits.startsWith("57");
+        
+        if (isColombia) {
+          const number = digits.slice(2);
+          
+          // Validar que comience con 3
+          if (number.length > 0 && !number.startsWith("3")) {
+            error = "El número colombiano debe comenzar con 3.";
+          } else if (number.length > 0 && number.length !== 10) {
+            error = "El número colombiano debe tener 10 dígitos.";
+          }
+        } else {
+          if (digits.length < 6) {
+            error = "Debe tener mínimo 6 dígitos.";
+          }
         }
-      } else if (rol === "invitado") {
-        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
-          error = "Correo inválido. Asegúrate de ingresar un correo válido.";
+      }
+      break;
+
+    case "numeroDocumento":
+      if (!isEmpty) {
+        const tipo = formData.tipoDocumento;
+
+        // Validar que se haya seleccionado un tipo de documento
+        if (!tipo) {
+          error = "Primero selecciona el tipo de documento.";
+          break;
+        }
+
+        if (tipo === "CC" || tipo === "TI") {
+          if (val.length < 10) {
+            error = "Debe tener exactamente 10 dígitos.";
+          } else if (val.length > 10) {
+            error = "Debe tener exactamente 10 dígitos.";
+          }
+        } else if (tipo === "CE" || tipo === "PTE" || tipo === "PAS") {
+          if (val.length < 6) {
+            error = "Debe tener mínimo 6 caracteres.";
+          } else if (val.length > 15) {
+            error = "Máximo 15 caracteres.";
+          }
+        }
+      }
+      break;
+
+    case "correo":
+      if (!isEmpty) {
+        if (rol === "estudiante" || rol === "profesor" || rol === "egresado") {
+          if (!/^[a-zA-Z0-9._%+-]+@unicesar\.edu\.co$/.test(val)) {
+            error = "Debe ser correo institucional (@unicesar.edu.co)";
+          }
+        } else if (rol === "invitado") {
+          if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
+            error = "Correo inválido. Asegúrate de ingresar un correo válido.";
+          }
         }
       }
       break;
 
     case "contraseña":
-      if (!/^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&#])[A-Za-z\d@$!%?&#]{8,}$/.test(val)) {
-        error =
-          "Debe tener 8+ caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&#).";
-      }
+      if (!isEmpty) {
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&#])[A-Za-z\d@$!%?&#]{8,}$/.test(val)) {
+          error =
+            "Debe tener 8+ caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&#).";
+        }
+      }
       break;
 
     case "confirmarcontraseña":
-      if (val !== formData.contraseña) {
-        error = "Las contraseñas no coinciden.";
+      if (!isEmpty) {
+        if (val !== formData.contraseña) {
+          error = "Las contraseñas no coinciden.";
+        }
       }
       break;
 
     case "fechaNacimiento":
-      if (val && new Date(val) > new Date()) {
+      if (!isEmpty && new Date(val) > new Date()) {
         error = "La fecha no puede ser futura.";
       }
       break;
 
     default:
       break;
+  }
+
+  if (!error && isEmpty && requiredFields.includes(name)) {
+    error = "Este campo es obligatorio.";
   }
 
   return error;
