@@ -24,6 +24,7 @@ function InformacionEstudiante({
           <input
             name="correo" 
             type="email" 
+            maxLength="50"
             value={formData.correo} 
             onChange={handleChange} 
             disabled={cargando} 
