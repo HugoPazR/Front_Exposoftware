@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import AssistanceService from "../../services/AssistanceService"; // 👈 importamos el servicio real
+import EventosService from "../../Services/EventosService";
+//import getEventoById from "../../Services/EventosPublicService"; 
+import AssistanceService from "../../services/AssistanceService"; 
 
 export default function AsistenciaForm() {
     const [email, setEmail] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [validando, setValidando] = useState(false);
     const navigate = useNavigate();
-    const [error, setError] = useState("");    
+    const [error, setError] = useState("");
+    const [evento, setEvento] = useState([]);
     const { id_evento } = useParams();
     const [params] = useSearchParams();
     const idEvento = id_evento || params.get("id_evento") || params.get("id_sesion");
@@ -24,6 +27,7 @@ export default function AsistenciaForm() {
             setError("");
         }
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -44,6 +48,24 @@ export default function AsistenciaForm() {
         }
     };
 
+    useEffect(() => {
+        let cargado = false;
+
+        const cargarEventos = async () => {
+            if (cargado) return;
+            cargado = true;
+            try {
+                //const response = await getEventoById(idEvento);
+                const response = await EventosService.obtenerEventoPorId(idEvento);
+                setEvento(response || []);
+            } catch (error) {
+                console.error("❌ Error al obtener evento:", error);
+            }
+        };
+
+        cargarEventos();
+    }, []);
+
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 w-full max-w-md">
@@ -53,7 +75,7 @@ export default function AsistenciaForm() {
 
                 {idEvento ? (
                     <p className="text-center text-gray-500 mb-4">
-                        Evento ID: <span className="font-mono">{idEvento}</span>
+                        Evento: <span className="font-mono">{evento.nombre_evento}</span>
                     </p>
                 ) : (
                     <p className="text-center text-red-600 font-medium mb-4">
