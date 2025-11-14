@@ -28,13 +28,12 @@ class AssistanceService {
    * @param {string} idEvento - ID del evento
    * @param {string} urlFront - URL base del frontend (opcional)
    */
-  static async generarQrEvento(idEvento, urlFront = 'https://exposoftware.unicesar.edu.co') {
+  static async generarQrEvento(idEvento, urlFront = 'https://exposoftware.netlify.app') {
     try {
       console.log('🔄 Generando QR para evento:', idEvento);
 
-      const encodedUrl = encodeURIComponent(urlFront);
       const response = await fetch(
-        `/api/v1/asistencia/generar-qr/${idEvento}?url_front=${encodedUrl}`,
+        `${API_ENDPOINTS.GENERAR_QR_EVENTO(idEvento)}?url_front=${urlFront}`,
         {
           method: 'POST',
           headers: getAuthHeaders()

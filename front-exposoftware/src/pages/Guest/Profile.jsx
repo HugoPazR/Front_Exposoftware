@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { obtenerMiPerfilInvitado, actualizarPerfilInvitado } from "../../Services/GuestService";
 import { SECTORES } from "../../data/sectores";
+import colombiaData from "../../assets/colombia-json-master/colombia.json";
 import logo from "../../assets/Logo-unicesar.png";
 
 export default function GuestProfile() {
@@ -44,9 +45,39 @@ export default function GuestProfile() {
     confirmPassword: ""
   });
 
+  // Estados para selectores en cascada
+  const [departamentos, setDepartamentos] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+
   useEffect(() => {
     cargarPerfil();
+    // Inicializar lista de departamentos
+    setDepartamentos(colombiaData);
   }, []);
+
+  // Función para actualizar municipios cuando cambia el departamento
+  const actualizarMunicipios = (departamentoNombre) => {
+    if (departamentoNombre) {
+      const departamento = colombiaData.find(dep => dep.departamento === departamentoNombre);
+      if (departamento) {
+        setMunicipios(departamento.ciudades);
+      } else {
+        setMunicipios([]);
+      }
+    } else {
+      setMunicipios([]);
+    }
+  };
+
+  // Función para obtener el departamento por nombre de municipio
+  const obtenerDepartamentoPorMunicipio = (municipioNombre) => {
+    if (municipioNombre) {
+      return colombiaData.find(dep => 
+        dep.ciudades.includes(municipioNombre)
+      );
+    }
+    return null;
+  };
 
   const cargarPerfil = async () => {
     try {
@@ -67,7 +98,7 @@ export default function GuestProfile() {
         identidad_sexual: datos.identidad_sexual || '',
         fecha_nacimiento: datos.fecha_nacimiento || '',
         nacionalidad: datos.nacionalidad || '',
-        pais_residencia: datos.pais_residencia || '',
+        pais_residencia: datos.pais_residencia || 'Colombia', // Default Colombia
         departamento: datos.departamento || '',
         municipio: datos.municipio || '',
         ciudad_residencia: datos.ciudad_residencia || '',
@@ -77,6 +108,11 @@ export default function GuestProfile() {
         id_sector: datos.id_sector || '',
         nombre_empresa: datos.nombre_empresa || ''
       });
+      
+      // Inicializar municipios si hay departamento
+      if (datos.departamento) {
+        actualizarMunicipios(datos.departamento);
+      }
       
       console.log('✅ Perfil cargado en Profile:', datos);
     } catch (err) {
@@ -133,7 +169,7 @@ export default function GuestProfile() {
         identidad_sexual: perfil.identidad_sexual || '',
         fecha_nacimiento: perfil.fecha_nacimiento || '',
         nacionalidad: perfil.nacionalidad || '',
-        pais_residencia: perfil.pais_residencia || '',
+        pais_residencia: perfil.pais_residencia || 'Colombia',
         departamento: perfil.departamento || '',
         municipio: perfil.municipio || '',
         ciudad_residencia: perfil.ciudad_residencia || '',
@@ -143,6 +179,11 @@ export default function GuestProfile() {
         id_sector: perfil.id_sector || '',
         nombre_empresa: perfil.nombre_empresa || ''
       });
+      
+      // Restaurar municipios
+      if (perfil.departamento) {
+        actualizarMunicipios(perfil.departamento);
+      }
     }
   };
 
@@ -174,6 +215,28 @@ export default function GuestProfile() {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  // Función para manejar cambios en el departamento
+  const handleDepartamentoChange = (e) => {
+    const departamentoSeleccionado = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      departamento: departamentoSeleccionado,
+      municipio: '', // Limpiar municipio cuando cambia departamento
+      ciudad_residencia: '' // Limpiar ciudad cuando cambia departamento
+    }));
+    actualizarMunicipios(departamentoSeleccionado);
+  };
+
+  // Función para manejar cambios en el municipio
+  const handleMunicipioChange = (e) => {
+    const municipioSeleccionado = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      municipio: municipioSeleccionado,
+      ciudad_residencia: municipioSeleccionado // Ciudad = Municipio en Colombia
     }));
   };
 
@@ -592,45 +655,59 @@ export default function GuestProfile() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             País
                           </label>
-                          <input 
-                            type="text"
+                          <select
                             name="pais_residencia"
                             value={formData.pais_residencia}
                             onChange={handleInputChange}
-                            maxLength={50}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
-                          />
+                          >
+                            <option value="">Seleccionar país</option>
+                            <option value="Colombia">Colombia</option>
+                            {/* Aquí puedes agregar más países si es necesario */}
+                          </select>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Departamento
                           </label>
-                          <input 
-                            type="text"
+                          <select
                             name="departamento"
                             value={formData.departamento}
-                            onChange={handleInputChange}
-                            maxLength={50}
+                            onChange={handleDepartamentoChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
                             disabled={!isEditing}
-                          />
+                          >
+                            <option value="">Seleccionar departamento</option>
+                            {departamentos.map(depto => (
+                              <option key={depto.id} value={depto.departamento}>
+                                {depto.departamento}
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Municipio
                           </label>
-                          <input 
-                            type="text"
+                          <select
                             name="municipio"
                             value={formData.municipio}
-                            onChange={handleInputChange}
-                            maxLength={25}
+                            onChange={handleMunicipioChange}
                             className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                            disabled={!isEditing}
-                          />
+                            disabled={!isEditing || !formData.departamento}
+                          >
+                            <option value="">
+                              {formData.departamento ? 'Seleccionar municipio' : 'Primero selecciona departamento'}
+                            </option>
+                            {municipios.map(municipio => (
+                              <option key={municipio} value={municipio}>
+                                {municipio}
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
                         <div>
@@ -639,13 +716,12 @@ export default function GuestProfile() {
                           </label>
                           <input 
                             type="text"
-                            name="ciudad_residencia"
                             value={formData.ciudad_residencia}
-                            onChange={handleInputChange}
-                            maxLength={30}
-                            className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'bg-white focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-                            disabled={!isEditing}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
+                            disabled
+                            readOnly
                           />
+                          <p className="text-xs text-gray-500 mt-1">Se establece automáticamente con el municipio</p>
                         </div>
                       </div>
                     </div>

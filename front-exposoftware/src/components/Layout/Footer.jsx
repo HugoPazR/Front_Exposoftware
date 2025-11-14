@@ -5,22 +5,22 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 text-black mt-10">
       {/* Contenido principal del footer */}
-      <div className="container mx-auto px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
         
         {/* Sección 1: Logo y descripción */}
-        <div>
+        <div className="flex flex-col items-center sm:items-start">
           <img
             src="/src/assets/Logo-Sistemas.png"
             alt="Logo Ingenieria de sistemas"
-            className="w-28 mb-3"
+            className="w-24 lg:w-28 mb-3"
           />
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 text-center sm:text-left">
             Plataforma de gestión y exposición de proyectos de software de la Universidad Popular del Cesar.
           </p>
         </div>
 
         {/* Sección 2: Enlaces rápidos */}
-        <div>
+        <div className="text-center sm:text-left">
           <h3 className="text-lg font-semibold mb-3 text-green-700">Enlaces Rápidos</h3>
           <ul className="space-y-2 text-gray-700">
             <li>
@@ -47,25 +47,28 @@ export default function Footer() {
         </div>
 
         {/* Sección 3: Contacto */}
-        <div>
+        <div className="text-center sm:text-left">
           <h3 className="text-lg font-semibold mb-3 text-green-700">Contacto</h3>
           <ul className="space-y-2 text-gray-700">
-            <li className="flex items-center gap-2">
-              <FaMapMarkerAlt className="text-green-600" /> Valledupar, Cesar - Colombia
+            <li className="flex items-center justify-center sm:justify-start gap-2">
+              <FaMapMarkerAlt className="text-green-600 flex-shrink-0" /> 
+              <span>Valledupar, Cesar - Colombia</span>
             </li>
-            <li className="flex items-center gap-2">
-              <FaPhoneAlt className="text-green-600" /> +57 300 000 0000
+            <li className="flex items-center justify-center sm:justify-start gap-2">
+              <FaPhoneAlt className="text-green-600 flex-shrink-0" /> 
+              <span>+57 300 000 0000</span>
             </li>
-            <li className="flex items-center gap-2">
-              <FaEnvelope className="text-green-600" /> exposoftware@unicesar.edu.co
+            <li className="flex items-center justify-center sm:justify-start gap-2">
+              <FaEnvelope className="text-green-600 flex-shrink-0" /> 
+              <span>exposoftware@unicesar.edu.co</span>
             </li>
           </ul>
         </div>
 
         {/* Sección 4: Redes sociales */}
-        <div>
+        <div className="text-center sm:text-left">
           <h3 className="text-lg font-semibold mb-3 text-green-700">Síguenos</h3>
-          <div className="flex gap-5 text-green-600 text-2xl">
+          <div className="flex justify-center sm:justify-start gap-5 text-green-600 text-2xl">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-green-700 transition">
               <FaFacebook />
             </a>
@@ -83,7 +86,7 @@ export default function Footer() {
       <div className="border-t border-gray-300"></div>
 
       {/* Derechos reservados */}
-      <div className="bg-gray-100 text-center py-4 text-gray-600 text-sm">
+      <div className="bg-gray-100 text-center py-4 text-gray-600 text-sm px-4">
         © {new Date().getFullYear()} Exposoftware UPC — Todos los derechos reservados.
       </div>
 

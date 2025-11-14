@@ -1,28 +1,46 @@
-// src/routes/PublicRoutes.jsx
-import { Routes, Route } from "react-router-dom";
-
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "../pages/Home/Home";
-//import Contact from "../pages/Home/Contact";
 import About from "../pages/Home/About";
 import Home_dinamico from "../pages/Home/Home_dinamico";
+import Contacto from "../pages/Home/Contact";
 import Projects from "../pages/Home/Projects";
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
+import AsistenciaForm from "../pages/public/AttendanceForm.jsx";
 
+/**
+ * PublicRoutes - Rutas accesibles sin autenticación
+ * 
+ * Incluye:
+ * - Página principal y de información (Home, About, Contact)
+ * - Autenticación (Login, Register)
+ * - Visualización de proyectos públicos
+ * - Registro de asistencia a eventos
+ */
 export default function PublicRoutes() {
   return (
     <Routes>
-        {/* Página principal */}
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          {/*<Route path="/contact" element={<Contact />} />*/}
-          <Route path="/home-dinamico" element={<Home_dinamico />} />
-          <Route path="/projects" element={<Projects />} />
-
-        {/* Autenticación */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
+      {/* 🏠 Página principal */}
+      <Route index element={<Home />} />
+      <Route path="home" element={<Home />} />
+      
+      {/* ℹ️ Páginas informativas */}
+      <Route path="about" element={<About />} />
+      <Route path="contact" element={<Contacto />} />
+      <Route path="home-dinamico" element={<Home_dinamico />} />
+      
+      {/* 🔐 Autenticación */}
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Register />} />
+      
+      {/* 📂 Proyectos públicos */}
+      <Route path="projects" element={<Projects />} />
+      
+      {/* ✅ Registro de asistencia (accesible públicamente) */}
+      <Route path="asistencia/registrar/:id_evento" element={<AsistenciaForm />} />
+      
+      {/* Ruta por defecto - redirige al home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

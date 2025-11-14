@@ -6,6 +6,7 @@ import * as AuthService from "../../Services/AuthService";
 import * as GraduateService from "../../Services/GraduateService";
 import colombia from "../../data/colombia.json";
 import countryList from 'react-select-country-list';
+import { API_ENDPOINTS } from "../../utils/constants";
 import GraduateProfileForm from "./GraduateProfileForm";
 
 export default function GraduateProfile() {
@@ -22,6 +23,12 @@ export default function GraduateProfile() {
   const [opcionesPaises, setOpcionesPaises] = useState([]);
   const [ciudadesResidencia, setCiudadesResidencia] = useState([]);
   const [municipios, setMunicipios] = useState([]);
+  
+  // Estados para académicos
+  const [facultades, setFacultades] = useState([]);
+  const [programas, setProgramas] = useState([]);
+  const [cargandoFacultades, setCargandoFacultades] = useState(false);
+  const [cargandoProgramas, setCargandoProgramas] = useState(false);
   
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -54,6 +61,8 @@ export default function GraduateProfile() {
     direccion_residencia: '',
     
     // Datos académicos
+    id_facultad: '',
+    nombre_facultad: '',
     codigo_programa: '',
     programa_academico: '',
     anio_graduacion: new Date().getFullYear(),
@@ -106,6 +115,11 @@ export default function GraduateProfile() {
     setOpcionesPaises(paises);
   }, []);
 
+  // Cargar facultades al montar
+  useEffect(() => {
+    cargarFacultades();
+  }, []);
+
   // Actualizar municipios cuando cambia departamento
   useEffect(() => {
     if (formData.departamento) {
@@ -115,6 +129,103 @@ export default function GraduateProfile() {
       setMunicipios([]);
     }
   }, [formData.departamento]);
+
+  // Función para cargar facultades
+  const cargarFacultades = async () => {
+    try {
+      setCargandoFacultades(true);
+      console.log('📚 Cargando facultades desde API...');
+      
+      const response = await fetch(`${API_ENDPOINTS.FACULTADES_PUBLICO}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Facultades cargadas:', data);
+        
+        // La respuesta puede venir en data.data o directamente
+        const facultadesData = data.data || data;
+        setFacultades(Array.isArray(facultadesData) ? facultadesData : []);
+      } else {
+        console.error('❌ Error cargando facultades:', response.status);
+        setFacultades([]);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando facultades:', error);
+      setFacultades([]);
+    } finally {
+      setCargandoFacultades(false);
+    }
+  };
+
+  // Función para cargar programas por facultad
+  const cargarProgramasPorFacultad = async (facultadId) => {
+    if (!facultadId) {
+      setProgramas([]);
+      return;
+    }
+
+    try {
+      setCargandoProgramas(true);
+      console.log(`📚 Cargando programas de facultad ${facultadId}...`);
+      
+      const response = await fetch(API_ENDPOINTS.PROGRAMAS_BY_FACULTAD_PUBLICO(facultadId), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Programas cargados:', data);
+        
+        // La respuesta puede venir en data.data o directamente
+        const programasData = data.data || data;
+        setProgramas(Array.isArray(programasData) ? programasData : []);
+      } else {
+        console.error('❌ Error cargando programas:', response.status);
+        setProgramas([]);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando programas:', error);
+      setProgramas([]);
+    } finally {
+      setCargandoProgramas(false);
+    }
+  };
+
+  // Función para manejar cambio de facultad
+  const handleFacultadChange = (e) => {
+    const facultadId = e.target.value;
+    const facultadSeleccionada = facultades.find(f => f.id_facultad.toString() === facultadId);
+    
+    setFormData(prev => ({
+      ...prev,
+      id_facultad: facultadId,
+      nombre_facultad: facultadSeleccionada ? facultadSeleccionada.nombre_facultad : '',
+      codigo_programa: '', // Limpiar programa
+      programa_academico: '' // Limpiar nombre del programa
+    }));
+    
+    // Cargar programas de la facultad seleccionada
+    cargarProgramasPorFacultad(facultadId);
+  };
+
+  // Función para manejar cambio de programa
+  const handleProgramaChange = (e) => {
+    const programaSeleccionado = programas.find(p => p.codigo_programa === e.target.value);
+    
+    setFormData(prev => ({
+      ...prev,
+      codigo_programa: e.target.value,
+      programa_academico: programaSeleccionado ? programaSeleccionado.nombre_programa : ''
+    }));
+  };
 
   // Función para cerrar sesión
   const handleLogout = async () => {
@@ -336,7 +447,13 @@ export default function GraduateProfile() {
                     ciudadesResidencia={ciudadesResidencia}
                     municipios={municipios}
                     colombiaData={colombia}
+                    facultades={facultades}
+                    programas={programas}
+                    cargandoFacultades={cargandoFacultades}
+                    cargandoProgramas={cargandoProgramas}
                     handleChange={handleChange}
+                    handleFacultadChange={handleFacultadChange}
+                    handleProgramaChange={handleProgramaChange}
                   />
 
                   {/* Seguridad */}
