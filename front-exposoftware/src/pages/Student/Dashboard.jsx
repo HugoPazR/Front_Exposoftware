@@ -238,12 +238,12 @@ export default function StudentDashboard() {
 
     // Colores con variaciones de verde, azul y más amarillo como solicitó el usuario
     const coloresSublineas = [
-      '#5cec14ff', 
+      '#244f0fff', 
       '#a2e689ff', 
       '#0cedb1ff', 
       '#10972eff', 
-      '#fcfc4dff', 
-      '#FBBF24', 
+      '#979748ff', 
+      '#b28207ff', 
       '#F59E0B', 
       '#96932eff', 
       '#10B981', 
@@ -252,7 +252,7 @@ export default function StudentDashboard() {
       '#3B82F6', 
       '#2563EB', 
       '#1D4ED8', 
-      '#16A34A', 
+      '#5b8b6dff', 
       '#15803D', 
     ];
     
@@ -308,36 +308,45 @@ export default function StudentDashboard() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+            {/* Logo y título - Siempre visible */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <img src={logo} alt="Logo Unicesar" className="w-8 sm:w-10 h-auto" />
+              <div className="hidden sm:block">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900">Expo-software</h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
+              </div>
+              <div className="sm:hidden">
+                <h1 className="text-sm font-bold text-gray-900">Expo-software</h1>
               </div>
             </div>
 
-            {/* Action button then user quick badge (avatar + name) */}
-            <div className="flex items-center gap-4">
-              <button className="text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors" style={{ backgroundColor: 'rgba(13, 97, 59, 1)' }}>
-                Registrar Asistencia
+            {/* Elementos del lado derecho - Responsive */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Botón Registrar Asistencia - Solo en desktop/tablet */}
+              <button className="hidden md:inline-flex text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:opacity-90 transition-colors whitespace-nowrap" style={{ backgroundColor: 'rgba(13, 97, 59, 1)' }}>
+                <i className="pi pi-qrcode mr-1 sm:mr-2"></i>
+                <span className="hidden lg:inline">Registrar Asistencia</span>
+                <span className="lg:hidden">Asistencia</span>
               </button>
 
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
-                  <span className="font-bold text-lg" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
+              {/* Información del usuario */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-sm sm:text-lg" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
                   <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
                 </div>
               </div>
 
-              <button 
+              {/* Botón de logout */}
+              <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+                className="text-red-600 hover:text-red-700 transition-colors flex items-center gap-1 sm:gap-2 flex-shrink-0"
               >
-                <i className="pi pi-sign-out"></i>
-                <span className="hidden sm:inline">Cerrar Sesión</span>
+                <i className="pi pi-sign-out text-sm sm:text-base"></i>
+                <span className="hidden sm:inline text-sm font-medium">Cerrar Sesión</span>
               </button>
             </div>
           </div>
@@ -432,91 +441,91 @@ export default function StudentDashboard() {
             {/* Stats Cards */}
             {activeTab === "dashboard" && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
                   {/* Card 1 - Total Proyectos Inscritos */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-blue-700 mb-1">Total Proyectos</p>
-                        <h3 className="text-3xl font-bold text-blue-900">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-blue-700 mb-1 truncate">Total Proyectos</p>
+                        <h3 className="text-2xl sm:text-3xl font-bold text-blue-900">
                           {cargandoMetricas ? "..." : metricasEstudiante.totalProyectos}
                         </h3>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="text-xs text-blue-600">Inscritos</span>
                         </div>
                       </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i className="pi pi-folder-open text-white text-xl"></i>
+                      <div className="w-12 sm:w-14 h-12 sm:h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                        <i className="pi pi-folder-open text-white text-lg sm:text-xl"></i>
                       </div>
                     </div>
                   </div>
 
                   {/* Card 2 - Proyectos Aprobados */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-emerald-700 mb-1">Proyectos Aprobados</p>
-                        <h3 className="text-3xl font-bold text-emerald-900">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-emerald-700 mb-1 truncate">Proyectos Aprobados</p>
+                        <h3 className="text-2xl sm:text-3xl font-bold text-emerald-900">
                           {cargandoMetricas ? "..." : metricasEstudiante.proyectosAprobados}
                         </h3>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="text-xs text-emerald-600">Calificación ≥ 3.0</span>
                         </div>
                       </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i className="pi pi-check text-white text-xl"></i>
+                      <div className="w-12 sm:w-14 h-12 sm:h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                        <i className="pi pi-check text-white text-lg sm:text-xl"></i>
                       </div>
                     </div>
                   </div>
 
                   {/* Card 3 - Proyectos Reprobados */}
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 sm:col-span-2 lg:col-span-1">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-red-700 mb-1">Proyectos Reprobados</p>
-                        <h3 className="text-3xl font-bold text-red-900">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-red-700 mb-1 truncate">Proyectos Reprobados</p>
+                        <h3 className="text-2xl sm:text-3xl font-bold text-red-900">
                           {cargandoMetricas ? "..." : metricasEstudiante.proyectosReprobados}
                         </h3>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="text-xs text-red-600">Calificación &lt; 3.0</span>
                         </div>
                       </div>
-                      <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i className="pi pi-times text-white text-xl"></i>
+                      <div className="w-12 sm:w-14 h-12 sm:h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                        <i className="pi pi-times text-white text-lg sm:text-xl"></i>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Gráficas de Proyectos por Materia y Sublíneas */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                   {/* Gráfica de Proyectos por Materia */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                        <i className="pi pi-chart-pie text-white text-sm"></i>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                      <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i className="pi pi-chart-pie text-white text-xs sm:text-sm"></i>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">Proyectos por Materia</h3>
-                        <p className="text-sm text-gray-600">Distribución de tus proyectos por asignatura</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Proyectos por Materia</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Distribución de tus proyectos por asignatura</p>
                       </div>
                     </div>
                     {cargandoMetricas ? (
-                      <div className="h-80 flex items-center justify-center">
-                        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-64 sm:h-80 flex items-center justify-center">
+                        <div className="w-6 sm:w-8 h-6 sm:h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : proyectosPorMateriaData.length > 0 ? (
-                      <div className="h-96">
+                      <div className="h-72 sm:h-96">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
                               data={proyectosPorMateriaData}
                               cx="50%"
-                              cy="40%"
-                              outerRadius={85}
+                              cy="42%"
+                              outerRadius={window.innerWidth < 640 ? 65 : 85}
                               paddingAngle={3}
                               dataKey="value"
-                              label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) => window.innerWidth >= 640 ? `${(percent * 100).toFixed(0)}%` : ''}
                               labelLine={false}
                             >
                               {proyectosPorMateriaData.map((entry, index) => (
@@ -530,59 +539,60 @@ export default function StudentDashboard() {
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '10px',
                                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                                fontSize: '14px'
+                                fontSize: '12px'
                               }}
                             />
                             <Legend
                               verticalAlign="bottom"
-                              height={60}
+                              height={window.innerWidth < 640 ? 80 : 60}
                               formatter={(value, entry) => (
-                                <span style={{ color: entry.color, fontWeight: '500', fontSize: '12px' }}>
+                                <span style={{ color: entry.color, fontWeight: '500', fontSize: window.innerWidth < 640 ? '10px' : '12px' }}>
                                   {value}: {entry.payload.value}
                                 </span>
                               )}
+                              wrapperStyle={{ paddingTop: '10px' }}
                             />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-96 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                      <div className="h-72 sm:h-96 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
                         <div className="text-center">
-                          <i className="pi pi-chart-pie text-4xl text-gray-400 mb-2"></i>
-                          <p className="text-gray-500 text-sm">No hay datos para mostrar</p>
+                          <i className="pi pi-chart-pie text-3xl sm:text-4xl text-gray-400 mb-2"></i>
+                          <p className="text-gray-500 text-xs sm:text-sm">No hay datos para mostrar</p>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Gráfica de Dona de Sublíneas de Investigación */}
-                  <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center">
-                        <i className="pi pi-chart-pie text-white text-sm"></i>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                      <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i className="pi pi-chart-pie text-white text-xs sm:text-sm"></i>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">Sublíneas de Investigación</h3>
-                        <p className="text-sm text-gray-600">Distribución por líneas de investigación</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Sublíneas de Investigación</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Distribución por líneas de investigación</p>
                       </div>
                     </div>
                     {cargandoMetricas ? (
-                      <div className="h-80 flex items-center justify-center">
-                        <div className="w-8 h-8 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="h-64 sm:h-80 flex items-center justify-center">
+                        <div className="w-6 sm:w-8 h-6 sm:h-8 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : proyectosPorSublineaData.length > 0 ? (
-                      <div className="h-80">
+                      <div className="h-72 sm:h-80">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
                               data={proyectosPorSublineaData}
                               cx="50%"
                               cy="45%"
-                              outerRadius={85}
-                              innerRadius={40}
+                              outerRadius={window.innerWidth < 640 ? 65 : 85}
+                              innerRadius={window.innerWidth < 640 ? 35 : 40}
                               paddingAngle={3}
                               dataKey="value"
-                              label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) => window.innerWidth >= 640 ? `${(percent * 100).toFixed(0)}%` : ''}
                               labelLine={false}
                             >
                               {proyectosPorSublineaData.map((entry, index) => (
@@ -596,26 +606,27 @@ export default function StudentDashboard() {
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '12px',
                                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-                                fontSize: '14px'
+                                fontSize: '12px'
                               }}
                             />
                             <Legend
                               verticalAlign="bottom"
-                              height={60}
+                              height={window.innerWidth < 640 ? 80 : 60}
                               formatter={(value, entry) => (
-                                <span style={{ color: entry.color, fontWeight: '500', fontSize: '12px' }}>
+                                <span style={{ color: entry.color, fontWeight: '500', fontSize: window.innerWidth < 640 ? '10px' : '12px' }}>
                                   {value}: {entry.payload.value}
                                 </span>
                               )}
+                              wrapperStyle={{ paddingTop: '10px' }}
                             />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
                     ) : (
-                      <div className="h-80 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                      <div className="h-72 sm:h-80 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
                         <div className="text-center">
-                          <i className="pi pi-chart-pie text-4xl text-gray-400 mb-2"></i>
-                          <p className="text-gray-500 text-sm">No hay datos para mostrar</p>
+                          <i className="pi pi-chart-pie text-3xl sm:text-4xl text-gray-400 mb-2"></i>
+                          <p className="text-gray-500 text-xs sm:text-sm">No hay datos para mostrar</p>
                         </div>
                       </div>
                     )}

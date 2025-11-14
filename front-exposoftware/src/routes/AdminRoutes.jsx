@@ -1,40 +1,205 @@
-// src/routes/AdminRoutes.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
+import { AdminRoute } from "../components/ProtectedRoute";
+
+// Dashboard y perfil
 import AdminDashboard from "../pages/Admin/Dashboard";
-import AttendanceAdmin from "../pages/Admin/AttendanceAdmin";
 import AdminProfile from "../pages/Admin/Profile";
-import CreateGroup from "../pages/Admin/CreateGroup";
-import CreateSubject from "../pages/Admin/CreateSubject";
-import CreateTeacher from "../pages/Admin/CreateTeacher";
-import AdminCreatelines from "../pages/Admin/CreateLines";
-import RegisterEvent from "../pages/Admin/RegisterEvent";
-import ManageEvents from "../pages/Admin/ManageEvents";
-import CrearFacultades from "../pages/Admin/CrearFacultades";
-import CreatePrograms from "../pages/Admin/CreatePrograms";
-import AdminEvento from "../pages/Admin/AdminEvento";
+
+// Gestión de estudiantes
 import ManageStudents from "../pages/Admin/ManageStudents";
 import StudentDetails from "../pages/Admin/StudentDetails";
 import EditStudent from "../pages/Admin/EditStudent";
 
+// Gestión académica
+import CrearGrupo from "../pages/Admin/CreateGroup";
+import CrearMateria from "../pages/Admin/CreateSubject";
+import CrearProfesor from "../pages/Admin/CreateTeacher";
+import LineasInvestigacion from "../pages/Admin/CreateLines";
+import CrearFacultad from "../pages/Admin/CrearFacultades";
+import CrearPrograma from "../pages/Admin/CreatePrograms";
+//import GestionProgramas from "../pages/Admin/GestionProgramas";
+//import GestionFacultades from "../pages/Admin/GestionFacultades";
+
+// Gestión de eventos
+import RegistrarEventos from "../pages/Admin/RegisterEvent";
+//import GestionarEventos from "../pages/Admin/GestionarEventos";
+//import Evento from "../pages/Admin/Evento";
+import GestionAsistencia from "../pages/Admin/AttendanceAdmin";
+
+// Otros
+import GestionCertificados from "../pages/Admin/GestionCertificados";
+import GestionProyectos from "../pages/Admin/GestionProyectos";
+
+/**
+ * AdminRoutes - Rutas protegidas para administradores
+ * 
+ * Todas las rutas requieren autenticación con rol "admin"
+ * 
+ * Categorías:
+ * - Dashboard y perfil
+ * - Gestión de estudiantes
+ * - Gestión académica (grupos, materias, profesores, programas, facultades)
+ * - Investigación (líneas de investigación)
+ * - Eventos y asistencia
+ * - Certificados y proyectos
+ */
 export default function AdminRoutes() {
   return (
     <Routes>
-        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/admin/dash" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/profile" element={<AdminRoute><AdminProfile /></AdminRoute>} />
-        <Route path="/admin/crear-grupo" element={<AdminRoute><CreateGroup /></AdminRoute>} />
-        <Route path="/admin/crear-materia" element={<AdminRoute><CreateSubject /></AdminRoute>} />
-        <Route path="/admin/crear-profesor" element={<AdminRoute><CreateTeacher /></AdminRoute>} />
-        <Route path="/admin/lineas-investigacion" element={<AdminRoute><AdminCreatelines /></AdminRoute>} />
-        <Route path="/admin/registrar-eventos" element={<AdminRoute><RegisterEvent /></AdminRoute>} />
-        <Route path="/admin/gestionar-eventos" element={<AdminRoute><ManageEvents /></AdminRoute>} />
-        <Route path="/admin/crear-facultad" element={<AdminRoute><CrearFacultades /></AdminRoute>} />
-        <Route path="/admin/crear-programa" element={<AdminRoute><CreatePrograms /></AdminRoute>} />
-        <Route path="/admin/estudiantes" element={<AdminRoute><ManageStudents /></AdminRoute>} />
-        <Route path="/admin/estudiantes/:studentId" element={<AdminRoute><StudentDetails /></AdminRoute>} />
-        <Route path="/admin/estudiantes/:studentId/editar" element={<AdminRoute><EditStudent /></AdminRoute>} />
-        <Route path="/admin/asistencia" element={<AdminRoute><AttendanceAdmin /></AdminRoute>} />
-        <Route path="*" element={<Navigate to="dashboard" />} />
+      {/* 🏠 DASHBOARD Y PERFIL */}
+      <Route 
+        path="dashboard" 
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="dash" 
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="profile" 
+        element={
+          <AdminRoute>
+            <AdminProfile />
+          </AdminRoute>
+        } 
+      />
+
+      {/* 👥 GESTIÓN DE ESTUDIANTES */}
+      <Route 
+        path="estudiantes" 
+        element={
+          <AdminRoute>
+            <ManageStudents />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="estudiantes/:studentId" 
+        element={
+          <AdminRoute>
+            <StudentDetails />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="estudiantes/:studentId/editar" 
+        element={
+          <AdminRoute>
+            <EditStudent />
+          </AdminRoute>
+        } 
+      />
+
+      {/* 📚 GESTIÓN ACADÉMICA - Grupos y Materias */}
+      <Route 
+        path="crear-grupo" 
+        element={
+          <AdminRoute>
+            <CrearGrupo />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="crear-materia" 
+        element={
+          <AdminRoute>
+            <CrearMateria />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="crear-profesor" 
+        element={
+          <AdminRoute>
+            <CrearProfesor />
+          </AdminRoute>
+        } 
+      />
+
+      {/* 🏛️ GESTIÓN DE FACULTADES Y PROGRAMAS */}
+            
+      <Route 
+        path="crear-facultad" 
+        element={
+          <AdminRoute>
+            <CrearFacultad />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="crear-programa" 
+        element={
+          <AdminRoute>
+            <CrearPrograma />
+          </AdminRoute>
+        } 
+      />
+
+      {/* 🔬 LÍNEAS DE INVESTIGACIÓN */}
+      <Route 
+        path="lineas-investigacion" 
+        element={
+          <AdminRoute>
+            <LineasInvestigacion />
+          </AdminRoute>
+        } 
+      />
+
+      {/* 📅 GESTIÓN DE EVENTOS */}
+      <Route 
+        path="registrar-eventos" 
+        element={
+          <AdminRoute>
+            <RegistrarEventos />
+          </AdminRoute>
+        } 
+      />
+   
+      <Route 
+        path="asistencia" 
+        element={
+          <AdminRoute>
+            <GestionAsistencia/>
+          </AdminRoute>
+        } 
+      />
+
+      {/* 📜 CERTIFICADOS Y PROYECTOS */}
+      <Route 
+        path="certificados" 
+        element={
+          <AdminRoute>
+            <GestionCertificados />
+          </AdminRoute>
+        } 
+      />
+      
+      <Route 
+        path="proyectos" 
+        element={
+          <AdminRoute>
+            <GestionProyectos />
+          </AdminRoute>
+        } 
+      />
+
+      {/* Redirección por defecto al dashboard */}
+      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>
   );
 }

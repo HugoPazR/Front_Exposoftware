@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Mail, Lock, Leaf, Users, Trophy } from "lucide-react";
+import { Mail, Lock, Leaf, Users, Trophy, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import * as AuthService from "../../Services/AuthService";
 import { useAuth } from "../../contexts/AuthContext";
@@ -159,48 +159,69 @@ export default function LoginPage() {
       <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
 
   
-        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center">
-          <header className="mb-6">
+        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center relative overflow-hidden">
+          <header className="mb-6 relative z-10">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                 <span className="text-2xl font-bold">&lt;/&gt;</span>
               </div>
-              <h1 className="text-3xl font-bold">Expo-Software 2025</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold">Expo-Software 2025</h1>
             </div>
             <div className="h-1 w-20 bg-white rounded-full"></div>
           </header>
 
-          <p className="text-lg leading-relaxed">
-            Descubre los proyectos más innovadores desarrollados por estudiantes y profesores.
-          </p>
-          <p className="text-sm mt-2 text-green-100">
-            Una vitrina digital de talento tecnológico y creatividad académica.
-          </p>
+          <article className="relative z-10">
+            <p className="text-lg mb-3 leading-relaxed">
+              Descubre los proyectos más innovadores desarrollados por
+              estudiantes y profesores.
+            </p>
+            <p className="text-sm mb-10 text-green-100">
+              Una vitrina digital de talento tecnológico y creatividad académica.
+            </p>
+          </article>
 
-          <footer className="flex gap-8 mt-10">
-            <div className="text-center">
-              <Leaf size={30} className="mx-auto mb-2" />
-              <p className="font-bold text-2xl">150+</p>
-              <p className="text-sm">Proyectos</p>
+          <footer className="flex gap-8 mt-auto relative z-10">
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Leaf size={28} />
+              </div>
+              <p className="text-2xl font-bold">150+</p>
+              <p className="text-sm text-green-100">Proyectos</p>
             </div>
-            <div className="text-center">
-              <Users size={30} className="mx-auto mb-2" />
-              <p className="font-bold text-2xl">500+</p>
-              <p className="text-sm">Participantes</p>
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Users size={28} />
+              </div>
+              <p className="text-2xl font-bold">500+</p>
+              <p className="text-sm text-green-100">Participantes</p>
             </div>
-            <div className="text-center">
-              <Trophy size={30} className="mx-auto mb-2" />
-              <p className="font-bold text-2xl">15</p>
-              <p className="text-sm">Premios</p>
+            <div className="flex flex-col items-center group hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                <Trophy size={28} />
+              </div>
+              <p className="text-2xl font-bold">15</p>
+              <p className="text-sm text-green-100">Premios</p>
             </div>
           </footer>
         </aside>
 
-        {/* Panel Derecho */}
-        <section className="w-1/2 p-10 flex flex-col justify-center">
+        {/* Panel Derecho - Siempre visible */}
+        <section className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+          {/* Header móvil - Solo visible en móvil/tablet */}
+          <header className="lg:hidden mb-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold text-white">&lt;/&gt;</span>
+              </div>
+              <h1 className="text-2xl font-bold text-green-800">Expo-Software 2025</h1>
+            </div>
+            <div className="h-1 w-20 bg-green-600 rounded-full mx-auto mb-2"></div>
+            <p className="text-gray-600 text-sm">Universidad Popular del Cesar</p>
+          </header>
+
           <header className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
-            <p className="text-gray-500">Bienvenido de nuevo a Exposoftware</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
+            <p className="text-gray-500 text-sm sm:text-base">Bienvenido de nuevo a Exposoftware</p>
             
             {/* Mostrar error si existe */}
             {error && (
@@ -226,20 +247,14 @@ export default function LoginPage() {
             )}
           </header>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Correo</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
                   type="email"
-                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
                   placeholder="usuario@unicesar.edu.co"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
@@ -254,7 +269,7 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
-                  className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-2 focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
                   placeholder="********"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -263,14 +278,14 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition"
                 >
-                  {showPassword ? "🙈" : "👁️"}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-2 sm:gap-0">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -280,7 +295,7 @@ export default function LoginPage() {
                 />
                 Recordarme
               </label>
-              <a href="#" className="text-green-700 hover:underline">
+              <a href="#" className="text-green-700 hover:underline text-sm">
                 ¿Olvidaste tu contraseña?
               </a>
             </div>
@@ -288,15 +303,25 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition disabled:bg-gray-400 flex items-center justify-center gap-2"
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Iniciando sesión...
+                </>
+              ) : (
+                "Iniciar Sesión"
+              )}
             </button>
           </form>
 
           <p className="text-sm text-gray-600 text-center mt-6">
             ¿No tienes una cuenta?{" "}
-            <Link to="/register" className="text-green-700 font-semibold hover:underline">
+            <Link 
+              to="/register" 
+              className="text-green-700 font-semibold hover:underline transition"
+            >
               Regístrate aquí
             </Link>
           </p>

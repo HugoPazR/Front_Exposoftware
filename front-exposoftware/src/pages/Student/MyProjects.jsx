@@ -255,35 +255,38 @@ export default function MyProjects() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+            {/* Logo y título - Siempre visible */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <img src={logo} alt="Logo Unicesar" className="w-8 sm:w-10 h-auto" />
+              <div className="hidden sm:block">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900">Expo-software</h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
+              </div>
+              <div className="sm:hidden">
+                <h1 className="text-sm font-bold text-gray-900">Expo-software</h1>
               </div>
             </div>
 
-            {/* Action button then user quick badge (avatar + name) */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
-                  <span className="font-bold text-lg" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
+            {/* Elementos del lado derecho - Responsive */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Información del usuario */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-sm sm:text-lg" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden lg:block">
                   <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
                   <p className="text-xs text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
-                  {user?.codigo_programa && (
-                    <p className="text-xs text-gray-400">Código: {user.codigo_programa}</p>
-                  )}
                 </div>
               </div>
 
-              <button 
+              {/* Botón de logout */}
+              <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+                className="text-red-600 hover:text-red-700 transition-colors flex items-center gap-1 sm:gap-2 flex-shrink-0"
               >
-                <i className="pi pi-sign-out"></i>
-                <span className="hidden sm:inline">Cerrar Sesión</span>
+                <i className="pi pi-sign-out text-sm sm:text-base"></i>
+                <span className="hidden sm:inline text-sm font-medium">Cerrar Sesión</span>
               </button>
             </div>
           </div>
@@ -335,30 +338,32 @@ export default function MyProjects() {
           {/* Main content */}
           <main className="lg:col-span-3">
             {/* Información del estudiante */}
-            <div className="border rounded-lg p-4 mb-6" style={{ background: 'linear-gradient(to right, rgba(12, 183, 106, 0.05), rgba(12, 183, 106, 0.1))', borderColor: 'rgba(12, 183, 106, 0.3)' }}>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
-                  <span className="text-white font-bold text-xl">{getInitials()}</span>
+            <div className="border rounded-lg p-4 sm:p-6 mb-6" style={{ background: 'linear-gradient(to right, rgba(12, 183, 106, 0.05), rgba(12, 183, 106, 0.1))', borderColor: 'rgba(12, 183, 106, 0.3)' }}>
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
+                  <span className="text-white font-bold text-lg sm:text-xl">{getInitials()}</span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 truncate">{getFullName()}</h3>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-1">
                     <span className="flex items-center gap-1">
                       <i className="pi pi-id-card"></i>
-                      {user?.identificacion}
+                      <span className="truncate">{user?.identificacion}</span>
                     </span>
+                    <span className="hidden sm:inline text-gray-300">•</span>
                     <span className="flex items-center gap-1">
                       <i className="pi pi-book"></i>
-                      Semestre {user?.semestre}
+                      <span>Semestre {user?.semestre}</span>
                     </span>
+                    <span className="hidden sm:inline text-gray-300">•</span>
                     <span className="flex items-center gap-1">
                       <i className="pi pi-tag"></i>
-                      {user?.codigo_programa}
+                      <span className="truncate">{user?.codigo_programa}</span>
                     </span>
                   </div>
                 </div>
-                <div className="hidden sm:block">
-                  <span className="inline-flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
+                <div className="hidden sm:block flex-shrink-0">
+                  <span className="inline-flex items-center gap-2 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium" style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}>
                     <i className="pi pi-check-circle"></i>
                     Estudiante Activo
                   </span>
@@ -370,18 +375,18 @@ export default function MyProjects() {
             <p className="text-gray-600 mb-6">Aquí puedes gestionar todos los proyectos académicos que has postulado o en los que participas. Revisa su estado, edita los detalles o visualiza la información completa de cada uno.</p>
 
             {/* Sección de Búsqueda y Filtros */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <i className="pi pi-search text-white text-sm"></i>
+            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 mb-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i className="pi pi-search text-white text-xs sm:text-sm"></i>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">Buscar y Filtrar Proyectos</h3>
-                  <p className="text-sm text-gray-600">Encuentra rápidamente tus proyectos por nombre o materia</p>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Buscar y Filtrar Proyectos</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Encuentra rápidamente tus proyectos por nombre o materia</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Búsqueda por nombre */}
                 <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -394,7 +399,7 @@ export default function MyProjects() {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Buscar por nombre..."
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-sm sm:text-base"
                     />
                     <i className="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   </div>
@@ -412,7 +417,7 @@ export default function MyProjects() {
                       value={filterMateria}
                       onChange={(e) => setFilterMateria(e.target.value)}
                       placeholder="Filtrar por materia..."
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors text-sm sm:text-base"
                     />
                     <i className="pi pi-book absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                   </div>
@@ -420,12 +425,12 @@ export default function MyProjects() {
               </div>
 
               {/* Botón limpiar filtros y contador de resultados */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mt-4 pt-4 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                   {(searchTerm || filterMateria) && (
                     <button
                       onClick={clearFilters}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <i className="pi pi-times"></i>
                       Limpiar filtros
@@ -481,7 +486,7 @@ export default function MyProjects() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {filteredProjects.map(proyecto => {
                   // Mapear tipo_actividad a nombre legible
                   const tipoActividad = {
@@ -514,75 +519,71 @@ export default function MyProjects() {
                   }[proyecto.tipo_actividad] || 'from-gray-500 to-gray-600';
 
                   return (
-                    <div key={proyecto.id_proyecto} className={`bg-gradient-to-br ${estadoConfig.bgColor} rounded-xl border border-gray-200 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-gray-300 group`}>
+                    <div key={proyecto.id_proyecto} className={`bg-gradient-to-br ${estadoConfig.bgColor} rounded-xl border border-gray-200 p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group`}>
                       {/* Header con título y estado */}
-                      <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start justify-between mb-3 sm:mb-4">
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-800 transition-colors">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-gray-800 transition-colors">
                             {proyecto.titulo_proyecto}
                           </h3>
                           <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 bg-gradient-to-br ${tipoColor} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                            <div className={`w-6 sm:w-8 h-6 sm:h-8 bg-gradient-to-br ${tipoColor} rounded-lg flex items-center justify-center flex-shrink-0`}>
                               <i className="pi pi-briefcase text-white text-xs"></i>
                             </div>
-                            <span className="text-sm font-medium text-gray-700">{tipoActividad}</span>
+                            <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">{tipoActividad}</span>
                           </div>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${estadoConfig.color} whitespace-nowrap flex items-center gap-1`}>
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold border ${estadoConfig.color} whitespace-nowrap flex items-center gap-1 flex-shrink-0`}>
                           <i className={`pi ${estadoConfig.icon} text-xs`}></i>
                           {estadoConfig.texto}
                         </span>
                       </div>
 
                       {/* Información del proyecto */}
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
+                      <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
                             <i className="pi pi-users text-blue-500"></i>
                             <span className="font-medium">{proyecto.id_estudiantes?.length || 0}</span>
-                            <span className="text-gray-500">participante{proyecto.id_estudiantes?.length !== 1 ? 's' : ''}</span>
+                            <span className="hidden sm:inline">participante{proyecto.id_estudiantes?.length !== 1 ? 's' : ''}</span>
                           </div>
-                          <span className="text-gray-300">•</span>
-                          <div className="flex items-center gap-2">
+                          <span className="hidden sm:inline text-gray-300">•</span>
+                          <div className="flex items-center gap-1">
                             <i className="pi pi-calendar text-green-500"></i>
-                            <span>{fechaSubida}</span>
+                            <span className="truncate">{fechaSubida}</span>
                           </div>
                         </div>
 
                         {proyecto.codigo_materia && (
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-xs sm:text-sm">
                             <i className="pi pi-book text-purple-500"></i>
                             <span className="font-medium text-gray-900">Materia:</span>
-                            <span className="text-purple-700 bg-purple-50 px-2 py-1 rounded-md">{proyecto.codigo_materia}</span>
+                            <span className="text-purple-700 bg-purple-50 px-2 py-1 rounded-md truncate">{proyecto.codigo_materia}</span>
                           </div>
                         )}
 
                         {proyecto.calificacion && (
                           <div className="flex items-center gap-2">
-                            <div className="flex">
-                              {[1, 2, 3, 4, 5].map(star => (
-                                <i 
-                                  key={star}
-                                  className={`pi pi-star${star <= proyecto.calificacion ? '-fill' : ''} text-yellow-400 text-sm`}
-                                ></i>
-                              ))}
+                            <div className="flex items-center gap-1">
+                              <i className="pi pi-pencil text-blue-500 text-xs sm:text-sm"></i>
+                              <span className="text-xs sm:text-sm font-semibold text-gray-900">
+                                {proyecto.calificacion}/5
+                              </span>
                             </div>
-                            <span className="text-sm font-semibold text-gray-900 ml-1">
-                              {proyecto.calificacion}/5
-                            </span>
                           </div>
                         )}
 
                       </div>
 
                       {/* Acciones */}
-                      <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
+                      <div className="flex items-center gap-2 pt-3 sm:pt-4 border-t border-gray-200">
                         <button 
                           onClick={() => handleViewDetails(proyecto)}
-                          className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-teal-600 hover:to-cyan-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                          className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-teal-600 hover:to-cyan-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                         >
                           <i className="pi pi-eye"></i>
-                          Ver detalles
+                          <span className="hidden sm:inline">Ver detalles</span>
+                          <span className="sm:hidden">Ver</span>
                         </button>
                       </div>
                     </div>
@@ -615,44 +616,48 @@ export default function MyProjects() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-auto">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
             {/* Header del modal */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900">Detalles del Proyecto</h3>
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-2">Detalles del Proyecto</h3>
               <button 
                 onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-500 hover:text-gray-700 transition-colors flex-shrink-0"
               >
-                <i className="pi pi-times text-xl"></i>
+                <i className="pi pi-times text-lg sm:text-xl"></i>
               </button>
             </div>
 
             {/* Contenido del modal */}
             <div className="p-6 space-y-6">
               {/* Título y Estado */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.titulo_proyecto}</h4>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
+              <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-3 sm:gap-4">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 line-clamp-2">{selectedProject.titulo_proyecto}</h4>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600">
                     <span className="flex items-center gap-1">
                       <i className="pi pi-briefcase"></i>
-                      {
+                      <span className="truncate">
                         {
-                          1: 'Proyecto (Exposoftware)',
-                          2: 'Taller',
-                          3: 'Ponencia',
-                          4: 'Conferencia'
-                        }[selectedProject.tipo_actividad] || 'Tipo Desconocido'
-                      }
+                          {
+                            1: 'Proyecto (Exposoftware)',
+                            2: 'Taller',
+                            3: 'Ponencia',
+                            4: 'Conferencia'
+                          }[selectedProject.tipo_actividad] || 'Tipo Desconocido'
+                        }
+                      </span>
                     </span>
-                    <span>•</span>
+                    <span className="hidden sm:inline">•</span>
                     <span className="flex items-center gap-1">
                       <i className="pi pi-calendar"></i>
-                      {selectedProject.fecha_subida 
-                        ? new Date(selectedProject.fecha_subida).toLocaleDateString('es-ES')
-                        : 'Fecha no disponible'}
+                      <span className="truncate">
+                        {selectedProject.fecha_subida 
+                          ? new Date(selectedProject.fecha_subida).toLocaleDateString('es-ES')
+                          : 'Fecha no disponible'}
+                      </span>
                     </span>
                   </div>
                 </div>
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap ${
+                <span className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap flex-shrink-0 ${
                   selectedProject.activo 
                     ? "bg-green-100 text-green-800"
                     : "bg-gray-100 text-gray-800"
@@ -692,17 +697,12 @@ export default function MyProjects() {
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Calificación</p>
                         <div className="flex items-center gap-2">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map(star => (
-                              <i 
-                                key={star}
-                                className={`pi pi-star${star <= selectedProject.calificacion ? '-fill' : ''} text-yellow-500`}
-                              ></i>
-                            ))}
+                          <div className="flex items-center gap-1">
+                            <i className="pi pi-pencil text-blue-500"></i>
+                            <span className="text-sm font-semibold text-gray-900">
+                              {selectedProject.calificacion}/5
+                            </span>
                           </div>
-                          <span className="text-sm font-semibold text-gray-900">
-                            {selectedProject.calificacion}/5
-                          </span>
                         </div>
                       </div>
                     )}
@@ -860,37 +860,39 @@ export default function MyProjects() {
             </div>
 
             {/* Footer del modal */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
               <button 
                 onClick={closeModal}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors order-2 sm:order-1"
               >
                 Cerrar
               </button>
               
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 order-1 sm:order-2">
                 {/* Botón descargar MI certificado (individual) */}
                 <button
                   onClick={() => handleDescargarCertificado(selectedProject)}
                   disabled={descargandoCertificado}
-                  className="px-4 py-2 text-white rounded-lg transition-opacity flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 text-sm"
                   style={{ backgroundColor: 'rgba(59, 130, 246, 1)' }}
                   title="Descargar solo mi certificado"
                 >
-                  <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-certificate'}`}></i>
-                  {descargandoCertificado ? 'Generando...' : 'Mi Certificado'}
+                  <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-certificate'} text-sm`}></i>
+                  <span className="hidden sm:inline">{descargandoCertificado ? 'Generando...' : 'Mi Certificado'}</span>
+                  <span className="sm:hidden">{descargandoCertificado ? '...' : 'Mi Cert.'}</span>
                 </button>
 
                 {/* Botón descargar TODOS los certificados (ZIP) */}
                 <button
                   onClick={() => handleDescargarTodosCertificados(selectedProject)}
                   disabled={descargandoCertificado}
-                  className="px-4 py-2 text-white rounded-lg transition-opacity flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                  className="px-3 sm:px-4 py-2 text-white rounded-lg transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 text-sm"
                   style={{ backgroundColor: 'rgba(147, 51, 234, 1)' }}
                   title={`Descargar todos los certificados (${selectedProject.id_estudiantes?.length || 0} estudiantes)`}
                 >
-                  <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-users'}`}></i>
-                  {descargandoCertificado ? 'Generando ZIP...' : `Todos (${selectedProject.id_estudiantes?.length || 0})`}
+                  <i className={`pi ${descargandoCertificado ? 'pi-spin pi-spinner' : 'pi-users'} text-sm`}></i>
+                  <span className="hidden sm:inline">{descargandoCertificado ? 'Generando ZIP...' : `Todos (${selectedProject.id_estudiantes?.length || 0})`}</span>
+                  <span className="sm:hidden">{descargandoCertificado ? '...' : `Todos (${selectedProject.id_estudiantes?.length || 0})`}</span>
                 </button>
 
                 {selectedProject.archivo_pdf && (
@@ -898,12 +900,13 @@ export default function MyProjects() {
                     href={selectedProject.archivo_pdf}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+                    className="px-3 sm:px-4 py-2 text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm"
                     style={{ backgroundColor: 'rgba(12, 183, 106, 1)' }}
                     title="Descargar PDF del proyecto"
                   >
-                    <i className="pi pi-file-pdf"></i>
-                    PDF Proyecto
+                    <i className="pi pi-file-pdf text-sm"></i>
+                    <span className="hidden sm:inline">PDF Proyecto</span>
+                    <span className="sm:hidden">PDF</span>
                   </a>
                 )}
               </div>

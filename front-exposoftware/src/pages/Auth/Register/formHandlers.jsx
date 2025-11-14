@@ -20,19 +20,36 @@ export const handleChange = (
   const { name, value } = e.target;
   let cleanValue = value;
 
-  // ✅ Campos que solo aceptan letras
+  // ✅ Campos que solo aceptan letras (se limpian y capitalizan)
   const alphabeticFields = [
     "primerNombre",
     "segundoNombre",
     "primerApellido",
     "segundoApellido",
+    "intitucionOrigen",
+    "nombreEmpresa"
   ];
 
-  // Bloquear caracteres inválidos + capitalizar
-  if (alphabeticFields.includes(name)) {
-    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "").toLowerCase(); // primero pasamos todo a minúscula
+  // 🔥 LISTA DE CAMPOS QUE DEBEN CAPITALIZARSE
+  // Agrega o quita campos según necesites
+  const capitalizeFields = [
+    "primerNombre",
+    "segundoNombre",
+    "primerApellido",
+    "segundoApellido",
+    "intitucionOrigen",
+    "nombreEmpresa",
+    "direccionResidencia",
+  ];
 
-    cleanValue = capitalizeWords(cleanValue); // luego capitalizamos
+  // Bloquear caracteres inválidos en campos alfabéticos
+  if (alphabeticFields.includes(name)) {
+    cleanValue = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "").toLowerCase();
+  }
+
+  // Capitalizar campos especificados
+  if (capitalizeFields.includes(name) && typeof cleanValue === "string") {
+    cleanValue = capitalizeWords(cleanValue);
   }
 
   // Limpiar caracteres no numéricos
@@ -40,9 +57,27 @@ export const handleChange = (
     cleanValue = value.replace(/[^\d]/g, "");
   }
 
-
   if (name === "rol") {
     setrol(cleanValue);
+  }
+
+  if (name === "tipoDocumento") {
+    setFormData((prev) => ({
+      ...prev,
+      tipoDocumento: cleanValue,
+      numeroDocumento: ""
+    }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      tipoDocumento: "",
+      numeroDocumento: ""
+    }));
+    setSuccessFields((prev) => ({
+      ...prev,
+      tipoDocumento: cleanValue !== "",
+      numeroDocumento: false
+    }));
+    return; // Salir temprano
   }
 
   setFormData((prev) => {
@@ -162,6 +197,28 @@ export const handlePhoneChange = (
 ) => {
   // PhoneInput ya incluye el "+" en algunos casos
   const phoneValue = value.startsWith("+") ? value : `+${value}`;
+  
+  // Extraer solo los dígitos
+  const digits = phoneValue.replace(/\D/g, "");
+  
+  // 🔥 BLOQUEO PARA NÚMEROS COLOMBIANOS
+  const isColombia = digits.startsWith("57");
+  
+  if (isColombia) {
+    const number = digits.slice(2); // Quitar el código de país "57"
+    
+    // 🚫 Si ya tiene dígitos y el primero NO es 3, bloqueamos el cambio
+    if (number.length > 0 && !number.startsWith("3")) {
+      console.warn("⚠️ Número colombiano debe comenzar con 3");
+      return; // NO actualizar el estado
+    }
+    
+    // 🚫 Si intenta escribir más de 10 dígitos, bloqueamos
+    if (number.length > 10) {
+      console.warn("⚠️ Número colombiano debe tener máximo 10 dígitos");
+      return; // NO actualizar el estado
+    }
+  }
 
   // Crear el formData actualizado para validar
   const updatedForm = { ...formData, telefono: phoneValue };

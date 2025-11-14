@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo-unicesar.png";
 import AdminSidebar from "../../components/Layout/AdminSidebar";
 import AssistanceService from "../../services/AssistanceService";
 import EventosService from "../../Services/EventosService";
+import * as AuthService from "../../Services/AuthService";
+import DashboardService from "../../Services/DashboardService";
+
 
 export default function AttendanceAdmin() {
   const [qrCodeUrl, setQrCodeUrl] = useState(null)
@@ -17,6 +21,8 @@ export default function AttendanceAdmin() {
   const [itemsPerPage] = useState(4);
   const [searchTerm, setSearchTerm] = useState("");
   
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     let cargado = false;
@@ -115,6 +121,41 @@ export default function AttendanceAdmin() {
   //   }
   // }, []);
 
+  // Función para cerrar sesión
+    const handleLogout = async () => {
+      if (window.confirm('¿Está seguro de que desea cerrar sesión?')) {
+        try {
+          await AuthService.logout();
+          navigate('/login');
+        } catch (error) {
+          console.error('❌ Error al cerrar sesión:', error);
+        }
+      }
+    };
+  
+    // Obtener nombre e iniciales del usuario
+    const getUserName = () => {
+      if (!userData) return 'Administrador';
+      return userData.nombre || userData.nombres || userData.correo?.split('@')[0] || 'Administrador';
+    };
+  
+    const getUserInitials = () => {
+      const name = getUserName();
+      return name.charAt(0).toUpperCase();
+    };
+  
+    useEffect(() => {
+        const user = AuthService.getUserData();
+        if (user) {
+          setUserData(user);
+          console.log('👤 Usuario autenticado:', user);
+        } else {
+          console.warn('⚠️ No hay usuario autenticado');
+          navigate('/login');
+        }
+    }, [navigate]);
+  
+  
 
   const filteredPeople = registeredPeople.filter(
     (person) =>
@@ -201,15 +242,19 @@ export default function AttendanceAdmin() {
               </div>
             </div>
 
+            {/* User avatar and logout */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">Carlos</span>
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-lg">C</span>
+                <span className="text-sm text-gray-700 hidden sm:block">{getUserName()}</span>
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <span className="text-teal-600 font-bold text-lg">{getUserInitials()}</span>
                 </div>
               </div>
-
-              <button className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+              
+              <button 
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
+              >
                 <i className="pi pi-sign-out"></i>
                 <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
