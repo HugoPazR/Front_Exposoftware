@@ -137,15 +137,7 @@ const PersonalInfoSection = ({
         <label className="block font-medium text-gray-700 mb-1">
           Teléfono *
         </label>
-        <div
-          className={`w-full border rounded-lg transition-all ${
-            errors.telefono
-              ? "border-red-500"
-              : successFields.telefono
-              ? "border-green-500"
-              : "border-gray-300"
-          } ${cargando ? "bg-gray-100" : ""}`}
-        >
+        <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white relative">
           <PhoneInput
             country={"co"}
             enableSearch={true}
@@ -154,10 +146,11 @@ const PersonalInfoSection = ({
             value={formData.telefono}
             onChange={handlePhoneChange}
             disabled={cargando}
-            inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full p-2"
-            buttonClass="!border-none !bg-transparent hover:bg-gray-100 !rounded-l-lg"
-            dropdownClass="!shadow-lg !border !border-gray-200"
+            inputClass="!border-none !outline-none !shadow-none !bg-transparent w-full !p-2 !pl-12"
+            buttonClass="!border-none !bg-transparent hover:!bg-gray-100 !rounded-l-lg !absolute !left-0 !top-0 !h-full"
+            dropdownClass="!shadow-lg !border !border-gray-200 !z-50"
             searchClass="!px-3 !py-2"
+            containerClass="!static"
             placeholder="3001234567"
           />
         </div>
