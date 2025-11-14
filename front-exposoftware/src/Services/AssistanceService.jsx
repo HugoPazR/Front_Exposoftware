@@ -69,15 +69,21 @@ class AssistanceService {
         body: JSON.stringify({ correo_usuario: correoUsuario })
       });
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
       const data = await response.json();
-      console.log('✅ Asistencia registrada exitosamente');
+
+      if (!response.ok) {
+        const error = new Error(data.message || `Error ${response.status}`);
+        error.status = response.status;
+        error.data = data;
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('❌ Error al registrar asistencia:', error);
+      if (!error.status) {
+        throw error;
+      }
+
       throw error;
     }
   }

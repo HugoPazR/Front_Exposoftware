@@ -1,8 +1,8 @@
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import EventosService from "../../Services/EventosService";
 //import getEventoById from "../../Services/EventosPublicService"; 
-import AssistanceService from "../../services/AssistanceService"; 
+import AssistanceService from "../../services/AssistanceService";
 
 export default function AsistenciaForm() {
     const [email, setEmail] = useState("");
@@ -14,39 +14,7 @@ export default function AsistenciaForm() {
     const { id_evento } = useParams();
     const [params] = useSearchParams();
     const idEvento = id_evento || params.get("id_evento") || params.get("id_sesion");
-
-    const handleChange = (e) => {
-        const val = e.target.value;
-        setEmail(val);
-
-        if (val === "") {
-            setError("El correo no puede estar vacío.");
-        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
-            setError("Correo inválido. Asegúrate de ingresar un correo válido.");
-        } else {
-            setError("");
-        }
-    };
-
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setValidando(true);
-        setMensaje("");
-
-        try {
-            // ✅ Si pasa la validación, registrar asistencia
-            const response = await AssistanceService.registrarAsistencia(idEvento, email);
-
-            console.log("✅ Asistencia registrada:", response);
-            setMensaje("✅ Asistencia registrada con éxito. ¡Gracias por participar!");
-        } catch (error) {
-            setMensaje("⚠️ Correo no registrado. Redirigiendo al registro...");
-            setTimeout(() => navigate("/register"), 2000);
-        } finally {
-            setValidando(false);
-        }
-    };
+    const response = null;
 
     useEffect(() => {
         let cargado = false;
@@ -65,6 +33,49 @@ export default function AsistenciaForm() {
 
         cargarEventos();
     }, []);
+
+    const handleChange = (e) => {
+        const val = e.target.value;
+        setEmail(val);
+
+        if (val === "") {
+            setError("El correo no puede estar vacío.");
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
+            setError("Correo inválido. Asegúrate de ingresar un correo válido.");
+        } else {
+            setError("");
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setValidando(true);
+        setMensaje("");
+
+        try {
+            const response = await AssistanceService.registrarAsistencia(idEvento, email);
+            console.log("✅ Asistencia registrada:", response);
+            setMensaje("✅ Asistencia registrada con éxito. ¡Gracias por participar!");
+
+        } catch (error) {
+            const errorMessages = {
+                403: "⚠️ Correo no registrado. Redirigiendo al registro...",
+                409: "ℹ️ Ya habías registrado tu asistencia anteriormente.",
+                404: "❌ Evento no encontrado.",
+                500: "❌ Error del servidor. Por favor, intenta nuevamente."
+            };
+
+            const message = errorMessages[error.status] || "❌ Ocurrió un error inesperado.";
+            setMensaje(message);
+
+            // Redirigir solo para el caso 403
+            if (error.status === 403) {
+                setTimeout(() => navigate("/register"), 2000);
+            }
+        } finally {
+            setValidando(false);
+        }
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
