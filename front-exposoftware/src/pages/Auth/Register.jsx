@@ -218,7 +218,8 @@ function RegisterPage() {
           mensajeError={mensajeError} 
         />
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-base auto-rows-max">          <PersonalInfoSection
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 text-xs md:text-base auto-rows-max"> 
+          <PersonalInfoSection
             formData={formData}
             errors={errors}
             successFields={successFields}
