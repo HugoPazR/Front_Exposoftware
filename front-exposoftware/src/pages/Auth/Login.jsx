@@ -100,7 +100,7 @@ export default function LoginPage() {
       // Obtener rol del usuario
       const userRole = AuthService.getUserRole();
       
-      console.log(" userRole obtenido:", userRole);
+      console.log("👤 userRole obtenido:", userRole);
       
       if (!userRole) {
         throw new Error("No se pudo obtener el rol del usuario");
@@ -155,11 +155,11 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-green-50">
-      <section className="flex w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
+    <main className="min-h-screen flex items-center justify-center bg-green-50 p-4">
+      <section className="flex flex-col lg:flex-row w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
 
-  
-        <aside className="w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex flex-col justify-center relative overflow-hidden">
+        {/* Panel Izquierdo - Info */}
+        <aside className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white p-10 flex-col justify-center relative overflow-hidden">
           <header className="mb-6 relative z-10">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
@@ -205,7 +205,7 @@ export default function LoginPage() {
           </footer>
         </aside>
 
-        {/* Panel Derecho - Siempre visible */}
+        {/* Panel Derecho - Formulario */}
         <section className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
           {/* Header móvil - Solo visible en móvil/tablet */}
           <header className="lg:hidden mb-6 text-center">
@@ -251,7 +251,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Correo</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type="email"
                   className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
@@ -266,7 +266,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Contraseña</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                 <input
                   type={showPassword ? "text" : "password"}
                   className="w-full border border-gray-300 rounded-lg pl-10 pr-12 py-2 sm:py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
@@ -278,7 +278,8 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -286,14 +287,14 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-2 sm:gap-0">
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={recordarme}
                   onChange={(e) => setRecordarme(e.target.checked)}
-                  className="accent-green-600"
+                  className="accent-green-600 w-4 h-4"
                 />
-                Recordarme
+                <span className="text-gray-700">Recordarme</span>
               </label>
               <a href="#" className="text-green-700 hover:underline text-sm">
                 ¿Olvidaste tu contraseña?
@@ -303,7 +304,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
             >
               {loading ? (
                 <>

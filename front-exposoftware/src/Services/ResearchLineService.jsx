@@ -139,13 +139,25 @@ export const obtenerLineas = async () => {
     let lineas = [];
     if (Array.isArray(data)) {
       // Si data es un array, son las líneas directamente
-      lineas = data;
+      lineas = data.map(linea => ({
+        ...linea,
+        // Incluir fecha de creación si está disponible
+        fechaCreacion: linea.created_at || linea.fecha_creacion || linea.fecha_registro || null
+      }));
     } else if (data.lineas && Array.isArray(data.lineas)) {
       // Si viene en formato {lineas: [...]}
-      lineas = data.lineas;
+      lineas = data.lineas.map(linea => ({
+        ...linea,
+        // Incluir fecha de creación si está disponible
+        fechaCreacion: linea.created_at || linea.fecha_creacion || linea.fecha_registro || null
+      }));
     } else if (data.data && Array.isArray(data.data)) {
       // Si viene en formato {data: [...]}
-      lineas = data.data;
+      lineas = data.data.map(linea => ({
+        ...linea,
+        // Incluir fecha de creación si está disponible
+        fechaCreacion: linea.created_at || linea.fecha_creacion || linea.fecha_registro || null
+      }));
     }
     
     console.log('✅ Líneas extraídas del árbol:', lineas);
@@ -410,7 +422,9 @@ export const obtenerTodasSublineas = async () => {
           sublineas.push({
             ...sublinea,
             codigo_linea: linea.codigo_linea,
-            nombre_linea: linea.nombre_linea
+            nombre_linea: linea.nombre_linea,
+            // Incluir fecha de creación si está disponible
+            fechaCreacion: sublinea.created_at || sublinea.fecha_creacion || sublinea.fecha_registro || null
           });
         });
       }
@@ -603,7 +617,9 @@ export const obtenerTodasAreas = async () => {
                 codigo_sublinea: sublinea.codigo_sublinea,
                 nombre_sublinea: sublinea.nombre_sublinea,
                 codigo_linea: linea.codigo_linea,
-                nombre_linea: linea.nombre_linea
+                nombre_linea: linea.nombre_linea,
+                // Incluir fecha de creación si está disponible
+                fechaCreacion: area.created_at || area.fecha_creacion || area.fecha_registro || null
               });
             });
           }

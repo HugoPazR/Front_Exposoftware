@@ -322,13 +322,6 @@ export default function StudentDashboard() {
 
             {/* Elementos del lado derecho - Responsive */}
             <div className="flex items-center gap-2 sm:gap-4">
-              {/* Botón Registrar Asistencia - Solo en desktop/tablet */}
-              <button className="hidden md:inline-flex text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:opacity-90 transition-colors whitespace-nowrap" style={{ backgroundColor: 'rgba(13, 97, 59, 1)' }}>
-                <i className="pi pi-qrcode mr-1 sm:mr-2"></i>
-                <span className="hidden lg:inline">Registrar Asistencia</span>
-                <span className="lg:hidden">Asistencia</span>
-              </button>
-
               {/* Información del usuario */}
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
@@ -379,10 +372,6 @@ export default function StudentDashboard() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
-                <Link to="/student/asistencia" className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}>
-                                  <i className="pi pi-qrcode text-base"></i>
-                                  Registrar Asistencia
-                                </Link>
                 <Link
                   to="/student/profile"
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}

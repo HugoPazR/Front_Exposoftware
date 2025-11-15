@@ -11,6 +11,7 @@ import {
   activarEstudiante,
   desactivarEstudiante
 } from '../../Services/StudentAdminService';
+import { obtenerTodosProgramas } from '../../Services/AcademicService';
 
 /**
  * Componente principal para la gestión de estudiantes
@@ -63,6 +64,7 @@ const StudentList = () => {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [estudianteSeleccionado, setEstudianteSeleccionado] = useState(null);
   const [accionPendiente, setAccionPendiente] = useState(null); // 'activar' o 'desactivar'
+  const [programas, setProgramas] = useState([]);
 
   // Cargar estudiantes al montar el componente
   useEffect(() => {
@@ -72,7 +74,7 @@ const StudentList = () => {
   // Aplicar filtros cuando cambian
   useEffect(() => {
     aplicarFiltros();
-  }, [busqueda, filtroEstado, estudiantes]);
+  }, [busqueda, filtroEstado, estudiantes, programas]);
 
   /**
    * Cargar lista de estudiantes desde el backend
@@ -82,17 +84,22 @@ const StudentList = () => {
       setCargando(true);
       setError(null);
       
-      const resultado = await obtenerEstudiantes();
-      console.log('📊 Resultado de estudiantes:', resultado);
+      // Cargar estudiantes y programas en paralelo
+      const [resultadoEstudiantes, resultadoProgramas] = await Promise.all([
+        obtenerEstudiantes(),
+        obtenerTodosProgramas()
+      ]);
       
       // Verificar si el resultado es un array o viene dentro de 'data'
-      const listaEstudiantes = Array.isArray(resultado.data) 
-        ? resultado.data 
-        : (resultado.data?.estudiantes || []);
+      const listaEstudiantes = Array.isArray(resultadoEstudiantes.data) 
+        ? resultadoEstudiantes.data 
+        : (resultadoEstudiantes.data?.estudiantes || []);
       
       console.log('📋 Lista de estudiantes procesada:', listaEstudiantes);
+      console.log('📚 Lista de programas cargada:', resultadoProgramas);
       
       setEstudiantes(listaEstudiantes);
+      setProgramas(resultadoProgramas);
       setEstudiantesFiltrados(listaEstudiantes);
     } catch (err) {
       console.error('❌ Error completo al cargar estudiantes:', err);
@@ -123,7 +130,7 @@ const StudentList = () => {
     
     // Filtrar por búsqueda
     if (busqueda.trim()) {
-      resultado = buscarEstudiantes(busqueda, resultado);
+      resultado = buscarEstudiantes(busqueda, resultado, programas);
     }
     
     // Filtrar por estado
@@ -205,7 +212,7 @@ const StudentList = () => {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                <h1 className="text-lg font-bold text-gray-900">Expo-software </h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
               </div>
             </div>
@@ -339,7 +346,7 @@ const StudentList = () => {
                           </tr>
                         ) : (
                           estudiantesActuales.map((item) => {
-                            const formateado = formatearEstudiante(item);
+                            const formateado = formatearEstudiante(item, programas);
                             // Extraer el ID correcto según el formato de datos
                             const estudianteId = item.estudiante?.id_estudiante || item.id_estudiante || formateado.id;
                             
@@ -501,7 +508,7 @@ const StudentList = () => {
               <div className="mb-6">
                 <p className="text-sm text-gray-600">
                   ¿Está seguro que desea {accionPendiente} al estudiante{' '}
-                  <strong className="text-gray-900">{formatearEstudiante(estudianteSeleccionado).nombreCompleto}</strong>?
+                  <strong className="text-gray-900">{formatearEstudiante(estudianteSeleccionado, programas).nombreCompleto}</strong>?
                 </p>
               </div>
               <div className="flex gap-3 justify-center">

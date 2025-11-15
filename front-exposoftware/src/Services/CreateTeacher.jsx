@@ -349,16 +349,11 @@ export const filtrarDocentes = (docentes, searchTerm) => {
   const termino = searchTerm.toLowerCase();
   return docentes.filter(docente => {
     try {
-      // El backend devuelve campos separados: primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
-      const primerNombre = docente?.usuario?.primer_nombre || "";
-      const segundoNombre = docente?.usuario?.segundo_nombre || "";
-      const primerApellido = docente?.usuario?.primer_apellido || "";
-      const segundoApellido = docente?.usuario?.segundo_apellido || "";
-      
-      const nombreCompleto = `${primerNombre} ${segundoNombre} ${primerApellido} ${segundoApellido}`.toLowerCase();
+      // El backend devuelve nombre_completo en el objeto usuario
+      const nombreCompleto = docente?.usuario?.nombre_completo?.toLowerCase() || "";
       const identificacion = docente?.usuario?.identificacion?.toLowerCase() || "";
       const correo = docente?.usuario?.correo?.toLowerCase() || "";
-      const programa = docente?.codigo_programa?.toLowerCase() || '';
+      const programa = docente?.docente?.codigo_programa?.toLowerCase() || docente?.codigo_programa?.toLowerCase() || '';
 
       return (
         nombreCompleto.includes(termino) ||

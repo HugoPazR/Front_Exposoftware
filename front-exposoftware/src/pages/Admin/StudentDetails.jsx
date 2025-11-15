@@ -4,6 +4,7 @@ import logo from '../../assets/Logo-unicesar.png';
 import AdminSidebar from '../../components/Layout/AdminSidebar';
 import * as AuthService from '../../Services/AuthService';
 import { obtenerEstudianteCompleto, formatearEstudiante } from '../../Services/StudentAdminService';
+import { obtenerTodosProgramas } from '../../Services/AcademicService';
 
 /**
  * Componente para mostrar los detalles completos de un estudiante
@@ -17,6 +18,7 @@ const StudentDetails = () => {
   const [estudiante, setEstudiante] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [programas, setProgramas] = useState([]);
 
   // Cargar datos del usuario autenticado
   useEffect(() => {
@@ -58,8 +60,14 @@ const StudentDetails = () => {
       setCargando(true);
       setError(null);
       
-      const resultado = await obtenerEstudianteCompleto(studentId);
-      setEstudiante(resultado.data);
+      // Cargar estudiante y programas en paralelo
+      const [resultadoEstudiante, resultadoProgramas] = await Promise.all([
+        obtenerEstudianteCompleto(studentId),
+        obtenerTodosProgramas()
+      ]);
+      
+      setEstudiante(resultadoEstudiante.data);
+      setProgramas(resultadoProgramas);
     } catch (err) {
       console.error('Error al cargar estudiante:', err);
       setError(err.message || 'Error al cargar los detalles del estudiante');
@@ -85,7 +93,7 @@ const StudentDetails = () => {
               <div className="flex items-center gap-3">
                 <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                  <h1 className="text-lg font-bold text-gray-900">Expo-software </h1>
                   <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
                 </div>
               </div>
@@ -139,7 +147,7 @@ const StudentDetails = () => {
     );
   }
 
-  const formateado = formatearEstudiante(estudiante);
+  const formateado = formatearEstudiante(estudiante, programas);
   const usuario = estudiante.usuario || {};
 
   return (
@@ -206,7 +214,7 @@ const StudentDetails = () => {
                   <InfoField label="Identificación" value={formateado.identificacion} />
                   <InfoField 
                     label="Género" 
-                    value={usuario.sexo === 'M' ? 'Masculino' : usuario.sexo === 'F' ? 'Femenino' : 'Otro'} 
+                    value={usuario.sexo === 'Hombre' ? 'Masculino' : usuario.sexo === 'Mujer' ? 'Femenino' : usuario.sexo || 'Otro'} 
                   />
                   <InfoField 
                     label="Fecha de Nacimiento" 
@@ -233,11 +241,11 @@ const StudentDetails = () => {
                   />
                   <InfoField 
                     label="Ciudad" 
-                    value={usuario.ciudad || 'N/A'} 
+                    value={usuario.ciudad_residencia || usuario.ciudad || 'N/A'} 
                   />
                   <InfoField 
                     label="Dirección" 
-                    value={usuario.direccion || 'N/A'} 
+                    value={usuario.direccion_residencia || usuario.direccion || 'N/A'} 
                   />
                 </div>
               </div>
@@ -285,7 +293,7 @@ const StudentDetails = () => {
                 <div className="space-y-3">
                   <InfoField 
                     label="ID de Estudiante" 
-                    value={estudiante.id_estudiante || 'N/A'} 
+                    value={estudiante.estudiante?.id_estudiante || estudiante.id_estudiante || formateado.id || 'N/A'} 
                   />
                   <InfoField 
                     label="ID de Usuario" 
@@ -297,16 +305,24 @@ const StudentDetails = () => {
                   />
                   <InfoField 
                     label="Fecha de Registro" 
-                    value={formateado.fechaCreacion 
-                      ? new Date(formateado.fechaCreacion).toLocaleString('es-ES')
-                      : 'N/A'
+                    value={usuario.created_at 
+                      ? new Date(usuario.created_at).toLocaleString('es-ES')
+                      : estudiante.estudiante?.created_at 
+                        ? new Date(estudiante.estudiante.created_at).toLocaleString('es-ES')
+                        : formateado.fechaCreacion 
+                          ? new Date(formateado.fechaCreacion).toLocaleString('es-ES')
+                          : 'N/A'
                     } 
                   />
                   <InfoField 
                     label="Última Actualización" 
-                    value={formateado.fechaActualizacion 
-                      ? new Date(formateado.fechaActualizacion).toLocaleString('es-ES')
-                      : 'N/A'
+                    value={usuario.updated_at 
+                      ? new Date(usuario.updated_at).toLocaleString('es-ES')
+                      : estudiante.estudiante?.updated_at 
+                        ? new Date(estudiante.estudiante.updated_at).toLocaleString('es-ES')
+                        : formateado.fechaActualizacion 
+                          ? new Date(formateado.fechaActualizacion).toLocaleString('es-ES')
+                          : 'N/A'
                     } 
                   />
                 </div>

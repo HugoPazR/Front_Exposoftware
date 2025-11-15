@@ -212,43 +212,55 @@ export function useTeacherManagement() {
   const handleEdit = (profesor) => {
     console.log('🔍 Editando profesor:', profesor);
     
-    setEditingId(profesor.id);
+    setEditingId(profesor.docente?.id_docente || profesor.id);
     
-    // Verificar si tiene propiedad 'usuario' o si los datos están directamente en el objeto
-    const datos = profesor.usuario || profesor;
+    // Los datos están separados en objetos 'usuario' y 'docente'
+    const datosUsuario = profesor.usuario || {};
+    const datosDocente = profesor.docente || profesor;
     
-    setTipoDocumento(datos.tipo_documento || "");
-    setIdentificacion(datos.identificacion || "");
+    setTipoDocumento(datosUsuario.tipo_documento || "");
+    setIdentificacion(datosUsuario.identificacion || "");
     
-    // El backend retorna 'nombres' y 'apellidos' combinados, no separados
-    // Separar nombres para mostrar en los campos primerNombre/segundoNombre
-    const nombresArray = (datos.nombres || "").split(" ");
+    // El backend retorna 'nombre_completo', separarlo en primer y segundo nombre
+    const nombreCompleto = datosUsuario.nombre_completo || "";
+    const nombresArray = nombreCompleto.split(" ");
     const primerNom = nombresArray[0] || "";
     const segundoNom = nombresArray.slice(1).join(" ") || "";
     
-    const apellidosArray = (datos.apellidos || "").split(" ");
-    const primerApellido = apellidosArray[0] || "";
-    const segundoApellido = apellidosArray.slice(1).join(" ") || "";
+    // Para apellidos, intentar separarlos si están en el nombre completo
+    // Asumiendo formato: "Nombre1 Nombre2 Apellido1 Apellido2"
+    const partesNombre = nombreCompleto.split(" ");
+    let primerApellido = "";
+    let segundoApellido = "";
+    
+    if (partesNombre.length >= 3) {
+      // Últimas dos partes son apellidos
+      segundoApellido = partesNombre.pop();
+      primerApellido = partesNombre.pop();
+    } else if (partesNombre.length === 2) {
+      // Solo un apellido
+      primerApellido = partesNombre[1];
+    }
     
     setPrimerNombre(primerNom);
     setSegundoNombre(segundoNom);
     setPrimerApellido(primerApellido);
     setSegundoApellido(segundoApellido);
     
-    setGenero(datos.sexo || datos.genero || ""); // Backend usa 'sexo'
-    setIdentidadSexual(datos.identidad_sexual || "");
-    setFechaNacimiento(datos.fecha_nacimiento || "");
-    setNacionalidad(datos.nacionalidad === "Colombiana" ? "CO" : datos.nacionalidad || "CO");
-    setPais(datos.pais_residencia === "Colombia" ? "CO" : datos.pais_residencia || "CO");
-    setDepartamento(datos.departamento || ""); // Backend usa 'departamento' (no 'departamento_residencia')
-    setMunicipio(datos.municipio || "");
-    setCiudadResidencia(datos.ciudad_residencia || "");
-    setDireccionResidencia(datos.direccion_residencia || "");
-    setTelefono(datos.telefono || "");
-    setCorreo(datos.correo || "");
-    setCategoriaDocente(profesor.categoria_docente || "");
-    setCodigoPrograma(profesor.codigo_programa || "");
-    setActivo(profesor.activo !== undefined ? profesor.activo : true);
+    setGenero(datosUsuario.sexo || datosUsuario.genero || "");
+    setIdentidadSexual(datosUsuario.identidad_sexual || "");
+    setFechaNacimiento(datosUsuario.fecha_nacimiento || "");
+    setNacionalidad(datosUsuario.nacionalidad === "Colombia" ? "CO" : datosUsuario.nacionalidad || "CO");
+    setPais(datosUsuario.pais_residencia === "Colombia" ? "CO" : datosUsuario.pais_residencia || "CO");
+    setDepartamento(datosUsuario.departamento || "");
+    setMunicipio(datosUsuario.municipio || "");
+    setCiudadResidencia(datosUsuario.ciudad_residencia || "");
+    setDireccionResidencia(datosUsuario.direccion_residencia || "");
+    setTelefono(datosUsuario.telefono || "");
+    setCorreo(datosUsuario.correo || "");
+    setCategoriaDocente(datosDocente.categoria_docente || "");
+    setCodigoPrograma(datosDocente.codigo_programa || "");
+    setActivo(datosUsuario.activo !== undefined ? datosUsuario.activo : true);
     setIsEditing(true);
     setShowEditModal(true);
   };
@@ -309,10 +321,10 @@ export function useTeacherManagement() {
 
   // Eliminar profesor usando el servicio
   const handleDelete = async (id) => {
-    const profesorAEliminar = profesores.find(p => p.id === id);
+    const profesorAEliminar = profesores.find(p => (p.docente?.id_docente || p.id) === id);
     
-    // El backend retorna 'nombres' combinado, no separado
-    const nombreCompleto = profesorAEliminar?.usuario?.nombres || profesorAEliminar?.nombres || "profesor";
+    // El backend retorna 'nombre_completo' en el objeto usuario
+    const nombreCompleto = profesorAEliminar?.usuario?.nombre_completo || profesorAEliminar?.usuario?.nombres || profesorAEliminar?.nombres || "profesor";
 
     if (window.confirm(`¿Está seguro de que desea eliminar al profesor "${nombreCompleto}"?`)) {
       try {

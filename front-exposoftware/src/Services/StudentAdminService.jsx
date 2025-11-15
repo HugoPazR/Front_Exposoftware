@@ -301,27 +301,42 @@ export const asignarEstudianteExistente = async (data) => {
  * Buscar estudiantes por nombre, identificación o código
  * @param {string} query - Término de búsqueda
  * @param {Array} estudiantes - Lista de estudiantes donde buscar
+ * @param {Array} programas - Lista de programas para búsqueda por nombre de programa
  * @returns {Array} Estudiantes que coinciden con la búsqueda
  */
-export const buscarEstudiantes = (query, estudiantes) => {
+export const buscarEstudiantes = (query, estudiantes, programas = []) => {
   if (!query || !query.trim()) return estudiantes;
   
   const searchTerm = query.toLowerCase().trim();
   
   return estudiantes.filter(estudiante => {
-    const nombre = `${estudiante.usuario?.nombres || ''} ${estudiante.usuario?.apellidos || ''}`.toLowerCase();
-    const identificacion = estudiante.usuario?.identificacion?.toLowerCase() || '';
-    const email = estudiante.usuario?.email?.toLowerCase() || '';
-    const programa = estudiante.programa?.nombre?.toLowerCase() || '';
+    // Acceder correctamente a los datos anidados
+    const usuario = estudiante.usuario || {};
+    const estudianteData = estudiante.estudiante || estudiante;
+
+    const nombreCompleto = usuario.nombre_completo?.toLowerCase() ||
+                          `${usuario.primer_nombre || ''} ${usuario.segundo_nombre || ''} ${usuario.primer_apellido || ''} ${usuario.segundo_apellido || ''}`.toLowerCase().trim() ||
+                          `${usuario.nombres || ''} ${usuario.apellidos || ''}`.toLowerCase().trim() || '';
+    const identificacion = usuario.identificacion?.toLowerCase() || '';
+    const email = usuario.correo?.toLowerCase() || usuario.email?.toLowerCase() || '';
     
-    return nombre.includes(searchTerm) ||
+    // Buscar por nombre de programa si tenemos la lista de programas
+    let programaNombre = '';
+    if (estudianteData.codigo_programa && programas.length > 0) {
+      const programaEncontrado = programas.find(p => p.codigo === estudianteData.codigo_programa);
+      if (programaEncontrado) {
+        programaNombre = programaEncontrado.nombre.toLowerCase();
+      }
+    }
+    const codigoPrograma = estudianteData.codigo_programa?.toLowerCase() || '';
+
+    return nombreCompleto.includes(searchTerm) ||
            identificacion.includes(searchTerm) ||
            email.includes(searchTerm) ||
-           programa.includes(searchTerm);
+           programaNombre.includes(searchTerm) ||
+           codigoPrograma.includes(searchTerm);
   });
-};
-
-/**
+};/**
  * Filtrar estudiantes por estado
  * @param {string} estado - Estado a filtrar (activo/inactivo/todos)
  * @param {Array} estudiantes - Lista de estudiantes
@@ -329,39 +344,62 @@ export const buscarEstudiantes = (query, estudiantes) => {
  */
 export const filtrarPorEstado = (estado, estudiantes) => {
   if (estado === 'todos') return estudiantes;
-  
+
   const estadoBool = estado === 'activo';
-  return estudiantes.filter(estudiante => estudiante.estado === estadoBool);
+  return estudiantes.filter(estudiante => {
+    // Acceder correctamente al campo activo
+    const usuario = estudiante.usuario || {};
+    const estudianteData = estudiante.estudiante || estudiante;
+
+    const activo = usuario.activo !== undefined ? usuario.activo :
+                  estudianteData.activo !== undefined ? estudianteData.activo :
+                  false; // Default a false si no existe el campo
+
+    return activo === estadoBool;
+  });
 };
 
 /**
  * Formatear datos del estudiante para visualización
  * @param {Object} data - Datos del estudiante (puede venir en formato anidado o plano)
+ * @param {Array} programas - Lista opcional de programas para mapear códigos a nombres
  * @returns {Object} Datos formateados
  */
-export const formatearEstudiante = (data) => {
+export const formatearEstudiante = (data, programas = []) => {
   // Detectar si los datos vienen en formato anidado (nuevo formato del backend)
   const estudiante = data.estudiante || data;
   const usuario = data.usuario || estudiante.usuario || {};
-  
+
+  // Buscar el programa por código si tenemos la lista de programas
+  let nombrePrograma = 'Sin programa';
+  if (estudiante.codigo_programa && programas.length > 0) {
+    const programaEncontrado = programas.find(p => p.codigo === estudiante.codigo_programa);
+    if (programaEncontrado) {
+      nombrePrograma = `${programaEncontrado.nombre} - ${programaEncontrado.nivel}`;
+    }
+  }
+
   return {
     id: estudiante.id_estudiante,
-    nombreCompleto: usuario.nombre_completo || 
+    nombreCompleto: usuario.nombre_completo ||
+                   `${usuario.primer_nombre || ''} ${usuario.segundo_nombre || ''} ${usuario.primer_apellido || ''} ${usuario.segundo_apellido || ''}`.trim() ||
                    `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim() ||
                    'Sin nombre',
     identificacion: usuario.identificacion || 'N/A',
     email: usuario.correo || usuario.email || 'N/A',
     telefono: usuario.telefono || 'N/A',
-    programa: estudiante.programa?.nombre || 'Sin programa',
+    programa: nombrePrograma,
     codigoPrograma: estudiante.codigo_programa || 'N/A',
     semestre: estudiante.semestre || 0,
     periodo: estudiante.periodo,
     anioIngreso: estudiante.anio_ingreso,
-    estado: estudiante.activo !== undefined ? (estudiante.activo ? 'Activo' : 'Inactivo') : 
-            (estudiante.estado ? 'Activo' : 'Inactivo'),
-    estadoBool: estudiante.activo !== undefined ? estudiante.activo : estudiante.estado,
+    estado: usuario.activo !== undefined ? (usuario.activo ? 'Activo' : 'Inactivo') :
+            estudiante.activo !== undefined ? (estudiante.activo ? 'Activo' : 'Inactivo') :
+            'Inactivo', // Default a Inactivo si no hay campo activo
+    estadoBool: usuario.activo !== undefined ? usuario.activo :
+                estudiante.activo !== undefined ? estudiante.activo :
+                false, // Default a false si no hay campo activo
     fechaCreacion: estudiante.fecha_creacion,
     fechaActualizacion: estudiante.fecha_actualizacion
   };
 };
-

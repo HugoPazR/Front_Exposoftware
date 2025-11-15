@@ -10,7 +10,7 @@ export default function Footer() {
         {/* Sección 1: Logo y descripción */}
         <div className="flex flex-col items-center sm:items-start">
           <img
-            src="/src/assets/Logo-Sistemas.png"
+            src="https://res.cloudinary.com/dtuyckctv/image/upload/v1761966781/images-removebg-preview_uxcfn3.png"
             alt="Logo Ingenieria de sistemas"
             className="w-24 lg:w-28 mb-3"
           />

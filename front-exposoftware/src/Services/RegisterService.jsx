@@ -78,6 +78,12 @@ export const registrarEstudiante = async (studentData) => {
     if (generoLower === 'hermafrodita') return 'Hermafrodita';
     return genero; // Si ya está correcto, devolverlo tal cual
   };
+
+  // Normalizar identidad sexual (primera letra mayúscula)
+  const normalizarIdentidadSexual = (identidad) => {
+    if (!identidad) return '';
+    return identidad.charAt(0).toUpperCase() + identidad.slice(1).toLowerCase();
+  };
   
   const payload = {
     usuario: {
@@ -88,7 +94,7 @@ export const registrarEstudiante = async (studentData) => {
       primer_apellido: studentData.primerApellido,
       segundo_apellido: studentData.segundoApellido || null,
       sexo: normalizarGenero(studentData.genero),
-      identidad_sexual: studentData.orientacionSexual,
+      identidad_sexual: normalizarIdentidadSexual(studentData.orientacionSexual),
       fecha_nacimiento: studentData.fechaNacimiento,
       nacionalidad: studentData.paisNacimiento,
       pais_residencia: studentData.nacionalidad,
@@ -147,6 +153,22 @@ export const registrarEstudiante = async (studentData) => {
  * @returns {Promise<Object>} Resultado del registro
  */
 export const registrarEgresado = async (graduateData) => {
+  // Normalizar género para que coincida con el backend (primera letra mayúscula)
+  const normalizarGenero = (genero) => {
+    if (!genero) return '';
+    const generoLower = genero.toLowerCase();
+    if (generoLower === 'hombre') return 'Hombre';
+    if (generoLower === 'mujer') return 'Mujer';
+    if (generoLower === 'hermafrodita') return 'Hermafrodita';
+    return genero; // Si ya está correcto, devolverlo tal cual
+  };
+
+  // Normalizar identidad sexual (primera letra mayúscula)
+  const normalizarIdentidadSexual = (identidad) => {
+    if (!identidad) return '';
+    return identidad.charAt(0).toUpperCase() + identidad.slice(1).toLowerCase();
+  };
+
   const payload = {
     tipo_documento: graduateData.tipoDocumento,
     identificacion: graduateData.numeroDocumento,
@@ -154,8 +176,8 @@ export const registrarEgresado = async (graduateData) => {
     segundo_nombre: graduateData.segundoNombre || null,
     primer_apellido: graduateData.primerApellido,
     segundo_apellido: graduateData.segundoApellido || null,
-    sexo: graduateData.genero,
-    identidad_sexual: graduateData.orientacionSexual,
+    sexo: normalizarGenero(graduateData.genero),
+    identidad_sexual: normalizarIdentidadSexual(graduateData.orientacionSexual),
     fecha_nacimiento: graduateData.fechaNacimiento,
     nacionalidad: graduateData.paisNacimiento,
     pais_residencia: graduateData.nacionalidad,
@@ -214,6 +236,22 @@ export const registrarEgresado = async (graduateData) => {
  * @returns {Promise<Object>} Resultado del registro
  */
 export const registrarInvitado = async (guestData) => {
+  // Normalizar género para que coincida con el backend (primera letra mayúscula)
+  const normalizarGenero = (genero) => {
+    if (!genero) return '';
+    const generoLower = genero.toLowerCase();
+    if (generoLower === 'hombre') return 'Hombre';
+    if (generoLower === 'mujer') return 'Mujer';
+    if (generoLower === 'hermafrodita') return 'Hermafrodita';
+    return genero; // Si ya está correcto, devolverlo tal cual
+  };
+
+  // Normalizar identidad sexual (primera letra mayúscula)
+  const normalizarIdentidadSexual = (identidad) => {
+    if (!identidad) return '';
+    return identidad.charAt(0).toUpperCase() + identidad.slice(1).toLowerCase();
+  };
+
   const payload = {
     tipo_documento: guestData.tipoDocumento,
     identificacion: guestData.numeroDocumento,
@@ -221,8 +259,8 @@ export const registrarInvitado = async (guestData) => {
     segundo_nombre: guestData.segundoNombre || null,
     primer_apellido: guestData.primerApellido,
     segundo_apellido: guestData.segundoApellido || null,
-    sexo: guestData.genero,
-    identidad_sexual: guestData.orientacionSexual,
+    sexo: normalizarGenero(guestData.genero),
+    identidad_sexual: normalizarIdentidadSexual(guestData.orientacionSexual),
     fecha_nacimiento: guestData.fechaNacimiento,
     nacionalidad: guestData.paisNacimiento,
     pais_residencia: guestData.nacionalidad,

@@ -121,7 +121,7 @@ export default function CreateLines() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                <h1 className="text-lg font-bold text-gray-900">Expo-software </h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
               </div>
             </div>
@@ -235,12 +235,6 @@ export default function CreateLines() {
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                       required
                     />
-                    <p className="mt-1 text-xs text-red-600 font-medium">
-                      ⚠️ Máximo 15 caracteres (limitación del backend). Actual: {nombreLinea.length}/15
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Usa abreviaturas: "TIC", "IA y ML", "Des. Software", "Sist. Embebd.", etc.
-                    </p>
                   </div>
 
                   <div className="pt-4">
@@ -602,16 +596,6 @@ export default function CreateLines() {
                     </button>
                   </div>
 
-                  {/* Debug Info */}
-                  <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-300">
-                    <p className="text-xs text-gray-600 font-mono">
-                      <strong>Debug:</strong><br/>
-                      Línea seleccionada: {idLineaParaSublinea || 'Ninguna'}<br/>
-                      Sublíneas cargadas: {sublineasPorLinea.length}<br/>
-                      Sublínea seleccionada: {idSublineaParaArea || 'Ninguna'}<br/>
-                      Estado botón: {!idSublineaParaArea ? 'Deshabilitado' : 'Habilitado'}
-                    </p>
-                  </div>
                 </form>
 
                 {/* Tabla de Áreas */}

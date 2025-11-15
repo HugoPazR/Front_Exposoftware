@@ -163,7 +163,7 @@ const EditStudent = () => {
               <div className="flex items-center gap-3">
                 <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                  <h1 className="text-lg font-bold text-gray-900">Expo-software </h1>
                   <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
                 </div>
               </div>
@@ -218,7 +218,7 @@ const EditStudent = () => {
   }
 
   const nombreCompleto = estudiante?.usuario 
-    ? `${estudiante.usuario.nombres} ${estudiante.usuario.apellidos}`
+    ? `${estudiante.usuario.primer_nombre || ''} ${estudiante.usuario.segundo_nombre || ''} ${estudiante.usuario.primer_apellido || ''} ${estudiante.usuario.segundo_apellido || ''}`.trim() || estudiante.usuario.nombre_completo || 'Estudiante'
     : 'Estudiante';
 
   return (

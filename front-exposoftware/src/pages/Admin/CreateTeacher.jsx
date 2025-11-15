@@ -378,7 +378,7 @@ export default function CreateTeacher() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                <h1 className="text-lg font-bold text-gray-900">Expo-software </h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
               </div>
             </div>
@@ -1089,7 +1089,7 @@ export default function CreateTeacher() {
                       </tr>
                     ) : (
                       profesoresFiltrados.map((profesor) => (
-                        <tr key={profesor.id} className="hover:bg-gray-50 transition">
+                        <tr key={profesor.docente?.id_docente || profesor.id} className="hover:bg-gray-50 transition">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="text-sm font-medium text-gray-900">
                               {profesor?.usuario?.identificacion || profesor?.identificacion || 'N/A'}
@@ -1097,7 +1097,7 @@ export default function CreateTeacher() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">
-                              {profesor?.usuario?.nombres || profesor?.nombres || 'N/A'}
+                              {profesor?.usuario?.nombre_completo || profesor?.usuario?.nombres || profesor?.nombres || 'N/A'}
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -1105,21 +1105,21 @@ export default function CreateTeacher() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {profesor?.categoria_docente || 'N/A'}
+                              {profesor?.docente?.categoria_docente || profesor?.categoria_docente || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                              {profesor?.codigo_programa || 'N/A'}
+                              {profesor?.docente?.codigo_programa || profesor?.codigo_programa || 'N/A'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              profesor?.activo 
+                              profesor?.usuario?.activo !== undefined ? profesor.usuario.activo : profesor?.activo 
                                 ? 'bg-teal-100 text-teal-800' 
                                 : 'bg-red-100 text-red-800'
                             }`}>
-                              {profesor.activo ? 'Activo' : 'Inactivo'}
+                              {profesor?.usuario?.activo !== undefined ? (profesor.usuario.activo ? 'Activo' : 'Inactivo') : (profesor?.activo ? 'Activo' : 'Inactivo')}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -1132,7 +1132,7 @@ export default function CreateTeacher() {
                                 <i className="pi pi-pencil"></i>
                               </button>
                               <button
-                                onClick={() => handleDelete(profesor.id)}
+                                onClick={() => handleDelete(profesor.docente?.id_docente || profesor.id)}
                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                                 title="Eliminar"
                               >

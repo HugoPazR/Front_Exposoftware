@@ -13,13 +13,13 @@ export default function StudentProfileForm({
   return (
     <>
       {/* Información Personal */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
           <span>📋</span> Información Personal
         </h3>
 
         {/* Grid 2 columnas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Tipo de Documento */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -200,12 +200,12 @@ export default function StudentProfileForm({
       </div>
 
       {/* Ubicación y Residencia */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
           <span>🌍</span> Ubicación y Residencia
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* País */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -302,7 +302,7 @@ export default function StudentProfileForm({
           </div>
 
           {/* Dirección de Residencia */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Dirección de Residencia
             </label>
@@ -322,12 +322,12 @@ export default function StudentProfileForm({
       </div>
 
       {/* Información Académica */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 pb-3 border-b border-gray-200 flex items-center gap-2">
           <span>🎓</span> Información Académica
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {/* Correo - NO EDITABLE */}
           <div>
             <label className="block text-sm font-medium mb-1">

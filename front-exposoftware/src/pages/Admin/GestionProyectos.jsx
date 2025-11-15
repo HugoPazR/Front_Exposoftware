@@ -12,6 +12,7 @@ import { Dialog } from 'primereact/dialog';
 import AdminSidebar from '../../components/Layout/AdminSidebar';
 import logo from '../../assets/Logo-unicesar.png';
 import * as AuthService from '../../Services/AuthService';
+import EventosService from '../../Services/EventosService';
 import axios from 'axios';
 
 const API_BASE_URL = 'https://z6gasdnp5zp6v6egg4kg3jsitu0ffcqu.lambda-url.us-east-1.on.aws';
@@ -32,6 +33,8 @@ export default function GestionProyectos() {
   const [globalFilter, setGlobalFilter] = useState('');
   const [selectedProyecto, setSelectedProyecto] = useState(null);
   const [showDetalleDialog, setShowDetalleDialog] = useState(false);
+  const [nombreEvento, setNombreEvento] = useState('');
+  const [eventos, setEventos] = useState([]);
 
   // Cargar datos del usuario autenticado
   useEffect(() => {
@@ -48,6 +51,7 @@ export default function GestionProyectos() {
   // Cargar proyectos al montar el componente
   useEffect(() => {
     cargarProyectos();
+    cargarEventos();
   }, []);
 
   /**
@@ -77,6 +81,9 @@ export default function GestionProyectos() {
         detail: `${proyectosData.length} proyecto(s) encontrado(s)`,
         life: 3000
       });
+
+      // Recargar eventos también por si hay cambios
+      await cargarEventos();
     } catch (error) {
       console.error('❌ Error al cargar proyectos:', error);
       toast.current?.show({
@@ -87,6 +94,20 @@ export default function GestionProyectos() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Cargar todos los eventos para resolver nombres por ID
+   */
+  const cargarEventos = async () => {
+    try {
+      const eventosData = await EventosService.obtenerEventosAdmin();
+      console.log('📅 Eventos cargados para resolución de nombres:', eventosData);
+      setEventos(eventosData);
+    } catch (error) {
+      console.error('❌ Error cargando eventos:', error);
+      // No mostrar toast aquí ya que es carga en background
     }
   };
 
@@ -113,11 +134,21 @@ export default function GestionProyectos() {
   };
 
   /**
+   * Obtener nombre del evento por ID
+   */
+  const getNombreEvento = (idEvento) => {
+    if (!idEvento) return 'Sin evento asignado';
+    const evento = eventos.find(e => e.id_evento === idEvento || e.id === idEvento);
+    return evento ? (evento.nombre_evento || 'Evento desconocido') : `Evento no encontrado (ID: ${idEvento})`;
+  };
+
+  /**
    * Abrir diálogo de detalles del proyecto
    */
   const verDetalles = (proyecto) => {
     console.log('📋 Ver detalles del proyecto:', proyecto);
     setSelectedProyecto(proyecto);
+    setNombreEvento(getNombreEvento(proyecto.id_evento));
     setShowDetalleDialog(true);
   };
 
@@ -256,7 +287,7 @@ export default function GestionProyectos() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                <h1 className="text-lg font-bold text-gray-900">Expo-software  </h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
               </div>
             </div>
@@ -437,9 +468,9 @@ export default function GestionProyectos() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-semibold text-gray-600">Nombre del Proyecto</label>
+                <label className="text-sm font-semibold text-gray-600">Título del Proyecto</label>
                 <p className="text-base text-gray-900 mt-1">
-                  {selectedProyecto.nombre_proyecto || selectedProyecto.titulo || 'N/A'}
+                  {selectedProyecto.titulo_proyecto || selectedProyecto.titulo || 'N/A'}
                 </p>
               </div>
 
@@ -464,8 +495,8 @@ export default function GestionProyectos() {
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-gray-600">ID del Evento</label>
-                <p className="text-base text-gray-900 mt-1">{selectedProyecto.id_evento || 'N/A'}</p>
+                <label className="text-sm font-semibold text-gray-600">Evento</label>
+                <p className="text-base text-gray-900 mt-1">{nombreEvento}</p>
               </div>
             </div>
 

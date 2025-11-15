@@ -320,39 +320,43 @@ export default function Profile() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
-              <div>
+              <img src={logo} alt="Logo Unicesar" className="w-8 h-8 sm:w-10 sm:h-auto" />
+              <div className="hidden sm:block">
                 <h1 className="text-lg font-bold text-gray-900">Expo-software</h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
+              </div>
+              <div className="sm:hidden">
+                <h1 className="text-base font-bold text-gray-900">Expo-software</h1>
               </div>
             </div>
 
             {/* Action button then user quick badge (avatar + name) */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <span className="text-teal-600 font-bold text-lg">{getInitials()}</span>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-teal-600 font-bold text-sm sm:text-lg">{getInitials()}</span>
                 </div>
-                <div className="hidden sm:block">
+                <div className="hidden md:block">
                   <p className="text-sm font-medium text-gray-900">{getFullName()}</p>
                   <p className="text-xs text-gray-500">Estudiante</p>
                 </div>
               </div>
 
               <button
-              onClick={handleLogout}
-               className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-2">
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-1 sm:gap-2 px-2 sm:px-0"
+              >
                 <i className="pi pi-sign-out"></i>
-                <span className="hidden sm:inline">Cerrar Sesión </span>
+                <span className="hidden sm:inline">Cerrar Sesión</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar (reuse simplified from Dashboard) */}
+          {/* Sidebar */}
           <aside className="lg:col-span-1">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <nav className="space-y-1">
@@ -364,15 +368,27 @@ export default function Profile() {
                   <i className="pi pi-book text-base"></i>
                   Mis Proyectos
                 </Link>
-                <Link to="/student/asistencia" className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50`}>
-                  <i className="pi pi-qrcode text-base"></i>
-                  Registrar Asistencia
-                </Link>
-                <Link to="/student/profile" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 bg-teal-50 text-teal-700">
+                <Link to="/student/profile" className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)', color: 'rgba(12, 183, 106, 1)' }}>
                   <i className="pi pi-cog text-base"></i>
                   Configuración
                 </Link>
               </nav>
+            </div>
+
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mt-4">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: 'rgba(12, 183, 106, 0.1)' }}>
+                  <span className="font-bold text-2xl" style={{ color: 'rgba(12, 183, 106, 1)' }}>{getInitials()}</span>
+                </div>
+                <h3 className="font-semibold text-gray-900">{getFullName()}</h3>
+                <p className="text-sm text-gray-500 capitalize">{user?.rol || 'Estudiante'}</p>
+                {user?.codigo_programa && (
+                  <p className="text-xs text-gray-400 mt-1">Código: {user.codigo_programa}</p>
+                )}
+                {user?.semestre && (
+                  <p className="text-xs text-gray-400">Semestre: {user.semestre}</p>
+                )}
+              </div>
             </div>
           </aside>
 
@@ -380,9 +396,9 @@ export default function Profile() {
           <main className="lg:col-span-3">
             {/* Alerta si el perfil está incompleto */}
             {(!profileData.primer_nombre || !profileData.primer_apellido) && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
                 <div className="flex items-start gap-3">
-                  <i className="pi pi-exclamation-triangle text-yellow-600 text-xl mt-0.5"></i>
+                  <i className="pi pi-exclamation-triangle text-yellow-600 text-xl mt-0.5 flex-shrink-0"></i>
                   <div>
                     <h4 className="font-semibold text-yellow-800 mb-1">Perfil Incompleto</h4>
                     <p className="text-sm text-yellow-700">
@@ -393,13 +409,13 @@ export default function Profile() {
               </div>
             )}
 
-            <div className="bg-white rounded-lg border border-gray-200 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
                 {!isEditing && (
                   <button
                     onClick={handleEdit}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors w-full sm:w-auto"
                   >
                     <i className="pi pi-pencil"></i>
                     Editar Perfil
@@ -419,8 +435,8 @@ export default function Profile() {
               />
 
               {/* Seguridad */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
                   🔒 Seguridad
                 </h3>
 
@@ -450,16 +466,16 @@ export default function Profile() {
 
               {/* Botones de acción */}
               {isEditing && (
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 sm:pt-6 border-t border-gray-200">
                   <button
                     onClick={handleCancel}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors order-2 sm:order-1"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleSave}
-                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors"
+                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors order-1 sm:order-2"
                   >
                     Guardar Cambios
                   </button>
@@ -472,21 +488,36 @@ export default function Profile() {
 
       {/* Modal para cambiar contraseña */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Cambiar Contraseña</h3>
-              <button
-                onClick={handleClosePasswordModal}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <i className="pi pi-times text-xl"></i>
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-auto my-8">
+            {/* Header */}
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <i className="pi pi-lock text-yellow-500"></i>
+                  Cambiar Contraseña
+                </h3>
+                <button 
+                  onClick={handleClosePasswordModal}
+                  disabled={false}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  <i className="pi pi-times text-xl"></i>
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleSavePassword} className="space-y-4">
+            {/* Body */}
+            <div className="p-4 sm:p-6 space-y-4">
+              {/* Información del proyecto */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <p className="text-sm font-medium text-blue-900 mb-1">Cambiar Contraseña</p>
+                <p className="text-sm text-blue-800">Ingresa tu contraseña actual y la nueva contraseña que deseas usar.</p>
+              </div>
+
+              {/* Input de contraseña actual */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Contraseña Actual <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -494,13 +525,15 @@ export default function Profile() {
                   name="currentPassword"
                   value={passwordForm.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                   required
+                  placeholder="Ingresa tu contraseña actual"
                 />
               </div>
 
+              {/* Input de nueva contraseña */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nueva Contraseña <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -508,15 +541,17 @@ export default function Profile() {
                   name="newPassword"
                   value={passwordForm.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                   required
                   minLength={6}
+                  placeholder="Ingresa tu nueva contraseña"
                 />
                 <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
               </div>
 
+              {/* Input de confirmar contraseña */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Confirmar Nueva Contraseña <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -524,27 +559,37 @@ export default function Profile() {
                   name="confirmPassword"
                   value={passwordForm.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                   required
+                  placeholder="Confirma tu nueva contraseña"
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleClosePasswordModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors"
-                >
-                  Guardar Contraseña
-                </button>
+              {/* Información adicional */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-xs text-gray-600">
+                  <strong>Nota:</strong> Asegúrate de recordar tu nueva contraseña. Si la olvidas, podrás restablecerla desde el login.
+                </p>
               </div>
-            </form>
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 rounded-b-xl">
+              <button 
+                type="button"
+                onClick={handleClosePasswordModal}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors order-2 sm:order-1"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit"
+                onClick={handleSavePassword}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg font-semibold hover:bg-teal-700 transition-colors order-1 sm:order-2"
+              >
+                Cambiar Contraseña
+              </button>
+            </div>
           </div>
         </div>
       )}
