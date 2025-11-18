@@ -1,16 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
-import AssistanceService from "../../services/AssistanceService"; // 👈 importamos el servicio real
+import EventosService from "../../Services/EventosService";
+//import getEventoById from "../../Services/EventosPublicService"; 
+import AssistanceService from "../../services/AssistanceService";
 
 export default function AsistenciaForm() {
     const [email, setEmail] = useState("");
     const [mensaje, setMensaje] = useState("");
     const [validando, setValidando] = useState(false);
     const navigate = useNavigate();
-    const [error, setError] = useState("");    
+    const [error, setError] = useState("");
+    const [evento, setEvento] = useState([]);
     const { id_evento } = useParams();
     const [params] = useSearchParams();
     const idEvento = id_evento || params.get("id_evento") || params.get("id_sesion");
+    const response = null;
+
+    useEffect(() => {
+        let cargado = false;
+
+        const cargarEventos = async () => {
+            if (cargado) return;
+            cargado = true;
+            try {
+                //const response = await getEventoById(idEvento);
+                const response = await EventosService.obtenerEventoPorId(idEvento);
+                setEvento(response || []);
+            } catch (error) {
+                console.error("❌ Error al obtener evento:", error);
+            }
+        };
+
+        cargarEventos();
+    }, []);
 
     const handleChange = (e) => {
         const val = e.target.value;
@@ -31,14 +53,25 @@ export default function AsistenciaForm() {
         setMensaje("");
 
         try {
-            // ✅ Si pasa la validación, registrar asistencia
             const response = await AssistanceService.registrarAsistencia(idEvento, email);
-
             console.log("✅ Asistencia registrada:", response);
             setMensaje("✅ Asistencia registrada con éxito. ¡Gracias por participar!");
+
         } catch (error) {
-            setMensaje("⚠️ Correo no registrado. Redirigiendo al registro...");
-            setTimeout(() => navigate("/register"), 2000);
+            const errorMessages = {
+                403: "⚠️ Correo no registrado. Redirigiendo al registro...",
+                409: "ℹ️ Ya habías registrado tu asistencia anteriormente.",
+                404: "❌ Evento no encontrado.",
+                500: "❌ Error del servidor. Por favor, intenta nuevamente."
+            };
+
+            const message = errorMessages[error.status] || "❌ Ocurrió un error inesperado.";
+            setMensaje(message);
+
+            // Redirigir solo para el caso 403
+            if (error.status === 403) {
+                setTimeout(() => navigate("/register"), 2000);
+            }
         } finally {
             setValidando(false);
         }
@@ -53,7 +86,7 @@ export default function AsistenciaForm() {
 
                 {idEvento ? (
                     <p className="text-center text-gray-500 mb-4">
-                        Evento ID: <span className="font-mono">{idEvento}</span>
+                        Evento: <span className="font-mono">{evento.nombre_evento}</span>
                     </p>
                 ) : (
                     <p className="text-center text-red-600 font-medium mb-4">

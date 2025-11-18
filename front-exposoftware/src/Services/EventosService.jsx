@@ -68,7 +68,7 @@ class EventosService {
     try {
       console.log(`📅 Obteniendo evento con ID ${eventoId}...`);
       
-      const response = await fetch(`${API_URL}/api/v1/eventos/${eventoId}`, {
+      const response = await fetch(`${API_URL}/api/v1/admin/eventos/${eventoId}`, {
         method: 'GET',
         headers: getAuthHeaders()
       });

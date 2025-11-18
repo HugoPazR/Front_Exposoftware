@@ -84,10 +84,7 @@ export default function AttendanceAdmin() {
     }
     setIsGenerating(true);
     try {
-      const FRONT_URL = `${window.location.origin}`;
-      // const qrFullUrl = `${FRONT_URL}?id_sesion=${eventoSeleccionado}`;
-
-      const response = await AssistanceService.generarQrEvento(eventoSeleccionado, FRONT_URL);
+      const response = await AssistanceService.generarQrEvento(eventoSeleccionado);
       const qrInfo = response?.data;
       if (!qrInfo) throw new Error("Respuesta del servidor inválida");
 
