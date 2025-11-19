@@ -307,9 +307,6 @@ export default function TeacherDashboard() {
 
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
-              <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-800 transition-colors">
-                Registrar Asistencia
-              </button>
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">

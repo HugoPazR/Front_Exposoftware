@@ -161,16 +161,12 @@ export default function GraduateDashboard() {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Unicesar" className="w-10 h-auto" />
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Expo-software 2025</h1>
+                <h1 className="text-lg font-bold text-gray-900">Expo-software</h1>
                 <p className="text-xs text-gray-500">Universidad Popular del Cesar</p>
               </div>
             </div>
 
-       
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-800 transition-colors">
-                Registrar Asistencia
-            </button>
-
+    
             {/* Action button then user quick badge (avatar + name) */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
