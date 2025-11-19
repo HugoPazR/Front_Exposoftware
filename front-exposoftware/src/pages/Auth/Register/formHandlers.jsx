@@ -195,42 +195,19 @@ export const handlePhoneChange = (
   setSuccessFields,
   rol
 ) => {
-  // PhoneInput ya incluye el "+" en algunos casos
   const phoneValue = value.startsWith("+") ? value : `+${value}`;
-  
-  // Extraer solo los dígitos
   const digits = phoneValue.replace(/\D/g, "");
   
-  // 🔥 BLOQUEO PARA NÚMEROS COLOMBIANOS
-  const isColombia = digits.startsWith("57");
-  
-  if (isColombia) {
-    const number = digits.slice(2); // Quitar el código de país "57"
-    
-    // 🚫 Si ya tiene dígitos y el primero NO es 3, bloqueamos el cambio
-    if (number.length > 0 && !number.startsWith("3")) {
-      console.warn("⚠️ Número colombiano debe comenzar con 3");
-      return; // NO actualizar el estado
-    }
-    
-    // 🚫 Si intenta escribir más de 10 dígitos, bloqueamos
-    if (number.length > 10) {
-      console.warn("⚠️ Número colombiano debe tener máximo 10 dígitos");
-      return; // NO actualizar el estado
-    }
-  }
-
-  // Crear el formData actualizado para validar
+  // Siempre actualizar el formData (sin bloqueos)
   const updatedForm = { ...formData, telefono: phoneValue };
-
-  // Validar con el formData actualizado
+  
+  // Validar (esto mostrará los errores)
   const error = validateField("telefono", phoneValue, updatedForm, rol);
-
-  // Actualizar todo el estado en un solo bloque
+  
+  // Actualizar estado
   setFormData(updatedForm);
   setErrors((prevErrors) => ({ ...prevErrors, telefono: error }));
-
-  // Marcar campo como exitoso si no hay error y tiene valor
+  
   if (!error && phoneValue.trim() !== "" && phoneValue !== "+") {
     setSuccessFields((prev) => ({ ...prev, telefono: true }));
   } else {
