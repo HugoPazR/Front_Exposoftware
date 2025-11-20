@@ -70,14 +70,87 @@ export const obtenerMiPerfil = async () => {
  */
 export const actualizarMiPerfil = async (datosActualizados) => {
   console.log('✏️ Actualizando perfil del estudiante...');
-  console.log('📦 Datos a actualizar:', datosActualizados);
+  console.log('📦 Datos a actualizar (originales):', datosActualizados);
   console.log('🔗 Endpoint:', API_ENDPOINTS.MI_PERFIL_ESTUDIANTE);
 
   try {
+    // Separar los datos según el formato esperado por el backend
+    const datosEstudiante = {};
+    const datosUsuario = {};
+
+    // Datos del estudiante
+    if (datosActualizados.semestre !== undefined) {
+      datosEstudiante.semestre = parseInt(datosActualizados.semestre) || 0;
+    }
+
+    // Datos del usuario
+    if (datosActualizados.primer_nombre !== undefined) {
+      datosUsuario.primer_nombre = datosActualizados.primer_nombre || '';
+    }
+    if (datosActualizados.segundo_nombre !== undefined) {
+      datosUsuario.segundo_nombre = datosActualizados.segundo_nombre || '';
+    }
+    if (datosActualizados.primer_apellido !== undefined) {
+      datosUsuario.primer_apellido = datosActualizados.primer_apellido || '';
+    }
+    if (datosActualizados.segundo_apellido !== undefined) {
+      datosUsuario.segundo_apellido = datosActualizados.segundo_apellido || '';
+    }
+    if (datosActualizados.sexo !== undefined) {
+      datosUsuario.sexo = datosActualizados.sexo || '';
+    }
+    if (datosActualizados.identidad_sexual !== undefined) {
+      datosUsuario.identidad_sexual = datosActualizados.identidad_sexual || '';
+    }
+    if (datosActualizados.fecha_nacimiento !== undefined) {
+      // Convertir fecha a formato ISO si es necesario
+      let fechaNacimiento = datosActualizados.fecha_nacimiento;
+      if (fechaNacimiento && !fechaNacimiento.includes('T')) {
+        fechaNacimiento = new Date(fechaNacimiento).toISOString();
+      }
+      datosUsuario.fecha_nacimiento = fechaNacimiento || '';
+    }
+    if (datosActualizados.telefono !== undefined) {
+      datosUsuario.telefono = datosActualizados.telefono || '';
+    }
+    if (datosActualizados.nacionalidad !== undefined) {
+      datosUsuario.nacionalidad = datosActualizados.nacionalidad || '';
+    }
+    if (datosActualizados.pais_residencia !== undefined) {
+      datosUsuario.pais_residencia = datosActualizados.pais_residencia || '';
+    }
+    if (datosActualizados.departamento !== undefined) {
+      datosUsuario.departamento = datosActualizados.departamento || '';
+    }
+    if (datosActualizados.municipio !== undefined) {
+      datosUsuario.municipio = datosActualizados.municipio || '';
+    }
+    if (datosActualizados.ciudad_residencia !== undefined) {
+      datosUsuario.ciudad_residencia = datosActualizados.ciudad_residencia || '';
+    }
+    if (datosActualizados.direccion_residencia !== undefined) {
+      datosUsuario.direccion_residencia = datosActualizados.direccion_residencia || '';
+    }
+
+    // Construir el payload final
+    const payload = {};
+
+    // Solo incluir datos_estudiante si tiene propiedades
+    if (Object.keys(datosEstudiante).length > 0) {
+      payload.datos_estudiante = datosEstudiante;
+    }
+
+    // Solo incluir datos_usuario si tiene propiedades
+    if (Object.keys(datosUsuario).length > 0) {
+      payload.datos_usuario = datosUsuario;
+    }
+
+    console.log('📦 Payload final a enviar:', JSON.stringify(payload, null, 2));
+
     const response = await fetch(API_ENDPOINTS.MI_PERFIL_ESTUDIANTE, {
       method: 'PUT',
       headers: AuthService.getAuthHeaders(),
-      body: JSON.stringify(datosActualizados)
+      body: JSON.stringify(payload)
     });
 
     console.log('📡 Respuesta - Status:', response.status, response.statusText);
@@ -85,7 +158,7 @@ export const actualizarMiPerfil = async (datosActualizados) => {
     if (response.ok) {
       const data = await response.json();
       console.log('✅ Perfil actualizado exitosamente:', data);
-      
+
       if (data.data) {
         return {
           success: true,
@@ -93,7 +166,7 @@ export const actualizarMiPerfil = async (datosActualizados) => {
           message: data.message || 'Perfil actualizado correctamente'
         };
       }
-      
+
       return {
         success: true,
         data: data,
@@ -112,14 +185,14 @@ export const actualizarMiPerfil = async (datosActualizados) => {
     } else if (response.status === 422) {
       const errorData = await response.json().catch(() => ({}));
       console.error('❌ Error de validación:', errorData);
-      
+
       if (errorData.errors && Array.isArray(errorData.errors)) {
-        const errorMessages = errorData.errors.map(err => 
+        const errorMessages = errorData.errors.map(err =>
           `• ${err.field}: ${err.message}`
         ).join('\n');
         throw new Error('Errores de validación:\n' + errorMessages);
       }
-      
+
       throw new Error(errorData.message || 'Datos no válidos para actualizar');
     } else {
       const errorData = await response.json().catch(() => ({}));

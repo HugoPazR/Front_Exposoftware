@@ -400,7 +400,7 @@ export default function GuestProjects() {
 
                               {p.calificacion !== undefined && (
                                 <div className="flex items-center gap-1 text-xs text-gray-600">
-                                  <i className="pi pi-star-fill text-yellow-500"></i>
+                                  <i className="pi pi-pencil text-blue-500"></i>
                                   <span className="font-medium">{p.calificacion}/5</span>
                                 </div>
                               )}
@@ -590,7 +590,7 @@ export default function GuestProjects() {
                   {selectedProject.calificacion !== undefined && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <i className="pi pi-star text-yellow-600"></i>
+                        <i className="pi pi-pencil text-blue-500"></i>
                         <p className="text-sm font-semibold text-yellow-900">Calificación</p>
                       </div>
                       <p className="text-base font-medium text-yellow-800">{selectedProject.calificacion}/5</p>

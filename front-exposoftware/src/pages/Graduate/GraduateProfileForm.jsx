@@ -25,6 +25,19 @@ export default function GraduateProfileForm({
           Información Personal
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Nombre Completo - Solo lectura */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre Completo
+            </label>
+            <input 
+              type="text"
+              value={formData.nombre_completo}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+              disabled
+              readOnly
+            />
+          </div>
           {/* Tipo de Documento */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Documento</label>
@@ -196,7 +209,7 @@ export default function GraduateProfileForm({
             ) : (
               <input 
                 type="text"
-                value={formData.nacionalidad}
+                value={opcionesPaises.find(op => op.value === formData.nacionalidad)?.label || formData.nacionalidad}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
                 disabled
               />
@@ -251,7 +264,7 @@ export default function GraduateProfileForm({
             ) : (
               <input 
                 type="text"
-                value={formData.pais_residencia}
+                value={opcionesPaises.find(op => op.value === formData.pais_residencia)?.label || formData.pais_residencia}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
                 disabled
               />
@@ -303,6 +316,20 @@ export default function GraduateProfileForm({
             </select>
           </div>
 
+          {/* Ciudad de Residencia */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad de Residencia</label>
+            <input 
+              type="text"
+              name="ciudad_residencia"
+              value={formData.ciudad_residencia}
+              onChange={handleChange}
+              className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
+              disabled={!isEditing}
+              placeholder="Ej: Bosconia"
+            />
+          </div>
+
           {/* Dirección de Residencia */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de Residencia</label>
@@ -349,31 +376,18 @@ export default function GraduateProfileForm({
             </select>
           </div>
 
-          {/* Programa Académico */}
+          {/* Programa Académico - Solo lectura */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Programa Académico <span className="text-red-500">*</span>
+              Programa Académico
             </label>
-            <select
-              name="codigo_programa"
-              value={formData.codigo_programa}
-              onChange={handleProgramaChange}
-              className={`w-full border border-gray-200 rounded-lg px-3 py-2 ${isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-100'}`}
-              disabled={!isEditing || !formData.id_facultad || cargandoProgramas}
-            >
-              <option value="">
-                {!formData.id_facultad 
-                  ? 'Selecciona facultad primero' 
-                  : cargandoProgramas 
-                    ? 'Cargando programas...' 
-                    : 'Seleccionar programa'}
-              </option>
-              {programas.map((programa) => (
-                <option key={programa.codigo_programa} value={programa.codigo_programa}>
-                  {programa.nombre_programa}
-                </option>
-              ))}
-            </select>
+            <input 
+              type="text"
+              value={formData.programa_academico}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
+              disabled
+              readOnly
+            />
           </div>
 
           {/* Código de Programa - Solo lectura */}

@@ -3,7 +3,6 @@ import Select from 'react-select';
 
 export default function ProfileForm({ 
   profileData, 
-  isEditing, 
   opcionesPaises, 
   ciudadesResidencia, 
   municipios, 
@@ -29,10 +28,8 @@ export default function ProfileForm({
             <select
               value={profileData.tipo_documento}
               onChange={(e) => handleInputChange('tipo_documento', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             >
               <option value="CC">Cédula de Ciudadanía</option>
               <option value="CE">Cédula de Extranjería</option>
@@ -63,10 +60,8 @@ export default function ProfileForm({
               type="text"
               value={profileData.nombres}
               onChange={(e) => handleInputChange('nombres', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             />
           </div>
 
@@ -79,10 +74,8 @@ export default function ProfileForm({
               type="text"
               value={profileData.apellidos}
               onChange={(e) => handleInputChange('apellidos', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             />
           </div>
 
@@ -94,10 +87,8 @@ export default function ProfileForm({
             <select
               value={profileData.sexo}
               onChange={(e) => handleInputChange('sexo', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             >
               <option value="">Seleccionar</option>
               <option value="Masculino">Hombre</option>
@@ -114,10 +105,8 @@ export default function ProfileForm({
             <select
               value={profileData.identidad_sexual}
               onChange={(e) => handleInputChange('identidad_sexual', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             >
               <option value="">Seleccionar</option>
               <option value="Heterosexual">Heterosexual</option>
@@ -139,10 +128,8 @@ export default function ProfileForm({
               type="date"
               value={profileData.fecha_nacimiento}
               onChange={(e) => handleInputChange('fecha_nacimiento', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             />
           </div>
 
@@ -155,10 +142,8 @@ export default function ProfileForm({
               type="tel"
               value={profileData.telefono}
               onChange={(e) => handleInputChange('telefono', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             />
           </div>
         </div>
@@ -180,7 +165,7 @@ export default function ProfileForm({
               options={opcionesPaises}
               value={opcionesPaises.find(op => op.value === profileData.pais)}
               onChange={(selectedOption) => handleInputChange('pais', selectedOption?.value || '')}
-              isDisabled={!isEditing}
+              isDisabled={true}
               placeholder="Seleccionar país"
               className="text-sm"
               styles={{
@@ -202,7 +187,7 @@ export default function ProfileForm({
               options={opcionesPaises}
               value={opcionesPaises.find(op => op.value === profileData.nacionalidad)}
               onChange={(selectedOption) => handleInputChange('nacionalidad', selectedOption?.value || '')}
-              isDisabled={!isEditing}
+              isDisabled={true}
               placeholder="Seleccionar nacionalidad"
               className="text-sm"
               styles={{
@@ -226,10 +211,8 @@ export default function ProfileForm({
                 handleInputChange('departamento_residencia', e.target.value);
                 handleInputChange('ciudad_residencia', ''); // Reset ciudad
               }}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             >
               <option value="">Seleccionar departamento</option>
               {colombiaData.map((dept) => (
@@ -248,10 +231,8 @@ export default function ProfileForm({
             <select
               value={profileData.ciudad_residencia}
               onChange={(e) => handleInputChange('ciudad_residencia', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing || !profileData.departamento_residencia}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             >
               <option value="">
                 {!profileData.departamento_residencia 
@@ -275,10 +256,8 @@ export default function ProfileForm({
               type="text"
               value={profileData.direccion_residencia}
               onChange={(e) => handleInputChange('direccion_residencia', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-emerald-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
               placeholder="Ej: Calle 15 # 20-30"
             />
           </div>
@@ -292,10 +271,8 @@ export default function ProfileForm({
               type="text"
               value={profileData.ciudad}
               onChange={(e) => handleInputChange('ciudad', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             />
           </div>
         </div>
@@ -342,10 +319,8 @@ export default function ProfileForm({
             <select
               value={profileData.categoria_docente}
               onChange={(e) => handleInputChange('categoria_docente', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
             >
               <option value="Interno">Interno</option>
               <option value="Invitado">Invitado</option>
@@ -375,10 +350,8 @@ export default function ProfileForm({
               type="text"
               value={profileData.anio_ingreso}
               onChange={(e) => handleInputChange('anio_ingreso', e.target.value)}
-              className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
-                isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
-              }`}
-              disabled={!isEditing}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-gray-50"
+              disabled
               placeholder="YYYY"
               maxLength={4}
             />

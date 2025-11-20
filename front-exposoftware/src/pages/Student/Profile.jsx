@@ -192,48 +192,45 @@ export default function Profile() {
     }
 
     setLoading(true);
-    
+
     try {
       console.log("📤 Actualizando perfil del estudiante...");
-      
-      // Preparar datos para enviar al backend
+
+      // Preparar datos para enviar al backend según el formato esperado
       const datosActualizar = {
+        // Datos del estudiante
+        semestre: parseInt(profileData.semestre) || 0,
+
         // Datos del usuario
-        tipo_documento: profileData.tipoDocumento,
         primer_nombre: profileData.primer_nombre,
         segundo_nombre: profileData.segundo_nombre || '',
         primer_apellido: profileData.primer_apellido,
         segundo_apellido: profileData.segundo_apellido || '',
-        sexo: profileData.sexo, // El backend espera "sexo" pero el frontend usa "genero"
+        sexo: profileData.sexo,
         identidad_sexual: profileData.identidad_sexual || '',
-        fecha_nacimiento: profileData.fechaNacimiento,
+        fecha_nacimiento: profileData.fechaNacimiento ? new Date(profileData.fechaNacimiento).toISOString() : '',
         telefono: profileData.telefono,
         nacionalidad: profileData.nacionalidad,
         pais_residencia: profileData.pais,
         departamento: profileData.departamento,
         municipio: profileData.municipio,
         ciudad_residencia: profileData.ciudad,
-        direccion_residencia: profileData.direccionResidencia,
-        
-        // Datos del estudiante
-        codigo_programa: profileData.codigoPrograma,
-        semestre: parseInt(profileData.semestre) || 0,
-        anio_ingreso: parseInt(profileData.anioIngreso) || new Date().getFullYear()
+        direccion_residencia: profileData.direccionResidencia
       };
 
       console.log("📦 Datos a enviar:", datosActualizar);
 
       const resultado = await StudentProfileService.actualizarMiPerfil(datosActualizar);
-      
+
       if (resultado.success) {
         console.log("✅ Perfil actualizado exitosamente");
-        
+
         // Actualizar el contexto con los nuevos datos
         if (resultado.data) {
           const perfilProcesado = StudentProfileService.procesarDatosPerfil(resultado.data);
           updateUser(perfilProcesado);
         }
-        
+
         setIsEditing(false);
         alert("✅ Cambios guardados exitosamente");
       }
@@ -415,7 +412,8 @@ export default function Profile() {
                 {!isEditing && (
                   <button
                     onClick={handleEdit}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors w-full sm:w-auto"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
                   >
                     <i className="pi pi-pencil"></i>
                     Editar Perfil
@@ -475,9 +473,17 @@ export default function Profile() {
                   </button>
                   <button
                     onClick={handleSave}
-                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors order-1 sm:order-2"
+                    className="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors order-1 sm:order-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
                   >
-                    Guardar Cambios
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Guardando...
+                      </div>
+                    ) : (
+                      "Guardar Cambios"
+                    )}
                   </button>
                 </div>
               )}

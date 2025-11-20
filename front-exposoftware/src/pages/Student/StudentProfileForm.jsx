@@ -8,7 +8,8 @@ export default function StudentProfileForm({
   ciudadesResidencia, 
   municipios, 
   colombiaData,
-  handleInputChange 
+  handleInputChange,
+  loading = false
 }) {
   return (
     <>
@@ -31,7 +32,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
             >
               <option value="CC">Cédula de Ciudadanía</option>
               <option value="CE">Cédula de Extranjería</option>
@@ -65,7 +66,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
             />
           </div>
 
@@ -81,7 +82,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
               placeholder="Opcional"
             />
           </div>
@@ -98,7 +99,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
             />
           </div>
 
@@ -114,7 +115,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
               placeholder="Opcional"
             />
           </div>
@@ -130,7 +131,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
             >
               <option value="">Seleccionar</option>
               <option value="Hombre">Hombre</option>
@@ -150,7 +151,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
             >
               <option value="">Seleccionar</option>
               <option value="Heterosexual">Heterosexual</option>
@@ -177,7 +178,7 @@ export default function StudentProfileForm({
               className={`w-full border border-gray-300 rounded-lg px-4 py-2 ${
                 isEditing ? 'focus:outline-none focus:ring-2 focus:ring-green-500' : 'bg-gray-50'
               }`}
-              disabled={!isEditing}
+              disabled={!isEditing || loading}
             />
           </div>
 

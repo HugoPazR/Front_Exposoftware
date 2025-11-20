@@ -10,7 +10,6 @@ import ProfileForm from "./ProfileForm";
 export default function TeacherProfile() {
   const { user, getFullName, getInitials, logout } = useAuth();
   const navigate = useNavigate();
-  const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -122,34 +121,6 @@ export default function TeacherProfile() {
       ...prev,
       [field]: value
     }));
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    // Aquí podrías recargar los datos originales si es necesario
-  };
-
-  const handleSave = () => {
-    // Validaciones básicas
-    if (!profileData.nombres || !profileData.apellidos) {
-      alert("Los nombres y apellidos son obligatorios");
-      return;
-    }
-
-    if (!profileData.telefono) {
-      alert("El teléfono es obligatorio");
-      return;
-    }
-
-    // Aquí enviarías los datos al backend
-    console.log("Datos a guardar:", profileData);
-    
-    setIsEditing(false);
-    alert("Cambios guardados exitosamente");
   };
 
   const handleOpenPasswordModal = () => {
@@ -300,16 +271,7 @@ export default function TeacherProfile() {
           <main className="lg:col-span-3">
             <div className="bg-white rounded-lg border border-gray-200 p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Configuración de Perfil</h2>
-                {!isEditing && !loading && (
-                  <button 
-                    onClick={handleEdit}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
-                  >
-                    <i className="pi pi-pencil"></i>
-                    Editar Perfil
-                  </button>
-                )}
+                <h2 className="text-2xl font-bold text-gray-900">Información de Perfil</h2>
               </div>
 
               {/* Estado de carga */}
@@ -342,7 +304,6 @@ export default function TeacherProfile() {
                 <>
               <ProfileForm
                 profileData={profileData}
-                isEditing={isEditing}
                 opcionesPaises={opcionesPaises}
                 ciudadesResidencia={ciudadesResidencia}
                 municipios={municipios}
@@ -380,24 +341,6 @@ export default function TeacherProfile() {
                   </div>
                 </div>
               </div>
-
-              {/* Botones de acción */}
-              {isEditing && (
-                <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
-                  <button 
-                    onClick={handleCancel}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    onClick={handleSave}
-                    className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-                  >
-                    Guardar Cambios
-                  </button>
-                </div>
-              )}
                 </>
               )}
             </div>
