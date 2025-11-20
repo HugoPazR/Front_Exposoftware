@@ -32,7 +32,9 @@ export default function AttendanceAdmin() {
       cargado = true;
       try {
         const response = await EventosService.obtenerEventos();
-        setEventos(response || []);
+        // Filtrar solo eventos activos
+        const eventosActivos = (response || []).filter(evento => evento.estado === 'ACTIVO');
+        setEventos(eventosActivos);
       } catch (error) {
         console.error("❌ Error al obtener eventos:", error);
       }

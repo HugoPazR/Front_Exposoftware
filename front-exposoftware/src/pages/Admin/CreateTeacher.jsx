@@ -502,7 +502,12 @@ export default function CreateTeacher() {
                         type="text"
                         name="identificacion"
                         value={identificacion}
-                        onChange={(e) => handleInputChange('identificacion', e.target.value, setIdentificacion)}
+                        onChange={(e) => {
+                          const filteredValue = e.target.value.replace(/\D/g, ''); // Solo números
+                          if (filteredValue.length <= 12) {
+                            handleInputChange('identificacion', filteredValue, setIdentificacion);
+                          }
+                        }}
                         placeholder="Ej: 1023456789"
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                           errors.identificacion 
@@ -529,7 +534,10 @@ export default function CreateTeacher() {
                         type="text"
                         name="primerNombre"
                         value={primerNombre}
-                        onChange={(e) => handleInputChange('primerNombre', e.target.value, setPrimerNombre)}
+                        onChange={(e) => {
+                          const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                          handleInputChange('primerNombre', filteredValue, setPrimerNombre);
+                        }}
                         placeholder="Ej: María"
                         maxLength={15}
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -556,7 +564,10 @@ export default function CreateTeacher() {
                         type="text"
                         name="segundoNombre"
                         value={segundoNombre}
-                        onChange={(e) => handleInputChange('segundoNombre', e.target.value, setSegundoNombre)}
+                        onChange={(e) => {
+                          const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                          handleInputChange('segundoNombre', filteredValue, setSegundoNombre);
+                        }}
                         placeholder="Ej: José"
                         maxLength={15}
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -582,7 +593,10 @@ export default function CreateTeacher() {
                         type="text"
                         name="primerApellido"
                         value={primerApellido}
-                        onChange={(e) => handleInputChange('primerApellido', e.target.value, setPrimerApellido)}
+                        onChange={(e) => {
+                          const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                          handleInputChange('primerApellido', filteredValue, setPrimerApellido);
+                        }}
                         placeholder="Ej: Pérez"
                         maxLength={15}
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
@@ -609,7 +623,10 @@ export default function CreateTeacher() {
                         type="text"
                         name="segundoApellido"
                         value={segundoApellido}
-                        onChange={(e) => handleInputChange('segundoApellido', e.target.value, setSegundoApellido)}
+                        onChange={(e) => {
+                          const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                          handleInputChange('segundoApellido', filteredValue, setSegundoApellido);
+                        }}
                         placeholder="Ej: García"
                         maxLength={15}
                         className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${

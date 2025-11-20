@@ -114,9 +114,15 @@ export default function EditTeacherModal({
                 <input
                   type="text"
                   value={identificacion}
-                  onChange={(e) => setIdentificacion(e.target.value)}
+                  onChange={(e) => {
+                    const filteredValue = e.target.value.replace(/\D/g, ''); // Solo números
+                    if (filteredValue.length <= 12) {
+                      setIdentificacion(filteredValue);
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
                   required
+                  maxLength={12}
                 />
               </div>
 
@@ -128,7 +134,10 @@ export default function EditTeacherModal({
                 <input
                   type="text"
                   value={primerNombre}
-                  onChange={(e) => setPrimerNombre(e.target.value)}
+                  onChange={(e) => {
+                    const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                    setPrimerNombre(filteredValue);
+                  }}
                   maxLength={15}
                   placeholder="Ej: María"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
@@ -144,7 +153,10 @@ export default function EditTeacherModal({
                 <input
                   type="text"
                   value={segundoNombre}
-                  onChange={(e) => setSegundoNombre(e.target.value)}
+                  onChange={(e) => {
+                    const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                    setSegundoNombre(filteredValue);
+                  }}
                   maxLength={15}
                   placeholder="Ej: José"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
@@ -159,7 +171,10 @@ export default function EditTeacherModal({
                 <input
                   type="text"
                   value={primerApellido}
-                  onChange={(e) => setPrimerApellido(e.target.value)}
+                  onChange={(e) => {
+                    const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                    setPrimerApellido(filteredValue);
+                  }}
                   maxLength={15}
                   placeholder="Ej: Pérez"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"
@@ -175,7 +190,10 @@ export default function EditTeacherModal({
                 <input
                   type="text"
                   value={segundoApellido}
-                  onChange={(e) => setSegundoApellido(e.target.value)}
+                  onChange={(e) => {
+                    const filteredValue = e.target.value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúñÑ\s]/g, ''); // Solo letras y espacios
+                    setSegundoApellido(filteredValue);
+                  }}
                   maxLength={15}
                   placeholder="Ej: García"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500"

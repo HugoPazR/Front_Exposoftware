@@ -198,13 +198,13 @@ export default function GestionProyectos() {
     if (rowData.calificacion === null || rowData.calificacion === undefined) {
       return <span className="text-gray-400">Sin calificar</span>;
     }
-    
+
     return (
       <div className="flex items-center gap-2">
-        <span className="font-semibold text-yellow-600">
+        <span className="font-semibold text-blue-600">
           {rowData.calificacion.toFixed(1)}
         </span>
-        <i className="pi pi-star-fill text-yellow-500 text-sm"></i>
+        <i className="pi pi-pencil text-blue-500 text-sm"></i>
       </div>
     );
   };
@@ -398,6 +398,18 @@ export default function GestionProyectos() {
                   rowsPerPageOptions={[5, 10, 25, 50]}
                   header={header}
                   globalFilter={globalFilter}
+                  globalFilterFields={[
+                    'titulo_proyecto', 
+                    'titulo', 
+                    'id_proyecto', 
+                    'tipo_actividad', 
+                    'estado_calificacion',
+                    'id_docente.nombre',
+                    'nombre_linea',
+                    'nombre_area',
+                    'codigo_materia'
+                  ]}
+                  filterDisplay="menu"
                   emptyMessage="No se encontraron proyectos"
                   stripedRows
                   sortField="fecha_creacion"
@@ -407,10 +419,12 @@ export default function GestionProyectos() {
                   currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} proyectos"
                 >
                   <Column 
-                    field="nombre_proyecto" 
+                    field="titulo_proyecto" 
                     header="Nombre del Proyecto" 
                     body={nombreTemplate}
                     sortable 
+                    filterField="titulo_proyecto"
+                    showFilterMenu={false}
                     style={{ minWidth: '250px' }}
                   />
                   <Column 
@@ -418,6 +432,8 @@ export default function GestionProyectos() {
                     header="Tipo" 
                     body={tipoActividadTemplate}
                     sortable 
+                    filterField="tipo_actividad"
+                    showFilterMenu={false}
                     style={{ minWidth: '150px' }}
                   />
                   <Column 
@@ -425,6 +441,8 @@ export default function GestionProyectos() {
                     header="Calificación" 
                     body={calificacionTemplate}
                     sortable 
+                    filterField="calificacion"
+                    showFilterMenu={false}
                     style={{ minWidth: '130px' }}
                   />
                   <Column 
@@ -432,6 +450,8 @@ export default function GestionProyectos() {
                     header="Estado" 
                     body={estadoCalificacionTemplate}
                     sortable 
+                    filterField="estado_calificacion"
+                    showFilterMenu={false}
                     style={{ minWidth: '150px' }}
                   />
                   <Column 
@@ -465,73 +485,184 @@ export default function GestionProyectos() {
         }
       >
         {selectedProyecto && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Título del Proyecto</label>
-                <p className="text-base text-gray-900 mt-1">
+          <div className="space-y-6">
+            {/* Información básica */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-tag text-blue-600"></i>
+                  <label className="text-sm font-semibold text-blue-900">Título del Proyecto</label>
+                </div>
+                <p className="text-base font-medium text-blue-800">
                   {selectedProyecto.titulo_proyecto || selectedProyecto.titulo || 'N/A'}
                 </p>
               </div>
 
-              <div>
-                <label className="text-sm font-semibold text-gray-600">ID del Proyecto</label>
-                <p className="text-base text-gray-900 mt-1">{selectedProyecto.id_proyecto || 'N/A'}</p>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Tipo de Actividad</label>
-                <div className="mt-1">{tipoActividadTemplate(selectedProyecto)}</div>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Estado</label>
-                <div className="mt-1">{estadoCalificacionTemplate(selectedProyecto)}</div>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Calificación</label>
-                <div className="mt-1">{calificacionTemplate(selectedProyecto)}</div>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Evento</label>
-                <p className="text-base text-gray-900 mt-1">{nombreEvento}</p>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-hashtag text-purple-600"></i>
+                  <label className="text-sm font-semibold text-purple-900">ID del Proyecto</label>
+                </div>
+                <p className="text-base font-medium text-purple-800">{selectedProyecto.id_proyecto || 'N/A'}</p>
               </div>
             </div>
 
-            {selectedProyecto.descripcion && (
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Descripción</label>
-                <p className="text-base text-gray-700 mt-1">{selectedProyecto.descripcion}</p>
+            {/* Evento */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <i className="pi pi-calendar text-green-600"></i>
+                <label className="text-sm font-semibold text-green-900">Evento</label>
               </div>
-            )}
+              <p className="text-base font-medium text-green-800">{nombreEvento}</p>
+            </div>
 
-            {selectedProyecto.url_archivo_pdf && (
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Documento PDF</label>
-                <div className="mt-1">
-                  <a 
-                    href={selectedProyecto.url_archivo_pdf} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-teal-600 hover:text-teal-700 flex items-center gap-2"
-                  >
-                    <i className="pi pi-file-pdf"></i>
-                    Ver documento
-                  </a>
+            {/* Docente/Profesor */}
+            {selectedProyecto.id_docente && (
+              <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-user text-teal-600"></i>
+                  <label className="text-sm font-semibold text-teal-900">Docente Responsable</label>
                 </div>
+                <p className="text-base font-medium text-teal-800">
+                  {selectedProyecto.id_docente.nombre || selectedProyecto.id_docente || 'No asignado'}
+                </p>
               </div>
             )}
 
-            {selectedProyecto.estudiantes_expositores && selectedProyecto.estudiantes_expositores.length > 0 && (
-              <div>
-                <label className="text-sm font-semibold text-gray-600">Estudiantes Expositores</label>
-                <div className="mt-2 space-y-2">
-                  {selectedProyecto.estudiantes_expositores.map((id, index) => (
-                    <Chip key={index} label={id} className="mr-2" />
+            {/* Participantes/Estudiantes */}
+            {selectedProyecto.id_estudiantes && selectedProyecto.id_estudiantes.length > 0 && (
+              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <i className="pi pi-users text-indigo-600"></i>
+                  <label className="text-sm font-semibold text-indigo-900">Estudiantes Participantes</label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {selectedProyecto.id_estudiantes.map((estudiante, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-white p-2 rounded-md border border-indigo-100">
+                      <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold text-indigo-600">
+                          {(estudiante.nombre || estudiante).charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-sm text-indigo-800">
+                        {estudiante.nombre || estudiante}
+                      </span>
+                    </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Información adicional */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-cog text-orange-600"></i>
+                  <label className="text-sm font-semibold text-orange-900">Tipo de Actividad</label>
+                </div>
+                <div className="mt-1">{tipoActividadTemplate(selectedProyecto)}</div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-info-circle text-yellow-600"></i>
+                  <label className="text-sm font-semibold text-yellow-900">Estado</label>
+                </div>
+                <div className="mt-1">{estadoCalificacionTemplate(selectedProyecto)}</div>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-pencil text-red-600"></i>
+                  <label className="text-sm font-semibold text-red-900">Calificación</label>
+                </div>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="font-semibold text-red-800">
+                    {selectedProyecto.calificacion ? selectedProyecto.calificacion.toFixed(1) : 'Sin calificar'}
+                  </span>
+                  {selectedProyecto.calificacion && (
+                    <i className="pi pi-pencil text-red-500 text-sm"></i>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Información académica */}
+            {(selectedProyecto.nombre_linea || selectedProyecto.nombre_area || selectedProyecto.codigo_materia) && (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <i className="pi pi-graduation-cap text-slate-600"></i>
+                  <label className="text-sm font-semibold text-slate-900">Información Académica</label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {selectedProyecto.nombre_linea && (
+                    <div>
+                      <p className="text-xs text-slate-600 mb-1">Línea de Investigación</p>
+                      <p className="text-sm font-medium text-slate-800">{selectedProyecto.nombre_linea}</p>
+                    </div>
+                  )}
+                  {selectedProyecto.nombre_area && (
+                    <div>
+                      <p className="text-xs text-slate-600 mb-1">Área Temática</p>
+                      <p className="text-sm font-medium text-slate-800">{selectedProyecto.nombre_area}</p>
+                    </div>
+                  )}
+                  {selectedProyecto.codigo_materia && (
+                    <div>
+                      <p className="text-xs text-slate-600 mb-1">Materia</p>
+                      <p className="text-sm font-medium text-slate-800">{selectedProyecto.codigo_materia}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Descripción */}
+            {selectedProyecto.descripcion && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-align-left text-gray-600"></i>
+                  <label className="text-sm font-semibold text-gray-900">Descripción</label>
+                </div>
+                <p className="text-base text-gray-700 leading-relaxed">{selectedProyecto.descripcion}</p>
+              </div>
+            )}
+
+            {/* Documento PDF */}
+            {selectedProyecto.archivo_pdf && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-file-pdf text-red-600"></i>
+                  <label className="text-sm font-semibold text-red-900">Documento PDF</label>
+                </div>
+                <a
+                  href={selectedProyecto.archivo_pdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  <i className="pi pi-external-link"></i>
+                  Ver PDF del Proyecto
+                </a>
+              </div>
+            )}
+
+            {/* Fecha de subida */}
+            {selectedProyecto.fecha_subida && (
+              <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <i className="pi pi-calendar-plus text-cyan-600"></i>
+                  <label className="text-sm font-semibold text-cyan-900">Fecha de Subida</label>
+                </div>
+                <p className="text-base font-medium text-cyan-800">
+                  {new Date(selectedProyecto.fecha_subida).toLocaleString('es-CO', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
               </div>
             )}
           </div>
