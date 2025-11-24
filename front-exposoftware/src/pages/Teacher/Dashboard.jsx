@@ -6,6 +6,7 @@ import { getTeacherProjects } from "../../Services/ProjectsService.jsx";
 import ResearchLinesService from "../../Services/ResearchLinesService.jsx";
 import logo from "../../assets/Logo-unicesar.png";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import ReportGenerator from "../../components/ReportGenerator";
 
 // Main Dashboard Component
 export default function TeacherDashboard() {
@@ -280,6 +281,35 @@ export default function TeacherDashboard() {
     }
   };
 
+  // Funciones de exportación usando ReportGenerator
+  const exportarGraficaComoImagen = (chartId, fileName) => {
+    ReportGenerator.exportarGraficaComoImagen(chartId, fileName);
+  };
+
+  const exportarGraficaComoPDF = (chartId, title, data) => {
+    ReportGenerator.exportarGraficaComoPDF(chartId, title, data, { 
+      name: getFullName(),
+      category: user?.categoria_docente || 'No especificada'
+    });
+  };
+
+  const exportarReporteCompleto = () => {
+    ReportGenerator.exportarReporteCompleto({
+      userInfo: { 
+        name: getFullName(),
+        role: 'Profesor',
+        category: user?.categoria_docente || 'No especificada',
+        programCode: user?.codigo_programa || 'No especificado'
+      },
+      estadisticas: metricasProyectos,
+      chartIds: ['estado-proyectos-chart', 'lineas-investigacion-chart'],
+      chartTitles: ['Estado de Proyectos', 'Líneas de Investigación'],
+      chartData: [pieChartData, lineasChartData],
+      institutionName: 'Universidad Popular del Cesar',
+      eventName: 'Expo-software 2025'
+    });
+  };
+
   // Mostrar loading mientras se cargan los datos del usuario
   if (loading) {
     return (
@@ -451,16 +481,45 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
+            {/* Botón Exportar Reporte Completo */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={exportarReporteCompleto}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <i className="pi pi-file-pdf"></i>
+                    Exportar Reporte Completo
+                  </button>
+                </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Gráfica de pastel - Estado de Proyectos */}
               <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-chart-pie text-white text-sm"></i>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <i className="pi pi-chart-pie text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Estado de Proyectos</h3>
+                      <p className="text-sm text-gray-600">Distribución por calificación</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Estado de Proyectos</h3>
-                    <p className="text-sm text-gray-600">Distribución por calificación</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportarGraficaComoImagen('estado-proyectos-chart', 'Estado_Proyectos')}
+                      className="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como imagen"
+                    >
+                      <i className="pi pi-image text-lg"></i>
+                    </button>
+                    <button
+                      onClick={() => exportarGraficaComoPDF('estado-proyectos-chart', 'Estado de Proyectos', pieChartData)}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como PDF"
+                    >
+                      <i className="pi pi-file-pdf text-lg"></i>
+                    </button>
                   </div>
                 </div>
                 {cargandoProyectos ? (
@@ -468,7 +527,7 @@ export default function TeacherDashboard() {
                     <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : pieChartData.length > 0 ? (
-                  <div className="h-64">
+                  <div id="estado-proyectos-chart" className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -519,13 +578,31 @@ export default function TeacherDashboard() {
 
               {/* Gráfica de líneas de investigación */}
               <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-sitemap text-white text-sm"></i>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <i className="pi pi-sitemap text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Líneas de Investigación</h3>
+                      <p className="text-sm text-gray-600">Distribución por línea</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Líneas de Investigación</h3>
-                    <p className="text-sm text-gray-600">Distribución por línea</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportarGraficaComoImagen('lineas-investigacion-chart', 'Lineas_Investigacion')}
+                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como imagen"
+                    >
+                      <i className="pi pi-image text-lg"></i>
+                    </button>
+                    <button
+                      onClick={() => exportarGraficaComoPDF('lineas-investigacion-chart', 'Líneas de Investigación', lineasChartData)}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como PDF"
+                    >
+                      <i className="pi pi-file-pdf text-lg"></i>
+                    </button>
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-6 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
@@ -551,7 +628,7 @@ export default function TeacherDashboard() {
                     </div>
                   </div>
                 ) : lineasChartData.length > 0 ? (
-                  <div className="h-64">
+                  <div id="lineas-investigacion-chart" className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie

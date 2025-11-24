@@ -7,6 +7,7 @@ import { obtenerProyectos } from "../../Services/ProjectsService";
 import ResearchLinesService from "../../Services/ResearchLinesService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import logo from "../../assets/Logo-unicesar.png";
+import ReportGenerator from "../../components/ReportGenerator";
 
 export default function GuestDashboard() {
   const { logout, user } = useAuth();
@@ -67,6 +68,41 @@ export default function GuestDashboard() {
       logout();
       navigate("/login");
     }
+  };
+
+  // Funciones de exportación usando ReportGenerator
+  const exportarGraficaComoImagen = (chartId, fileName) => {
+    ReportGenerator.exportarGraficaComoImagen(chartId, fileName);
+  };
+
+  const exportarGraficaComoPDF = (chartId, title, data) => {
+    ReportGenerator.exportarGraficaComoPDF(chartId, title, data, {
+      name: `${invitadoData.nombres} ${invitadoData.apellidos}`,
+      company: invitadoData.nombre_empresa,
+      sector: invitadoData.sector_nombre
+    });
+  };
+
+  const exportarReporteCompleto = () => {
+    ReportGenerator.exportarReporteCompleto({
+      userInfo: {
+        name: `${invitadoData.nombres} ${invitadoData.apellidos}`,
+        role: 'Invitado',
+        company: invitadoData.nombre_empresa,
+        sector: invitadoData.sector_nombre,
+        email: invitadoData.correo
+      },
+      estadisticas: {
+        totalProyectos: todosProyectos.length,
+        lineasInvestigacion: lineasInvestigacion.length,
+        tiposProyecto: tiposProyectosData.length
+      },
+      chartIds: ['tipos-proyectos-chart', 'proyectos-linea-chart'],
+      chartTitles: ['Tipos de Proyectos', 'Proyectos por Línea de Investigación'],
+      chartData: [tiposProyectosData, proyectosPorLineaData],
+      institutionName: 'Universidad Popular del Cesar',
+      eventName: 'Expo-software 2025'
+    });
   };
 
   // Catálogos
@@ -368,18 +404,47 @@ const coloresLineas = [
               </div>
             </div>
 
+            {/* Botón Exportar Reporte Completo */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={exportarReporteCompleto}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <i className="pi pi-file-pdf"></i>
+                    Exportar Reporte Completo
+                  </button>
+                </div>
+
             {/* Gráficas de Estadísticas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               
               {/* Gráfica de Tipos de Proyectos */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-chart-pie text-white text-sm"></i>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                      <i className="pi pi-chart-pie text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Tipos de Proyectos</h3>
+                      <p className="text-sm text-gray-600">Distribución por tipo de actividad</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Tipos de Proyectos</h3>
-                    <p className="text-sm text-gray-600">Distribución por tipo de actividad</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportarGraficaComoImagen('tipos-proyectos-chart', 'Tipos_Proyectos')}
+                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como imagen"
+                    >
+                      <i className="pi pi-image text-lg"></i>
+                    </button>
+                    <button
+                      onClick={() => exportarGraficaComoPDF('tipos-proyectos-chart', 'Tipos de Proyectos', tiposProyectosData)}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como PDF"
+                    >
+                      <i className="pi pi-file-pdf text-lg"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -388,7 +453,7 @@ const coloresLineas = [
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : tiposProyectosData.length > 0 ? (
-                  <div className="h-96">
+                  <div id="tipos-proyectos-chart" className="h-96">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -437,13 +502,31 @@ const coloresLineas = [
 
               {/* Gráfica de Proyectos por Línea de Investigación */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
-                    <i className="pi pi-chart-pie text-white text-sm"></i>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <i className="pi pi-chart-pie text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">Proyectos por Línea</h3>
+                      <p className="text-sm text-gray-600">Distribución por línea de investigación</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Proyectos por Línea</h3>
-                    <p className="text-sm text-gray-600">Distribución por línea de investigación</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => exportarGraficaComoImagen('proyectos-linea-chart', 'Proyectos_por_Linea')}
+                      className="p-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como imagen"
+                    >
+                      <i className="pi pi-image text-lg"></i>
+                    </button>
+                    <button
+                      onClick={() => exportarGraficaComoPDF('proyectos-linea-chart', 'Proyectos por Línea de Investigación', proyectosPorLineaData)}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors duration-200"
+                      title="Exportar como PDF"
+                    >
+                      <i className="pi pi-file-pdf text-lg"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -452,7 +535,7 @@ const coloresLineas = [
                     <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : proyectosPorLineaData.length > 0 ? (
-                  <div className="h-80">
+                  <div id="proyectos-linea-chart" className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie

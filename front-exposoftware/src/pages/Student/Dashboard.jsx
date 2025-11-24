@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { obtenerMisProyectos } from "../../Services/ProjectsService.jsx";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import logo from "../../assets/Logo-unicesar.png";
+import ReportGenerator from "../../components/ReportGenerator";
 
 export default function StudentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -59,56 +60,43 @@ export default function StudentDashboard() {
         // Calcular métricas
         const totalProyectos = proyectos.length;
         
-        // Debug: Ver qué campos tienen los proyectos para determinar estado
-        if (proyectos.length > 0) {
-          console.log('🔍 DEBUG - Campos del primer proyecto:', Object.keys(proyectos[0]));
-          console.log('🔍 DEBUG - Primer proyecto completo:', proyectos[0]);
-          console.log('🔍 DEBUG - calificacion:', proyectos[0].calificacion);
-          console.log('🔍 DEBUG - estado_calificacion:', proyectos[0].estado_calificacion);
-          
-          // Debug específico para materia
-          console.log('🔍 DEBUG - Campos relacionados con materia:');
-          console.log('   - nombre_materia:', proyectos[0].nombre_materia);
-          console.log('   - materia:', proyectos[0].materia);
-          console.log('   - asignatura:', proyectos[0].asignatura);
-          console.log('   - id_materia:', proyectos[0].id_materia);
-          console.log('   - codigo_materia:', proyectos[0].codigo_materia);
-          
-          // Debug para sublíneas de investigación
-          console.log('🔍 DEBUG - Campos relacionados con investigación:');
-          console.log('   - codigo_linea:', proyectos[0].codigo_linea);
-          console.log('   - nombre_linea:', proyectos[0].nombre_linea);
-          console.log('   - codigo_sublinea:', proyectos[0].codigo_sublinea);
-          console.log('   - nombre_sublinea:', proyectos[0].nombre_sublinea);
-          console.log('   - codigo_area:', proyectos[0].codigo_area);
-          console.log('   - nombre_area:', proyectos[0].nombre_area);
-        }
-        
+        // Debug detallado de calificaciones
+        console.log('🔍 DEBUG - Análisis de calificaciones:');
+        proyectos.forEach((p, index) => {
+          console.log(`   Proyecto ${index + 1} (${p.titulo_proyecto}):`);
+          console.log(`     - estado_calificacion: "${p.estado_calificacion}" (tipo: ${typeof p.estado_calificacion})`);
+          console.log(`     - calificacion: "${p.calificacion}" (tipo: ${typeof p.calificacion}, isNaN: ${isNaN(p.calificacion)})`);
+          console.log(`     - calificacion parsed: ${parseFloat(p.calificacion)}`);
+        });
+
         const proyectosAprobados = proyectos.filter(p => {
           // Si tiene estado_calificacion, usarlo
           if (p.estado_calificacion) {
             return p.estado_calificacion === 'aprobado';
           }
           // Si no, usar calificacion numérica (>= 3.0 = aprobado)
-          if (p.calificacion !== null && p.calificacion !== undefined) {
-            return p.calificacion >= 3.0;
+          if (p.calificacion !== null && p.calificacion !== undefined && !isNaN(p.calificacion)) {
+            return parseFloat(p.calificacion) >= 3.0;
           }
           // Si no tiene ninguno, no es aprobado
           return false;
         }).length;
-        
+
         const proyectosReprobados = proyectos.filter(p => {
           // Si tiene estado_calificacion, usarlo
           if (p.estado_calificacion) {
             return p.estado_calificacion === 'reprobado';
           }
           // Si no, usar calificacion numérica (< 3.0 = reprobado)
-          if (p.calificacion !== null && p.calificacion !== undefined) {
-            return p.calificacion < 3.0;
+          if (p.calificacion !== null && p.calificacion !== undefined && !isNaN(p.calificacion)) {
+            return parseFloat(p.calificacion) < 3.0;
           }
           // Si no tiene ninguno, no es reprobado
           return false;
-        }).length;
+        }).length;        console.log('📊 Resultados del filtrado:');
+        console.log('   - Total proyectos:', totalProyectos);
+        console.log('   - Proyectos aprobados:', proyectosAprobados);
+        console.log('   - Proyectos reprobados:', proyectosReprobados);
         
         setMetricasEstudiante({
           totalProyectos,
@@ -277,7 +265,33 @@ export default function StudentDashboard() {
     }
   };
 
+  // Funciones de exportación usando ReportGenerator
+  const exportarGraficaComoImagen = (chartId, fileName) => {
+    ReportGenerator.exportarGraficaComoImagen(chartId, fileName);
+  };
 
+  const exportarGraficaComoPDF = (chartId, title, data) => {
+    ReportGenerator.exportarGraficaComoPDF(chartId, title, data, { name: getFullName() });
+  };
+
+  const exportarReporteCompleto = () => {
+    ReportGenerator.exportarReporteCompleto({
+      userInfo: { 
+        name: getFullName(),
+        role: 'Estudiante'
+      },
+      estadisticas: {
+        totalProyectos: metricasEstudiante.totalProyectos,
+        aprobados: metricasEstudiante.proyectosAprobados,
+        reprobados: metricasEstudiante.proyectosReprobados
+      },
+      chartIds: ['chart-materias', 'chart-sublineas'],
+      chartTitles: ['Proyectos por Materia', 'Sublíneas de Investigación'],
+      chartData: [proyectosPorMateriaData, proyectosPorSublineaData],
+      institutionName: 'Universidad Popular del Cesar',
+      eventName: 'Expo-software 2025'
+    });
+  };
 
   // Colores representativos de la universidad
   const universityColors = [
@@ -430,6 +444,17 @@ export default function StudentDashboard() {
             {/* Stats Cards */}
             {activeTab === "dashboard" && (
               <>
+                {/* Botón de exportar reporte completo */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={exportarReporteCompleto}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <i className="pi pi-file-pdf"></i>
+                    Exportar Reporte Completo
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
                   {/* Card 1 - Total Proyectos Inscritos */}
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -437,7 +462,7 @@ export default function StudentDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-blue-700 mb-1 truncate">Total Proyectos</p>
                         <h3 className="text-2xl sm:text-3xl font-bold text-blue-900">
-                          {cargandoMetricas ? "..." : metricasEstudiante.totalProyectos}
+                          {cargandoMetricas ? "..." : (metricasEstudiante?.totalProyectos || 0)}
                         </h3>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="text-xs text-blue-600">Inscritos</span>
@@ -455,7 +480,7 @@ export default function StudentDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-emerald-700 mb-1 truncate">Proyectos Aprobados</p>
                         <h3 className="text-2xl sm:text-3xl font-bold text-emerald-900">
-                          {cargandoMetricas ? "..." : metricasEstudiante.proyectosAprobados}
+                          {cargandoMetricas ? "..." : (metricasEstudiante?.proyectosAprobados || 0)}
                         </h3>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="text-xs text-emerald-600">Calificación ≥ 3.0</span>
@@ -473,7 +498,7 @@ export default function StudentDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-red-700 mb-1 truncate">Proyectos Reprobados</p>
                         <h3 className="text-2xl sm:text-3xl font-bold text-red-900">
-                          {cargandoMetricas ? "..." : metricasEstudiante.proyectosReprobados}
+                          {cargandoMetricas ? "..." : (metricasEstudiante.proyectosReprobados ?? 0)}
                         </h3>
                         <div className="flex items-center gap-1 mt-2">
                           <span className="text-xs text-red-600">Calificación &lt; 3.0</span>
@@ -490,13 +515,32 @@ export default function StudentDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
                   {/* Gráfica de Proyectos por Materia */}
                   <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                      <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <i className="pi pi-chart-pie text-white text-xs sm:text-sm"></i>
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <i className="pi pi-chart-pie text-white text-xs sm:text-sm"></i>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Proyectos por Materia</h3>
+                          <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Distribución de tus proyectos por asignatura</p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Proyectos por Materia</h3>
-                        <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Distribución de tus proyectos por asignatura</p>
+                      {/* Botones de descarga */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => exportarGraficaComoImagen('chart-materias', 'Proyectos_por_Materia')}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          title="Descargar como imagen"
+                        >
+                          <i className="pi pi-image text-sm"></i>
+                        </button>
+                        <button
+                          onClick={() => exportarGraficaComoPDF('chart-materias', 'Proyectos por Materia', proyectosPorMateriaData)}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          title="Descargar como PDF"
+                        >
+                          <i className="pi pi-file-pdf text-sm"></i>
+                        </button>
                       </div>
                     </div>
                     {cargandoMetricas ? (
@@ -504,7 +548,7 @@ export default function StudentDashboard() {
                         <div className="w-6 sm:w-8 h-6 sm:h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : proyectosPorMateriaData.length > 0 ? (
-                      <div className="h-72 sm:h-96">
+                      <div id="chart-materias" className="h-72 sm:h-96">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
@@ -556,13 +600,32 @@ export default function StudentDashboard() {
 
                   {/* Gráfica de Dona de Sublíneas de Investigación */}
                   <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                      <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <i className="pi pi-chart-pie text-white text-xs sm:text-sm"></i>
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <i className="pi pi-chart-pie text-white text-xs sm:text-sm"></i>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Sublíneas de Investigación</h3>
+                          <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Distribución por líneas de investigación</p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Sublíneas de Investigación</h3>
-                        <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Distribución por líneas de investigación</p>
+                      {/* Botones de descarga */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => exportarGraficaComoImagen('chart-sublineas', 'Sublíneas_de_Investigación')}
+                          className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Descargar como imagen"
+                        >
+                          <i className="pi pi-image text-sm"></i>
+                        </button>
+                        <button
+                          onClick={() => exportarGraficaComoPDF('chart-sublineas', 'Sublíneas de Investigación', proyectosPorSublineaData)}
+                          className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Descargar como PDF"
+                        >
+                          <i className="pi pi-file-pdf text-sm"></i>
+                        </button>
                       </div>
                     </div>
                     {cargandoMetricas ? (
@@ -570,7 +633,7 @@ export default function StudentDashboard() {
                         <div className="w-6 sm:w-8 h-6 sm:h-8 border-4 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : proyectosPorSublineaData.length > 0 ? (
-                      <div className="h-72 sm:h-80">
+                      <div id="chart-sublineas" className="h-72 sm:h-80">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie

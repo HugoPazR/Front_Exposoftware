@@ -6,6 +6,7 @@ import * as AuthService from "../../Services/AuthService";
 import DashboardService from "../../Services/DashboardService";
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Chart } from 'primereact/chart';
+import ReportGenerator from "../../components/ReportGenerator";
 
 // Main Dashboard Component
 export default function AdminDashboard() {
@@ -72,6 +73,40 @@ export default function AdminDashboard() {
         console.error('❌ Error al cerrar sesión:', error);
       }
     }
+  };
+
+  // Funciones de exportación usando ReportGenerator
+  const exportarGraficaComoImagen = (chartId, fileName) => {
+    ReportGenerator.exportarGraficaComoImagen(chartId, fileName);
+  };
+
+  const exportarGraficaComoPDF = (chartId, title, data) => {
+    ReportGenerator.exportarGraficaComoPDF(chartId, title, data, { name: getUserName() });
+  };
+
+  const exportarReporteCompleto = () => {
+    const tiposData = estadisticas.proyectosPorTipo?.labels?.map((label, index) => ({
+      name: label,
+      value: estadisticas.proyectosPorTipo?.valores?.[index] || 0
+    })) || [];
+
+    ReportGenerator.exportarReporteCompleto({
+      userInfo: { 
+        name: getUserName(),
+        role: 'Administrador'
+      },
+      estadisticas: {
+        totalProyectos: estadisticas.totalProyectos,
+        totalEstudiantes: estadisticas.totalEstudiantes,
+        totalProfesores: estadisticas.totalProfesores,
+        proyectosPorTipo: tiposData
+      },
+      chartIds: ['proyectos-tipo-chart'],
+      chartTitles: ['Proyectos por Tipo de Actividad'],
+      chartData: [tiposData],
+      institutionName: 'Universidad Popular del Cesar',
+      eventName: 'Expo-software 2025'
+    });
   };
 
   // Obtener nombre e iniciales del usuario
@@ -278,6 +313,17 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Botón Exportar Reporte Completo */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={exportarReporteCompleto}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <i className="pi pi-file-pdf"></i>
+                    Exportar Reporte Completo
+                  </button>
+                </div>
+
             {/* Charts Row - Gráficas de Power BI */}
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -313,16 +359,40 @@ export default function AdminDashboard() {
             {/* Proyectos por Tipo de Actividad */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Proyectos por Tipo de Actividad
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Distribución de {estadisticas.proyectosPorTipo?.total || 0} proyectos registrados
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                    <i className="pi pi-chart-pie text-white text-sm"></i>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Proyectos por Tipo de Actividad
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Distribución de {estadisticas.proyectosPorTipo?.total || 0} proyectos registrados
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-teal-600">
-                  <i className="pi pi-chart-pie"></i>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => exportarGraficaComoImagen('proyectos-tipo-chart', 'Proyectos_por_Tipo')}
+                    className="p-2 bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-lg transition-colors duration-200"
+                    title="Exportar como imagen"
+                  >
+                    <i className="pi pi-image text-lg"></i>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const tiposData = estadisticas.proyectosPorTipo?.labels?.map((label, index) => ({
+                        name: label,
+                        value: estadisticas.proyectosPorTipo?.valores?.[index] || 0
+                      })) || [];
+                      exportarGraficaComoPDF('proyectos-tipo-chart', 'Proyectos por Tipo de Actividad', tiposData);
+                    }}
+                    className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors duration-200"
+                    title="Exportar como PDF"
+                  >
+                    <i className="pi pi-file-pdf text-lg"></i>
+                  </button>
                 </div>
               </div>
 
@@ -337,7 +407,7 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Gráfica Circular */}
                   <div className="flex items-center justify-center">
-                    <div style={{ width: '100%', maxWidth: '350px', height: '350px' }}>
+                    <div id="proyectos-tipo-chart" style={{ width: '100%', maxWidth: '350px', height: '350px' }}>
                       <Chart type="doughnut" data={chartData} options={chartOptions} />
                     </div>
                   </div>
