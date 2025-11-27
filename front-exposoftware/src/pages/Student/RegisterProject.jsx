@@ -187,15 +187,19 @@ export default function RegisterProject() {
         // 5️⃣ Cargar eventos disponibles
         let eventosData = await EventosService.obtenerEventos();
         
-        // Filtrar solo eventos activos o futuros (opcional)
-        const hoy = new Date();
-        eventosData = eventosData.filter(evento => {
-          if (!evento.fecha_fin) return true; // Si no tiene fecha, mostrar
-          const fechaFin = new Date(evento.fecha_fin);
-          return fechaFin >= hoy; // Mostrar solo eventos que no han terminado
-        });
-        
+        // Para registro de proyectos, mostrar todos los eventos (no filtrar por fecha)
+        // Los estudiantes deberían poder postular a eventos pasados si es necesario
         console.log('📅 Eventos disponibles:', eventosData.length);
+        console.log('🔍 Primer evento (para debug):', eventosData[0]);
+        
+        // Verificar que los eventos tengan ID
+        if (eventosData.length > 0) {
+          const primerEvento = eventosData[0];
+          console.log('🔍 Campos del evento:', Object.keys(primerEvento));
+          console.log('🔍 ID posible - id_evento:', primerEvento.id_evento);
+          console.log('🔍 ID posible - id:', primerEvento.id);
+          console.log('🔍 ID posible - _id:', primerEvento._id);
+        }
 
         // Actualizar estados
         setEstudiantes(listaEstudiantes);
@@ -215,6 +219,9 @@ export default function RegisterProject() {
           materias: materiasData.length,
           eventos: eventosData.length
         });
+
+        // Debug específico para eventos
+        console.log('🎯 Eventos en estado después de setEventos:', eventosData);
 
         // Auto-agregar usuario actual al proyecto (estudiante o egresado)
         const userId = user?.id_estudiante || user?.id_egresado || user?.id_usuario;
@@ -716,55 +723,65 @@ export default function RegisterProject() {
             </div>
           </div>
 
-          {/* EVENTO - Ahora primero */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Evento <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={form.id_evento}
-              onChange={(e) =>
-                setForm((s) => ({ ...s, id_evento: e.target.value }))
-              }
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              required
-            >
-              <option value="">Seleccionar evento</option>
-              {eventos.map((evento, index) => {
-                const fechaInicio = evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-CO', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                }) : '';
-                const fechaFin = evento.fecha_fin ? new Date(evento.fecha_fin).toLocaleDateString('es-CO', { 
-                  year: 'numeric', 
-                  month: 'short', 
-                  day: 'numeric' 
-                }) : '';
-                
-                const eventoKey = evento.id_evento || `evento-${index}`;
-                
-                return (
-                  <option key={eventoKey} value={evento.id_evento}>
-                    {evento.nombre_evento} {fechaInicio && `(${fechaInicio}${fechaFin && fechaFin !== fechaInicio ? ' - ' + fechaFin : ''})`}
-                  </option>
-                );
-              })}
-            </select>
-            {eventos.length === 0 && (
-              <p className="text-xs text-amber-600 mt-1">
-                ⚠️ No hay eventos disponibles. Contacta al administrador.
-              </p>
-            )}
-            {form.id_evento && eventos.find(e => e.id_evento === form.id_evento) && (
-              <div className="mt-2 p-2 bg-teal-50 rounded text-xs text-teal-800">
-                <strong>Evento seleccionado:</strong> {eventos.find(e => e.id_evento === form.id_evento)?.nombre_evento}
-                {eventos.find(e => e.id_evento === form.id_evento)?.lugar && (
-                  <> • 📍 {eventos.find(e => e.id_evento === form.id_evento)?.lugar}</>
-                )}
-              </div>
-            )}
-          </div>
+        {/* EVENTO - Ahora primero */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Evento <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={form.id_evento}
+            onChange={(e) =>
+              setForm((s) => ({ ...s, id_evento: e.target.value }))
+            }
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            required
+          >
+            <option value="">Seleccionar evento</option>
+            {eventos.map((evento, index) => {
+              const fechaInicio = evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-CO', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              }) : '';
+              const fechaFin = evento.fecha_fin ? new Date(evento.fecha_fin).toLocaleDateString('es-CO', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              }) : '';
+              
+              // 🔥 Usar ID real del evento - intentar diferentes campos posibles
+              const eventoValue = evento.id_evento || evento.id || evento._id || index.toString();
+              
+              return (
+                <option key={eventoValue} value={eventoValue}>
+                  {evento.nombre_evento} {fechaInicio && `(${fechaInicio}${fechaFin && fechaFin !== fechaInicio ? ' - ' + fechaFin : ''})`}
+                </option>
+              );
+            })}
+          </select>
+          {eventos.length === 0 && (
+            <p className="text-xs text-amber-600 mt-1">
+              ⚠️ No hay eventos disponibles. Contacta al administrador.
+            </p>
+          )}
+          {form.id_evento && (
+            <div className="mt-2 p-2 bg-teal-50 rounded text-xs text-teal-800">
+              <strong>Evento seleccionado:</strong> {eventos.find(e => {
+                const eventoId = e.id_evento || e.id || e._id || eventos.indexOf(e).toString();
+                return eventoId === form.id_evento;
+              })?.nombre_evento}
+              {eventos.find(e => {
+                const eventoId = e.id_evento || e.id || e._id || eventos.indexOf(e).toString();
+                return eventoId === form.id_evento;
+              })?.lugar && (
+                <> • 📍 {eventos.find(e => {
+                  const eventoId = e.id_evento || e.id || e._id || eventos.indexOf(e).toString();
+                  return eventoId === form.id_evento;
+                })?.lugar}</>
+              )}
+            </div>
+          )}
+        </div>
 
           {/* Materia */}
           <div>
