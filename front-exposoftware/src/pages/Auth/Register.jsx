@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import {
   validateAllFields,
   hasErrors,
@@ -33,6 +33,10 @@ function RegisterPage() {
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
   const [rol, setrol] = useState("");
+  
+  // Estados para términos y condiciones
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   
   // Estados para datos académicos
   const [facultades, setFacultades] = useState([]);
@@ -191,7 +195,17 @@ function RegisterPage() {
     handleDepartamentoChangeUtil(e, formData, setFormData, setciudades, setErrors, setSuccessFields, rol, colombia);
   };
 
+  const handleTermsChange = (e) => {
+    setAcceptedTerms(e.target.checked);
+  };
+
   const handleSubmit = (e) => {
+    // Validar que acepte términos y condiciones
+    if (!acceptedTerms) {
+      setMensajeError("Debes aceptar los términos y condiciones para continuar.");
+      return;
+    }
+    
     handleSubmitUtil(e, formData, rol, setCargando, setMensajeExito, setMensajeError, setErrors, validateAllFields, hasErrors);
   };
 
@@ -270,10 +284,116 @@ function RegisterPage() {
             setShowConfirmPassword={setShowConfirmPassword}
           />
 
+          {/* SECCIÓN DE TÉRMINOS Y CONDICIONES */}
+          <div className="col-span-2 border-t pt-6 mt-4">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              {/* Botón para expandir/contraer */}
+              <button
+                type="button"
+                onClick={() => setShowTerms(!showTerms)}
+                className="w-full flex items-center justify-between hover:bg-gray-100 p-2 rounded transition-colors"
+              >
+                <span className="font-semibold text-gray-800 text-sm md:text-base">
+                  Términos y Condiciones
+                </span>
+                {showTerms ? (
+                  <ChevronUp size={20} className="text-green-600" />
+                ) : (
+                  <ChevronDown size={20} className="text-green-600" />
+                )}
+              </button>
+
+              {/* Contenido expandible */}
+              {showTerms && (
+                <div className="mt-4 bg-white p-4 rounded border border-gray-200 max-h-64 overflow-y-auto text-xs md:text-sm text-gray-700 space-y-3">
+                  <p>
+                    <strong>1. Aceptación de los Términos</strong>
+                    <br />
+                    Al registrarte en Exposoftware, aceptas cumplir con estos términos y condiciones. Si no estás de acuerdo, no debes usar nuestro servicio.
+                  </p>
+
+                  <p>
+                    <strong>2. Uso de Datos Personales</strong>
+                    <br />
+                    Recopilamos y procesamos tus datos personales según nuestra Política de Privacidad. Utilizamos tu información para:
+                    <br />
+                    • Crear y mantener tu cuenta
+                    <br />
+                    • Comunicarnos contigo sobre actualizaciones
+                    <br />
+                    • Mejorar nuestros servicios
+                  </p>
+
+                  <p>
+                    <strong>3. Consentimiento para Comunicaciones</strong>
+                    <br />
+                    Consientes recibir correos electrónicos, notificaciones y mensajes relacionados con tu registro y actividad en la plataforma.
+                  </p>
+
+                  <p>
+                    <strong>4. Responsabilidad del Usuario</strong>
+                    <br />
+                    Eres responsable de mantener la confidencialidad de tu contraseña y de toda actividad que ocurra bajo tu cuenta.
+                  </p>
+
+                  <p>
+                    <strong>5. Modificación de Términos</strong>
+                    <br />
+                    Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigor inmediatamente.
+                  </p>
+
+                  <p>
+                    <strong>6. Limitación de Responsabilidad</strong>
+                    <br />
+                    Exposoftware no será responsable de daños indirectos o consecuentes derivados del uso de nuestro servicio.
+                  </p>
+
+                  <p>
+                    <strong>7. Protección de Datos</strong>
+                    <br />
+                    Tus datos están protegidos con los más altos estándares de seguridad. Nos comprometemos a proteger tu privacidad y cumplir con todas las regulaciones aplicables.
+                  </p>
+                </div>
+              )}
+
+              {/* Checkbox de aceptación */}
+              <div className="mt-4 flex items-start gap-3 p-2 rounded hover:bg-gray-100 transition-colors">
+                <input
+                  type="checkbox"
+                  id="termsCheckbox"
+                  checked={acceptedTerms}
+                  onChange={handleTermsChange}
+                  className="mt-1 w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500 cursor-pointer accent-green-600"
+                />
+                <label
+                  htmlFor="termsCheckbox"
+                  className="text-xs md:text-sm text-gray-700 cursor-pointer leading-tight"
+                >
+                  Acepto los{" "}
+                  <span className="font-semibold text-green-600">
+                    términos y condiciones
+                  </span>
+                  {" "}y autorizo el procesamiento de mis datos personales conforme a la política de privacidad de{" "}
+                  <span className="font-semibold text-green-600">Exposoftware</span>.
+                </label>
+              </div>
+
+              {/* Advertencia si no está aceptado */}
+              {!acceptedTerms && (
+                <div className="mt-3 flex items-start gap-2 p-2 bg-red-50 rounded border border-red-200">
+                  <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-red-700">
+                    Debes aceptar los términos y condiciones para continuar con el registro.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="col-span-2 mt-4">
             <button 
               type="submit" 
-              disabled={cargando} 
+              disabled={cargando || !acceptedTerms} 
               className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {cargando ? (
