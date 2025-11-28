@@ -5,7 +5,7 @@ import AdminSidebar from "../../components/Layout/AdminSidebar";
 import AssistanceService from "../../services/AssistanceService";
 import EventosService from "../../Services/EventosService";
 import * as AuthService from "../../Services/AuthService";
-import ReportGenerator from "../../components/ReportGenerator";
+import ReportGenerator from "../../components/ReportGenerator2";
 import { Chart } from 'primereact/chart';
 
 export default function EventsAttendance() {
@@ -225,6 +225,27 @@ export default function EventsAttendance() {
       asistencias: chartData.datasets[0].data[index]
     }));
 
+    // Calcular estadísticas adicionales
+    const totalAsistencias = registeredPeople.length;
+    const horaPico = chartData.labels.length > 0 ?
+      chartData.labels[chartData.datasets[0].data.indexOf(Math.max(...chartData.datasets[0].data))] :
+      '--:--';
+    const promedioPorHora = chartData.labels.length > 0 ?
+      (totalAsistencias / chartData.labels.length).toFixed(1) :
+      '0';
+
+    // Obtener fecha y hora del evento
+    const fechaInicio = eventoInfo ? new Date(eventoInfo.fecha_inicio).toLocaleDateString('es-CO') : '';
+    const horaInicio = eventoInfo ? new Date(eventoInfo.fecha_inicio).toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }) : '';
+    const fechaFin = eventoInfo ? new Date(eventoInfo.fecha_fin).toLocaleDateString('es-CO') : '';
+    const horaFin = eventoInfo ? new Date(eventoInfo.fecha_fin).toLocaleTimeString('es-CO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }) : '';
+
     ReportGenerator.exportarReporteCompleto({
       userInfo: {
         name: getUserName(),
@@ -232,15 +253,29 @@ export default function EventsAttendance() {
       },
       estadisticas: {
         evento: eventoInfo?.nombre_evento || 'Evento no seleccionado',
-        totalAsistencias: registeredPeople.length,
-        fechaEvento: eventoInfo ? new Date(eventoInfo.fecha_inicio).toLocaleDateString('es-CO') : '',
-        asistenciasPorHora: asistenciasData
+        descripcion: eventoInfo?.descripcion || '',
+        lugar: eventoInfo?.lugar || '',
+        fechaInicio: fechaInicio,
+        horaInicio: horaInicio,
+        fechaFin: fechaFin,
+        horaFin: horaFin,
+        estado: eventoInfo?.estado === 'ACTIVO' ? 'Activo' : 'Inactivo',
+        totalAsistencias: totalAsistencias,
+        horaPico: horaPico,
+        promedioPorHora: promedioPorHora,
+        horasRegistradas: chartData.labels.length,
+        asistenciasPorHora: asistenciasData,
+        fechaGeneracion: new Date().toLocaleDateString('es-CO'),
+        horaGeneracion: new Date().toLocaleTimeString('es-CO', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
       },
       chartIds: ['asistencias-chart'],
-      chartTitles: ['Asistencias por Hora'],
+      chartTitles: ['Distribución de Asistencias por Hora'],
       chartData: [asistenciasData],
       institutionName: 'Universidad Popular del Cesar',
-      eventName: `Asistencias - ${eventoInfo?.nombre_evento || 'Evento'}`
+      eventName: `Reporte de Asistencias - ${eventoInfo?.nombre_evento || 'Evento'}`
     });
   };
 
