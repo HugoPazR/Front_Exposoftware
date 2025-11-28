@@ -25,6 +25,7 @@ import RegistrarEventos from "../pages/Admin/RegisterEvent";
 import GestionarEventos from "../pages/Admin/ManageEvents";
 //import Evento from "../pages/Admin/Evento";
 import GestionAsistencia from "../pages/Admin/AttendanceAdmin";
+import EventsAttendance from "../pages/Admin/EventsAttendance";
 
 // Otros
 import GestionCertificados from "../pages/Admin/GestionCertificados";
@@ -184,6 +185,15 @@ export default function AdminRoutes() {
         element={
           <AdminRoute>
             <GestionAsistencia/>
+          </AdminRoute>
+        } 
+      />
+
+      <Route 
+        path="eventos-asistencias" 
+        element={
+          <AdminRoute>
+            <EventsAttendance/>
           </AdminRoute>
         } 
       />

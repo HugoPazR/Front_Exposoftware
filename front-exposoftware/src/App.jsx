@@ -42,6 +42,7 @@ function NavbarWrapper() {
     "/admin/certificados",
     "/admin/proyectos",
     "/admin/evento",
+    "/admin/eventos-asistencias",
     "/graduate/dashboard",
     "/graduate/profile",
     "/graduate/proyectos",

@@ -58,6 +58,11 @@ export default function AdminSidebar({ userName = "Carlos Mendoza", userRole = "
       label: "Registro de Asistencia"
     },
     {
+      to: "/admin/eventos-asistencias",
+      icon: "pi-chart-bar",
+      label: "Reporte de Eventos y Asistencias"
+    },
+    {
       to: "/admin/crear-facultad",
       icon: "pi-building",
       label: "Gestión de Facultades"
