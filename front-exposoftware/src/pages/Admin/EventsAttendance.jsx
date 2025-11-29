@@ -7,6 +7,7 @@ import EventosService from "../../Services/EventosService";
 import * as AuthService from "../../Services/AuthService";
 import ReportGenerator from "../../components/ReportGenerator2";
 import { Chart } from 'primereact/chart';
+import * as XLSX from 'xlsx';
 
 export default function EventsAttendance() {
   const [eventos, setEventos] = useState([]);
@@ -218,6 +219,69 @@ export default function EventsAttendance() {
     ReportGenerator.exportarGraficaComoPDF(chartId, title, data, { name: getUserName() });
   };
 
+
+
+  const exportarAsistenciasExcel  = () => {
+    if (!registeredPeople || registeredPeople.length === 0) {
+      alert('No hay datos para exportar');
+      return;
+    }
+
+    const eventoInfo = eventos.find(e => e.id_evento === eventoSeleccionado);
+
+    // Preparar datos
+    const data = registeredPeople.map(persona => {
+      const fechaRegistro = persona.fecha_registro ? new Date(persona.fecha_registro) : null;
+      const fecha = fechaRegistro ? fechaRegistro.toLocaleDateString('es-CO') : '';
+      const hora = fechaRegistro ? fechaRegistro.toLocaleTimeString('es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }) : '';
+
+      return {
+        'ID Usuario': persona.id_usuario,
+        'Nombre Completo': persona.nombre_completo,
+        'Correo Electrónico': persona.correo,
+        'Fecha Registro': fecha,
+        'Hora Registro': hora,
+        'Evento': eventoInfo?.nombre_evento || ''
+      };
+    });
+
+    // Crear workbook
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencias');
+
+    // Ajustar ancho de columnas
+    const columnWidths = [
+      { wch: 25 }, // ID Usuario
+      { wch: 30 }, // Nombre Completo
+      { wch: 35 }, // Correo Electrónico
+      { wch: 15 }, // Fecha Registro
+      { wch: 15 }, // Hora Registro
+      { wch: 25 }  // Evento
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Aplicar estilos básicos al header
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1';
+      if (!worksheet[address]) continue;
+      worksheet[address].s = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '366092' } },
+        alignment: { horizontal: 'center', vertical: 'center' }
+      };
+    }
+
+    // Descargar archivo
+    const nombreArchivo = `Asistencias_${eventoInfo?.nombre_evento || 'Evento'}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, nombreArchivo);
+  };
+
   const exportarReporteAsistencias = () => {
     const eventoInfo = eventos.find(e => e.id_evento === eventoSeleccionado);
     const asistenciasData = chartData.labels.map((label, index) => ({
@@ -404,6 +468,26 @@ export default function EventsAttendance() {
                   />
                 </div>
               </div>
+
+              {/* Botones de exportación */}
+              {registeredPeople.length > 0 && (
+                <div className="mb-6 flex flex-wrap gap-3 justify-center">
+                  <button
+                    onClick={exportarAsistenciasExcel}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <i className="pi pi-file-excel"></i>
+                    Exportar a Excel
+                  </button>
+                  <button
+                    onClick={() => exportarGraficaComoImagen('asistencias-chart', `Asistencias_${eventos.find(e => e.id_evento === eventoSeleccionado)?.nombre_evento || 'Evento'}`)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <i className="pi pi-image"></i>
+                    Gráfica como Imagen
+                  </button>
+                </div>
+              )}
 
               {/* Tabla */}
               <div className="overflow-x-auto">
